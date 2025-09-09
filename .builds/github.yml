@@ -1,0 +1,11 @@
+image: alpine/latest
+secrets:
+  - de4d7db1-fa49-440f-b6d1-ddfb0e4a8000
+sources:
+  - git+ssh://git@git.sr.ht/~ducmbui/mammoth
+tasks:
+  - mirror-to-github: |
+      cd ~/mammoth
+      ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+      git remote add github git@github.com:bmndc/mammoth.git
+      git push --mirror github
