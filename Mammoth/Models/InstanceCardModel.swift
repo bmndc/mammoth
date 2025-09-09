@@ -19,35 +19,36 @@ struct InstanceCardModel {
     var isPinned: Bool
 
     init(instance: tagInstance) {
-        self.name = instance.name
-        self.numberOfUsers = instance.users
-        self.languages = instance.info?.languages
-        self.description = instance.info?.shortDescription
-        self.categories = instance.info?.categories
-        self.imageURL = instance.thumbnail
-        self.isPinned = InstanceManager.shared.pinnedStatusForInstance(instance.name) == .pinned
+        name = instance.name
+        numberOfUsers = instance.users
+        languages = instance.info?.languages
+        description = instance.info?.shortDescription
+        categories = instance.info?.categories
+        imageURL = instance.thumbnail
+        isPinned = InstanceManager.shared.pinnedStatusForInstance(instance.name) == .pinned
     }
-            
+
     mutating func setPinnedStatus(_ pinned: Bool) {
-        self.isPinned = pinned
+        isPinned = pinned
     }
 }
 
 // MARK: - Preload
+
 extension InstanceCardModel {
     static func preload(instanceCards: [InstanceCardModel]) {
         PostCardModel.imageDecodeQueue.async {
-            instanceCards.forEach({
-                $0.preloadImages()
-            })
+            for instanceCard in instanceCards {
+                instanceCard.preloadImages()
+            }
         }
     }
-    
+
     func preloadImages() {
-        if let imageURLString = self.imageURL,
+        if let imageURLString = imageURL,
            !SDImageCache.shared.diskImageDataExists(withKey: imageURLString),
-           let imageURL = URL(string: imageURLString) {
-            
+           let imageURL = URL(string: imageURLString)
+        {
             let prefetcher = SDWebImagePrefetcher.shared
             prefetcher.prefetchURLs([imageURL], context: [.imageTransformer: PostCardProfilePic.transformer], progress: nil)
         }

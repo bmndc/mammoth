@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct DomainBlocks {
+public enum DomainBlocks {
     /// Fetches a user's blocked domains.
     ///
     /// - Parameter range: The bounds used when requesting data from Mastodon.

@@ -9,18 +9,13 @@
 import Foundation
 
 public struct GiphyPagination: Mappable {
-    
     public fileprivate(set) var count: Int = 0
     public fileprivate(set) var offset: Int = 0
-    
-    public init?(map: Map)
-    {
-        
-    }
-    
-    mutating public func mapping(map: Map) {
-        
-        count   <- map["count"]
-        offset  <- map["offset"]
+
+    public init?(map _: Map) {}
+
+    public mutating func mapping(map: Map) {
+        count <- map["count"]
+        offset <- map["offset"]
     }
 }

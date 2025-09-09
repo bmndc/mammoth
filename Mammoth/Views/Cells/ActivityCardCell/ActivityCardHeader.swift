@@ -6,15 +6,15 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import UIKit
 import Combine
+import MastodonMeta
 import Meta
 import MetaTextKit
-import MastodonMeta
+import UIKit
 
 class ActivityCardHeader: UIView {
-    
     // MARK: - Properties
+
     private let mainStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -24,7 +24,7 @@ class ActivityCardHeader: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-        
+
     private let headerTitleStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -34,7 +34,7 @@ class ActivityCardHeader: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     private let rightAttributesStack: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -44,7 +44,7 @@ class ActivityCardHeader: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     private let titleLabel: MetaLabel = {
         let label = MetaLabel()
         label.textColor = .custom.displayNames
@@ -60,7 +60,7 @@ class ActivityCardHeader: UIView {
         label.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         return label
     }()
-    
+
     private let pinIcon: UIImageView = {
         let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
         let config = UIImage.SymbolConfiguration(pointSize: GlobalStruct.smallerFontSize, weight: .light)
@@ -80,7 +80,7 @@ class ActivityCardHeader: UIView {
         label.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         return label
     }()
-    
+
     private let dateLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.custom.feintContrast
@@ -88,109 +88,110 @@ class ActivityCardHeader: UIView {
         label.backgroundColor = .custom.background
         return label
     }()
-    
+
     private var activity: ActivityCardModel?
-    public var onPress: PostCardButtonCallback?
-    
+    var onPress: PostCardButtonCallback?
+
     private var subscription: Cancellable?
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupUI()
-        NotificationCenter.default.addObserver(self, selector: #selector(self.stopTimeUpdates), name: UIApplication.didEnterBackgroundNotification, object: nil)
+        setupUI()
+        NotificationCenter.default.addObserver(self, selector: #selector(stopTimeUpdates), name: UIApplication.didEnterBackgroundNotification, object: nil)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     deinit {
         self.stopTimeUpdates()
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     func prepareForReuse() {
-        self.directionalLayoutMargins = .zero
-        self.activity = nil
-        self.onPress = nil
-        self.titleLabel.reset()
-        self.actionLabel.text = nil
-        self.dateLabel.text = nil
-        
-        if self.rightAttributesStack.contains(self.pinIcon) {
-            self.rightAttributesStack.removeArrangedSubview(self.pinIcon)
-            self.pinIcon.removeFromSuperview()
+        directionalLayoutMargins = .zero
+        activity = nil
+        onPress = nil
+        titleLabel.reset()
+        actionLabel.text = nil
+        dateLabel.text = nil
+
+        if rightAttributesStack.contains(pinIcon) {
+            rightAttributesStack.removeArrangedSubview(pinIcon)
+            pinIcon.removeFromSuperview()
         }
 
-        self.stopTimeUpdates()
+        stopTimeUpdates()
     }
-    
+
     func setupUIFromSettings() {
         actionLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
         dateLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
-        
+
         titleLabel.textAttributes = [
             .font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold),
-            .foregroundColor: UIColor.custom.displayNames
+            .foregroundColor: UIColor.custom.displayNames,
         ]
 
         titleLabel.linkAttributes = titleLabel.textAttributes
     }
 }
 
-
 // MARK: - Setup UI
+
 private extension ActivityCardHeader {
     func setupUI() {
-        self.isOpaque = true
-        self.addSubview(mainStackView)
-        
+        isOpaque = true
+        addSubview(mainStackView)
+
         NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor),
-            mainStackView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor),
-            mainStackView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
-            mainStackView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
+            mainStackView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
+            mainStackView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor),
+            mainStackView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+            mainStackView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
         ])
-        
+
         mainStackView.addArrangedSubview(headerTitleStackView)
         mainStackView.addArrangedSubview(rightAttributesStack)
-        
+
         rightAttributesStack.addArrangedSubview(dateLabel)
-        
+
         // Don't compress but let siblings fill the space
         dateLabel.setContentHuggingPriority(UILayoutPriority(rawValue: 251), for: .horizontal)
         dateLabel.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 752), for: .horizontal)
-        
+
         headerTitleStackView.addArrangedSubview(titleLabel)
         headerTitleStackView.addArrangedSubview(actionLabel)
-        
+
         setupUIFromSettings()
     }
-
 }
 
 // MARK: - Configuration
+
 extension ActivityCardHeader {
     func configure(activity: ActivityCardModel, isVerticallyCentered: Bool = false) {
         self.activity = activity
-        
+
         if GlobalStruct.displayName == .usertagOnly {
             let text = activity.user.userTag.lowercased()
             let content = MastodonMetaContent.convert(text: MastodonContent(content: text, emojis: [:]))
-            self.titleLabel.configure(content: content)
+            titleLabel.configure(content: content)
         } else {
             if let metaContent = activity.user.metaName {
-                self.titleLabel.configure(content: metaContent)
+                titleLabel.configure(content: metaContent)
             } else {
                 let text = activity.user.name
                 let content = MastodonMetaContent.convert(text: MastodonContent(content: text, emojis: [:]))
-                self.titleLabel.configure(content: content)
+                titleLabel.configure(content: content)
             }
         }
-        
-        self.actionLabel.text = self.mapTypeToAction(activity: activity)
-        self.dateLabel.text = activity.time
-        
+
+        actionLabel.text = mapTypeToAction(activity: activity)
+        dateLabel.text = activity.time
+
         if [.favourite, .reblog].contains(activity.type), let text = activity.postCard?.postText, text.isEmpty {
             headerTitleStackView.axis = .vertical
             headerTitleStackView.alignment = .leading
@@ -200,16 +201,16 @@ extension ActivityCardHeader {
             headerTitleStackView.alignment = .center
             headerTitleStackView.spacing = 5
         }
-        
+
         // center header content vertically when the post has a carousel and no post text
         if isVerticallyCentered {
-            self.directionalLayoutMargins = .init(top: 10, leading: 0, bottom: 12, trailing: 0)
+            directionalLayoutMargins = .init(top: 10, leading: 0, bottom: 12, trailing: 0)
         } else {
-            self.directionalLayoutMargins = .zero
+            directionalLayoutMargins = .zero
         }
     }
-    
-   private func mapTypeToAction(activity: ActivityCardModel) -> String {
+
+    private func mapTypeToAction(activity: ActivityCardModel) -> String {
         switch activity.type {
         case .favourite:
             if let text = activity.postCard?.postText, text.isEmpty, let mediaType = activity.postCard?.mediaDisplayType.displayName {
@@ -246,9 +247,9 @@ extension ActivityCardHeader {
             return NSLocalizedString("activity.mention", comment: "")
         }
     }
-    
+
     func onThemeChange() {
-        self.backgroundColor = .custom.background
+        backgroundColor = .custom.background
         titleLabel.textColor = .custom.displayNames
         titleLabel.backgroundColor = .custom.background
         dateLabel.textColor = .custom.feintContrast
@@ -259,17 +260,17 @@ extension ActivityCardHeader {
         pinIcon.image = UIImage(systemName: "pin.fill", withConfiguration: config)?.withTintColor(.custom.baseTint, renderingMode: .alwaysOriginal)
         pinIcon.backgroundColor = .custom.background
     }
-    
+
     func startTimeUpdates() {
-        if let createdAt = self.activity?.createdAt {
-            var interval: Double = 60*60
-            var delay: Double = 60*15
+        if let createdAt = activity?.createdAt {
+            var interval: Double = 60 * 60
+            var delay: Double = 60 * 15
             let now = Date()
-            
-            let secondsRange = now.addingTimeInterval(-60)...now
-            let minutesRange = now.addingTimeInterval(-60*60)...now
-            let hoursRange = now.addingTimeInterval(-60*60*24)...now
-            
+
+            let secondsRange = now.addingTimeInterval(-60) ... now
+            let minutesRange = now.addingTimeInterval(-60 * 60) ... now
+            let hoursRange = now.addingTimeInterval(-60 * 60 * 24) ... now
+
             if secondsRange ~= createdAt {
                 interval = 5
                 delay = 2
@@ -277,11 +278,11 @@ extension ActivityCardHeader {
                 interval = 30
                 delay = 15
             } else if hoursRange ~= createdAt {
-                interval = 60*60
-                delay = 60*15
+                interval = 60 * 60
+                delay = 60 * 15
             }
-            
-            self.subscription = RunLoop.main.schedule(
+
+            subscription = RunLoop.main.schedule(
                 after: .init(Date(timeIntervalSinceNow: delay)),
                 interval: .seconds(interval),
                 tolerance: .seconds(1)
@@ -293,23 +294,24 @@ extension ActivityCardHeader {
                     self.dateLabel.text = newTime
                 }
             }
-            
-            if let notification = self.activity?.notification {
+
+            if let notification = activity?.notification {
                 let newTime = ActivityCardModel.formattedTime(notification: notification, formatter: GlobalStruct.dateFormatter)
-                self.activity?.time = newTime
-                self.dateLabel.text = newTime
+                activity?.time = newTime
+                dateLabel.text = newTime
             }
         }
     }
-    
+
     @objc func stopTimeUpdates() {
-        self.subscription?.cancel()
+        subscription?.cancel()
     }
 }
 
 // MARK: - Handlers
+
 extension ActivityCardHeader {
     @objc func profileTapped() {
-        self.onPress?(.profile, true, nil)
+        onPress?(.profile, true, nil)
     }
 }

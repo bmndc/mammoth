@@ -1,5 +1,5 @@
 //
-//  ProfilePrefetchViewController.swift
+//  LiveTableViewController.swift
 //  Mammoth
 //
 //  Created by Riley Howard on 2/2/23.
@@ -7,7 +7,6 @@
 //
 
 import UIKit
-
 
 // Will try to cache profiles related to objects visible in the
 // contrllers tableView(s).
@@ -24,31 +23,29 @@ import UIKit
 //      scrollViewDidEndDragging()
 //      tableView(_:willDisplay cell:forRowAt:)
 
-
 class LiveTableViewController: UIViewController, UIScrollViewDelegate, UITableViewDelegate {
-    
-    func dataForLiveTableView(_ table: UITableView) -> [AnyObject] {
+    func dataForLiveTableView(_: UITableView) -> [AnyObject] {
         log.error("error - subclass must implement dataForLiveTableView")
         return []
     }
 
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        self.stoppedScrolling(table: scrollView as! UITableView)
+        stoppedScrolling(table: scrollView as! UITableView)
     }
-    
+
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if !decelerate {
-            self.stoppedScrolling(table: scrollView as! UITableView)
+            stoppedScrolling(table: scrollView as! UITableView)
         }
     }
 
     private func stoppedScrolling(table: UITableView) {
         performActionForVisibleCellsInTableView(table)
     }
-    
+
     // Try to detect first display
     var detectFirstDisplay = true
-    func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, willDisplay _: UITableViewCell, forRowAt indexPath: IndexPath) {
         if detectFirstDisplay { // }&& !dataForLiveTableView(tableView).isEmpty {
             // See if this is the last row
             if indexPath.row == tableView.indexPathsForVisibleRows?.last?.row {
@@ -60,16 +57,13 @@ class LiveTableViewController: UIViewController, UIScrollViewDelegate, UITableVi
     }
 
     func performActionForVisibleCellsInTableView(_ table: UITableView) {
-        let dataForTable = self.dataForLiveTableView(table)
+        let dataForTable = dataForLiveTableView(table)
         if !dataForTable.isEmpty {
             performActionForVisibleCells(table: table, dataArray: dataForTable)
         }
     }
-    
-    func performActionForVisibleCells(table: UITableView, dataArray: [AnyObject]) {
+
+    func performActionForVisibleCells(table _: UITableView, dataArray _: [AnyObject]) {
         log.error("error - subclass must implement performActionForVisibleCells or performActionForVisibleCellsInTableView")
     }
-    
-    
 }
-

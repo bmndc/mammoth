@@ -10,27 +10,25 @@ import Foundation
 import UIKit
 
 class DetailCell: UITableViewCell {
-    
     var d = DetailView()
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.d.prepareForReuse()
+        d.prepareForReuse()
     }
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.initialSetup()
+        initialSetup()
     }
-    
+
     func initialSetup() {
-        self.contentView.addSubview(self.d)
-        self.d.addFillConstraints(with: self.contentView)
+        contentView.addSubview(d)
+        d.addFillConstraints(with: contentView)
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }
-

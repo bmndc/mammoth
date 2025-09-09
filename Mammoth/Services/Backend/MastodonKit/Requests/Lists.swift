@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Lists {
+public enum Lists {
     /// Retrieves lists.
     ///
     /// - Returns: Request for `[List]`.
@@ -25,7 +25,7 @@ public struct Lists {
     public static func accounts(id: String, range: RequestRange = .default) -> Request<[Account]> {
         let parameters = range.parameters(limit: between(1, and: 80, default: 40))
         let method = HTTPMethod.get(.parameters(parameters))
-        
+
         return Request<[Account]>(path: "/api/v1/lists/\(id)/accounts", method: method)
     }
 
@@ -44,7 +44,7 @@ public struct Lists {
     public static func create(title: String, exclusive: Bool = false) -> Request<List> {
         let parameter = [
             Parameter(name: "title", value: title),
-            Parameter(name: "exclusive", value: String(exclusive))
+            Parameter(name: "exclusive", value: String(exclusive)),
         ]
         let method = HTTPMethod.post(.parameters(parameter))
 
@@ -60,13 +60,13 @@ public struct Lists {
     public static func update(id: String, title: String, exclusive: Bool = false) -> Request<List> {
         let parameter = [
             Parameter(name: "title", value: title),
-            Parameter(name: "exclusive", value: String(exclusive))
+            Parameter(name: "exclusive", value: String(exclusive)),
         ]
         let method = HTTPMethod.put(.parameters(parameter))
 
         return Request<List>(path: "/api/v1/lists/\(id)", method: method)
     }
-    
+
     /// Updates only the list exclusive post setting.
     ///
     /// - Parameters:
@@ -75,13 +75,13 @@ public struct Lists {
     /// - Returns: Request for `List`.
     public static func update(id: String, exclusive: Bool) -> Request<List> {
         let parameter = [
-            Parameter(name: "exclusive", value: String(exclusive))
+            Parameter(name: "exclusive", value: String(exclusive)),
         ]
         let method = HTTPMethod.put(.parameters(parameter))
 
         return Request<List>(path: "/api/v1/lists/\(id)", method: method)
     }
-    
+
     /// Deletes a list.
     ///
     /// - Parameter id: The list ID.

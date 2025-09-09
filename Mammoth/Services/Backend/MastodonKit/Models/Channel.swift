@@ -19,13 +19,13 @@ public class Channel: Codable {
     public let icon: String?
     /// Channel owner / maintainer
     public let owner: ChannelOwner?
-    
+
     init() {
-        self.id = ""
-        self.title = ""
-        self.description = ""
-        self.icon = nil
-        self.owner = ChannelOwner(username: "", domain: "", acct: "", displayName: "")
+        id = ""
+        title = ""
+        description = ""
+        icon = nil
+        owner = ChannelOwner(username: "", domain: "", acct: "", displayName: "")
     }
 
     init(id: String, title: String, description: String = "", icon: String? = nil, owner: ChannelOwner? = nil) {
@@ -36,14 +36,15 @@ public class Channel: Codable {
         self.owner = owner
     }
 }
+
 extension Channel: Equatable {
-    static public func ==(lhs: Channel, rhs: Channel) -> Bool {
-       return lhs.id == rhs.id
+    public static func == (lhs: Channel, rhs: Channel) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 
 extension Channel: CustomDebugStringConvertible {
     public var debugDescription: String {
-        self.title
+        title
     }
 }

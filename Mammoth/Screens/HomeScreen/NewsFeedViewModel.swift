@@ -9,14 +9,14 @@
 import UIKit
 
 enum NewsFeedSnapshotUpdateType {
-    case hydrate        // loading items from cache
-    case replaceAll     // replacing all items
-    case insert         // insert at the top
-    case append         // insert at the bottom
-    case inject         // insert in-between (load-more)
-    case update         // update an item
-    case remove         // remove an item
-    case removeAll      // remove all items
+    case hydrate // loading items from cache
+    case replaceAll // replacing all items
+    case insert // insert at the top
+    case append // insert at the bottom
+    case inject // insert in-between (load-more)
+    case update // update an item
+    case remove // remove an item
+    case removeAll // remove all items
 }
 
 enum NewsFeedReadDirection: String {
@@ -39,12 +39,12 @@ protocol NewsFeedViewModelDelegate: AnyObject {
     func getVisibleIndexPaths() async -> [IndexPath]?
 }
 
-typealias NewsFeedSnapshot =  NSDiffableDataSourceSnapshot<NewsFeedSections, NewsFeedListItem>
+typealias NewsFeedSnapshot = NSDiffableDataSourceSnapshot<NewsFeedSections, NewsFeedListItem>
 
 /// Feed types (e.g. For You, Following, Federated, etc.)
 enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
     static var allCases: [NewsFeedTypes] = [.forYou, .following, .federated, .community("instance"), .trending("instance"), .hashtag(Tag()), .list(List()), .likes, .bookmarks, .mentionsIn, .mentionsOut, .activity(nil), .channel(Channel())]
-    
+
     static var allActivityTypes: [NewsFeedTypes] = [.activity(nil), .activity(.favourite), .activity(.reblog), .activity(.follow), .activity(.update)]
 
     case forYou
@@ -60,7 +60,7 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
     case mentionsOut
     case activity(NotificationType?)
     case channel(Channel)
-    
+
     func title() -> String {
         switch self {
         case .forYou:
@@ -69,13 +69,13 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return NSLocalizedString("title.following", comment: "Home carousel's home timeline title.")
         case .federated:
             return NSLocalizedString("title.federated", comment: "Home carousel's federated timeline title.")
-        case .community(let name):
+        case let .community(name):
             return name
         case .trending:
             return NSLocalizedString("title.trending", comment: "")
-        case .hashtag(let hashtag):
+        case let .hashtag(hashtag):
             return "#\(hashtag.name)"
-        case .list(let list):
+        case let .list(list):
             return list.title
         case .likes:
             return NSLocalizedString("title.likes", comment: "User's liked posts.")
@@ -87,11 +87,11 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return NSLocalizedString("title.mentionsOut", comment: "")
         case .activity:
             return NSLocalizedString("title.activity", comment: "Activity tab title.")
-        case .channel(let channel):
+        case let .channel(channel):
             return channel.title
         }
     }
-    
+
     func trackingTitle() -> String {
         switch self {
         case .forYou:
@@ -100,13 +100,13 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return "Following"
         case .federated:
             return "Federated"
-        case .community(let name):
+        case let .community(name):
             return name.capitalized
-        case .trending(let instance):
+        case let .trending(instance):
             return "Trending:\(instance)"
-        case .hashtag(let hashtag):
+        case let .hashtag(hashtag):
             return "Hashtag:\(hashtag.name.capitalized)"
-        case .list(let list):
+        case let .list(list):
             return list.title.capitalized
         case .likes:
             return "Likes"
@@ -116,86 +116,87 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return "Mentions:In"
         case .mentionsOut:
             return "Mentions:Out"
-        case .activity(let type):
+        case let .activity(type):
             return "Activity:\(type?.rawValue.capitalized ?? "All")"
-        case .channel(let channel):
+        case let .channel(channel):
             return channel.title.capitalized
         }
     }
-    
+
     func plainTitle() -> String {
         switch self {
-        case .channel(let channel):
+        case let .channel(channel):
             return "/\(channel.title)"
         default:
-            return self.title()
+            return title()
         }
     }
-        
+
     func fetchAll(range: RequestRange = .default, batchName: String, retryCount: Int = 0) async throws -> ([NewsFeedListItem], cursorId: String?) {
         let batchName = "\(batchName)_\(Int.random(in: 0 ... 10000))"
-        
+
         do {
             switch self {
             case .forYou:
                 let (result, cursorId) = try await TimelineService.forYouMammothPicks(range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: true, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: true, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
             case .following:
                 let (result, cursorId) = try await TimelineService.home(range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
             case .federated:
                 let (result, cursorId) = try await TimelineService.federated(range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
-            case .community(let name):
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
+            case let .community(name):
                 let (result, cursorId) = try await TimelineService.community(instanceName: name, type: .public, range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: name, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
-            case .trending(let name):
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: name, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
+            case let .trending(name):
                 let (result, cursorId) = try await TimelineService.community(instanceName: name, type: .trending, range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: name, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
-            case .hashtag(let hashtag):
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: name, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
+            case let .hashtag(hashtag):
                 let (result, cursorId) = try await TimelineService.tag(hashtag: hashtag.name, range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
-            case .list(let list):
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
+            case let .list(list):
                 let (result, cursorId) = try await TimelineService.list(listId: list.id, range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
             case .likes:
                 let (result, cursorId) = try await TimelineService.likes(range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
             case .bookmarks:
                 let (result, cursorId) = try await TimelineService.bookmarks(range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
             case .mentionsIn:
                 let (result, cursorId) = try await TimelineService.mentions(range: range)
-                return (result.enumerated().compactMap({
+                return (result.enumerated().compactMap {
                     guard let status = $1.status else { return nil }
                     let postCardData = PostCardModel(status: status, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)
                     postCardData.cursorId = $1.id
                     return .postCard(postCardData)
-                }), cursorId: cursorId)
-                
+                }, cursorId: cursorId)
+
             case .mentionsOut:
                 let (result, cursorId) = try await AccountService.mentionsSent(range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
-            case .activity(let type):
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
+
+            case let .activity(type):
                 let (result, cursorId) = try await TimelineService.activity(range: range, type: type)
-                return (result.enumerated().compactMap({
+                return (result.enumerated().compactMap {
                     // Hide 'New Post' notifications of deleted posts
                     guard !($1.type == .status && $1.status == nil) else { return nil }
-                    return .activity(ActivityCardModel(notification: $1, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
-                
-            case .channel(let channel):
+                    return .activity(ActivityCardModel(notification: $1, batchId: batchName, batchItemIndex: $0))
+                }, cursorId: cursorId)
+
+            case let .channel(channel):
                 let (result, cursorId) = try await TimelineService.channel(channelId: channel.id, range: range)
-                return (result.enumerated().map({ .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }), cursorId: cursorId)
+                return (result.enumerated().map { .postCard(PostCardModel(status: $1, withStaticMetrics: false, instanceName: $1.serverName, batchId: batchName, batchItemIndex: $0)) }, cursorId: cursorId)
             }
         } catch {
             // Mastodon might return a 206 error when the feed is being regenerated.
@@ -203,11 +204,11 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             // https://docs.joinmastodon.org/methods/timelines/#206-partial-content
             if let clientError = error as? ClientError {
                 switch clientError {
-                case .networkError(let statusCode):
-                    if (statusCode == 206 || statusCode == 500) && retryCount < 5 {
+                case let .networkError(statusCode):
+                    if statusCode == 206 || statusCode == 500, retryCount < 5 {
                         log.error("error status code \(statusCode); going to retry in 3 seconds")
                         try await Task.sleep(seconds: 3)
-                        return try await self.fetchAll(range: range, batchName: batchName, retryCount: retryCount + 1)
+                        return try await fetchAll(range: range, batchName: batchName, retryCount: retryCount + 1)
                     }
                     fallthrough
                 default:
@@ -218,13 +219,13 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             }
         }
     }
-    
+
     // Map cell types to view types
     func postCardCellType() -> PostCardCell.PostCardCellType {
         switch self {
         case .forYou:
             return PostCardCell.PostCardCellType.forYou
-        case .channel(_):
+        case .channel:
             return PostCardCell.PostCardCellType.channel
         case .mentionsIn:
             return PostCardCell.PostCardCellType.mentions
@@ -232,28 +233,28 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return PostCardCell.PostCardCellType.mentions
         case .following:
             return PostCardCell.PostCardCellType.following
-        case .list(_):
+        case .list:
             return PostCardCell.PostCardCellType.list
         default:
             return PostCardCell.PostCardCellType.regular
         }
     }
-    
-    public func hash(into hasher: inout Hasher) {
-        switch(self) {
+
+    func hash(into hasher: inout Hasher) {
+        switch self {
         case .forYou:
             return hasher.combine("forYou")
         case .following:
             return hasher.combine("following")
         case .federated:
             return hasher.combine("federated")
-        case .community(let name):
+        case let .community(name):
             return hasher.combine("community:\(name)")
-        case .trending(let name):
+        case let .trending(name):
             return hasher.combine("trending:\(name)")
-        case .hashtag(let hashtag):
+        case let .hashtag(hashtag):
             return hasher.combine("hashtag:\(hashtag.url)")
-        case .list(let list):
+        case let .list(list):
             return hasher.combine("list:\(list.id)")
         case .likes:
             return hasher.combine("likes")
@@ -263,22 +264,22 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return hasher.combine("mentionsIn")
         case .mentionsOut:
             return hasher.combine("mentionsOut")
-        case .activity(let type):
+        case let .activity(type):
             return hasher.combine("activity:\(type?.rawValue ?? "all")")
-        case .channel(let channel):
+        case let .channel(channel):
             return hasher.combine("channel:\(channel.id)")
         }
     }
-    
-    static func ==(lhs: NewsFeedTypes, rhs: NewsFeedTypes) -> Bool {
+
+    static func == (lhs: NewsFeedTypes, rhs: NewsFeedTypes) -> Bool {
         switch (lhs, rhs) {
-        case (.community(let lhsName), .community(let rhsName)):
+        case let (.community(lhsName), .community(rhsName)):
             return lhsName == rhsName
-        case (.trending(let lhsName), .trending(let rhsName)):
+        case let (.trending(lhsName), .trending(rhsName)):
             return lhsName == rhsName
-        case (.hashtag(let lhsTag), .hashtag(let rhsTag)):
+        case let (.hashtag(lhsTag), .hashtag(rhsTag)):
             return lhsTag.name == rhsTag.name
-        case (.list(let lhsList), .list(let rhsList)):
+        case let (.list(lhsList), .list(rhsList)):
             return lhsList.id == rhsList.id && lhsList.title == rhsList.title
         case (.forYou, .forYou):
             return true
@@ -294,15 +295,15 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return true
         case (.mentionsOut, .mentionsOut):
             return true
-        case (.activity(let lhsType), .activity(let rhsType)):
+        case let (.activity(lhsType), .activity(rhsType)):
             return lhsType == rhsType
-        case (.channel(let lhsChannel), .channel(let rhsChannel)):
+        case let (.channel(lhsChannel), .channel(rhsChannel)):
             return lhsChannel.id == rhsChannel.id
         default:
             return false
         }
     }
-    
+
     var icon: UIImage? {
         switch self {
         case .following:
@@ -323,48 +324,48 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return FontAwesome.image(fromChar: "\u{f0a9}", size: 16, weight: .bold).withRenderingMode(.alwaysTemplate)
         }
     }
-    
+
     func attributedTitle() -> NSAttributedString {
         switch self {
         case .channel:
             let title = NSMutableAttributedString(string: "/", attributes: [.baselineOffset: 1])
             title.addAttribute(.font, value: UIFont.systemFont(ofSize: 16, weight: .heavy), range: NSMakeRange(0, title.length))
-            
+
             let spacerImage = NSTextAttachment()
             spacerImage.image = UIImage()
-            spacerImage.bounds = CGRect.init(x: 0, y: 0, width: 1.5, height: 0.0001)
+            spacerImage.bounds = CGRect(x: 0, y: 0, width: 1.5, height: 0.0001)
 
             title.append(NSAttributedString(attachment: spacerImage))
             title.append(NSAttributedString(string: self.title()))
-            
+
             title.addAttribute(.foregroundColor, value: UIColor.custom.gold, range: NSMakeRange(0, 1))
-            title.addAttribute(.foregroundColor, value: UIColor.custom.highContrast, range: NSMakeRange(1, title.length-1))
+            title.addAttribute(.foregroundColor, value: UIColor.custom.highContrast, range: NSMakeRange(1, title.length - 1))
             title.addAttribute(.baselineOffset, value: 0.5, range: .init(location: 0, length: 1))
             title.addAttribute(.baselineOffset, value: 0.5, range: .init(location: 2, length: self.title().count))
-            
+
             return title
-        case .hashtag(let tag):
+        case let .hashtag(tag):
             let title = NSMutableAttributedString(string: "#")
             title.addAttribute(.font, value: UIFont.systemFont(ofSize: 16, weight: .heavy), range: NSMakeRange(0, title.length))
-            
+
             let spacerImage = NSTextAttachment()
             spacerImage.image = UIImage()
-            spacerImage.bounds = CGRect.init(x: 0, y: 0, width: 1, height: 0.0001)
+            spacerImage.bounds = CGRect(x: 0, y: 0, width: 1, height: 0.0001)
 
             title.append(NSAttributedString(attachment: spacerImage))
             title.append(NSAttributedString(string: tag.name))
-            
+
             title.addAttribute(.foregroundColor, value: UIColor.custom.gold, range: NSMakeRange(0, 1))
-            title.addAttribute(.foregroundColor, value: UIColor.custom.highContrast, range: NSMakeRange(1, title.length-1))
+            title.addAttribute(.foregroundColor, value: UIColor.custom.highContrast, range: NSMakeRange(1, title.length - 1))
             title.addAttribute(.baselineOffset, value: 0.5, range: .init(location: 0, length: 1))
             title.addAttribute(.baselineOffset, value: 0.5, range: .init(location: 2, length: tag.name.count))
-            
+
             return title
         default:
-            return NSAttributedString(string: self.title())
+            return NSAttributedString(string: title())
         }
     }
-    
+
     var shouldSyncItems: Bool {
         switch self {
         case .activity, .mentionsIn, .mentionsOut:
@@ -373,7 +374,7 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
             return true
         }
     }
-    
+
     var shouldPollForListData: Bool {
         switch self {
         case .activity, .mentionsIn:
@@ -385,24 +386,23 @@ enum NewsFeedTypes: CaseIterable, Equatable, Codable, Hashable {
         }
     }
 }
-     
+
 class NewsFeedViewModel {
-    
     class NewsFeedDiffableDataSource: UITableViewDiffableDataSource<NewsFeedSections, NewsFeedListItem> {}
-    public var dataSource: NewsFeedDiffableDataSource?
-    public var snapshot = NewsFeedSnapshot()
-    
+    var dataSource: NewsFeedDiffableDataSource?
+    var snapshot = NewsFeedSnapshot()
+
     var isJumpToNowButtonDisabled: Bool = false
     var viewedDate: Date
-    
-    internal var state: ViewState
-    internal var listData = NewsFeedListData()
-    internal var isLoadMoreEnabled: Bool = true
-        
-    internal var pollingTask: Task<Void, Error>?
-    public var pollingReachedTop: Bool = false
-    internal var pollingFrequency: Double { //seconds
-        switch self.type {
+
+    var state: ViewState
+    var listData = NewsFeedListData()
+    var isLoadMoreEnabled: Bool = true
+
+    var pollingTask: Task<Void, Error>?
+    var pollingReachedTop: Bool = false
+    var pollingFrequency: Double { // seconds
+        switch type {
         case .mentionsIn, .activity:
             return 30
         case .mentionsOut:
@@ -411,55 +411,55 @@ class NewsFeedViewModel {
             return 30
         }
     }
-        
-    internal var postSyncingTasks: [IndexPath: Task<Void, Error>] = [:]
-    internal var cursorId: String?
-    
-    internal var newestSectionLength: Int = 35
-    internal var newItemsThreshold: Int {
-        switch self.type {
+
+    var postSyncingTasks: [IndexPath: Task<Void, Error>] = [:]
+    var cursorId: String?
+
+    var newestSectionLength: Int = 35
+    var newItemsThreshold: Int {
+        switch type {
         case .mentionsIn, .mentionsOut, .activity, .bookmarks:
             return 1
         default:
             return 5
         }
     }
-    
-    internal var scrollPositions = NewsFeedScrollPositions()
-    internal var unreadCounts = NewsFeedUnreadStates()
-    public var userHasScrolledManually: Bool = false
 
-    internal let savingQueue = DispatchQueue(label: "NewsFeedViewModel Saving", qos: .utility)
+    var scrollPositions = NewsFeedScrollPositions()
+    var unreadCounts = NewsFeedUnreadStates()
+    var userHasScrolledManually: Bool = false
 
-    public weak var delegate: NewsFeedViewModelDelegate?
-    public var type: NewsFeedTypes
+    let savingQueue = DispatchQueue(label: "NewsFeedViewModel Saving", qos: .utility)
+
+    weak var delegate: NewsFeedViewModelDelegate?
+    var type: NewsFeedTypes
 
     init(_ type: NewsFeedTypes = .forYou) {
-        self.state = .idle
+        state = .idle
         self.type = type
-        self.viewedDate = NSDate.now
-        
+        viewedDate = NSDate.now
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onPostCardUpdate),
+                                               selector: #selector(onPostCardUpdate),
                                                name: PostActions.didUpdatePostCardNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onStatusUpdate),
+                                               selector: #selector(onStatusUpdate),
                                                name: didChangeFollowStatusNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onModerationChange),
+                                               selector: #selector(onModerationChange),
                                                name: didChangeModerationNotification,
                                                object: nil)
-        
+
         // Websocket updates for activity and mentions tab
         if [.mentionsIn].contains(type) || NewsFeedTypes.allActivityTypes.contains(type) {
             RealtimeManager.shared.onEvent { [weak self] data in
                 guard let self else { return }
                 switch data {
-                case .notification(let notification):
+                case let .notification(notification):
                     if [.direct, .mention].contains(notification.type) {
                         guard type == .mentionsIn else { return }
                         if let status = notification.status {
@@ -467,7 +467,7 @@ class NewsFeedViewModel {
                             let newPost = PostCardModel(status: status)
                             newPost.cursorId = notification.id
                             let newItem = NewsFeedListItem.postCard(newPost)
-                                                        
+
                             if !self.isItemInSnapshot(newItem) {
                                 self.setUnreadEnabled(enabled: true, forFeed: .mentionsIn)
                                 newPost.preloadQuotePost()
@@ -475,19 +475,19 @@ class NewsFeedViewModel {
                             }
                         }
                     } else {
-                        if case .activity(let activityType) = type, notification.type == activityType {
+                        if case let .activity(activityType) = type, notification.type == activityType {
                             let activity = ActivityCardModel(notification: notification)
                             activity.cursorId = notification.id
                             let newItem = NewsFeedListItem.activity(activity)
-                            
+
                             if !self.isItemInSnapshot(newItem) {
                                 self.setUnreadEnabled(enabled: true, forFeed: .activity(activityType))
                                 self.insert(items: [newItem], forType: .activity(activityType))
                             }
-                        } else if case .activity(let activityType) = type, activityType == nil { // activityType == nil means All activity
+                        } else if case let .activity(activityType) = type, activityType == nil { // activityType == nil means All activity
                             let activity = ActivityCardModel(notification: notification)
                             let newItem = NewsFeedListItem.activity(activity)
-                            
+
                             if !self.isItemInSnapshot(newItem) {
                                 self.setUnreadEnabled(enabled: true, forFeed: .activity(nil))
                                 self.insert(items: [newItem], forType: .activity(nil))
@@ -500,26 +500,26 @@ class NewsFeedViewModel {
             }
         }
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     func changeFeed(type: NewsFeedTypes) {
         guard type != self.type else { return }
-        
-        self.cursorId = nil
-        self.stopPollingListData()
+
+        cursorId = nil
+        stopPollingListData()
         let previousType = self.type
-        self.delegate?.willChangeFeed(fromType: previousType, toType: type)
+        delegate?.willChangeFeed(fromType: previousType, toType: type)
         self.type = type
-        self.hideEmpty(forType: type)
-        self.clearErrorState(type: self.type)
+        hideEmpty(forType: type)
+        clearErrorState(type: self.type)
         log.debug("[NewsFeedViewModel] Sync data source from `changeFeed`")
-        self.syncDataSource(type: type) { [weak self] in
+        syncDataSource(type: type) { [weak self] in
             guard let self else { return }
             self.delegate?.didChangeFeed(type: type)
-            
+
             if self.snapshot.indexOfSection(.main) == nil || self.snapshot.itemIdentifiers(inSection: .main).isEmpty {
                 self.displayLoader(forType: type)
                 Task { [weak self] in
@@ -527,94 +527,95 @@ class NewsFeedViewModel {
                     try await self.loadListData(type: type, fetchType: .refresh)
                 }
             }
-            
+
             self.startPollingListData(forFeed: type)
         }
     }
-    
-    func clearErrorState(type: NewsFeedTypes) {
-        if case .error(_) = self.state {
-            self.state = .success
-            self.hideError(feedType: self.type)
+
+    func clearErrorState(type _: NewsFeedTypes) {
+        if case .error = state {
+            state = .success
+            hideError(feedType: type)
         }
-        
-        self.isLoadMoreEnabled = true
+
+        isLoadMoreEnabled = true
     }
-    
+
     func cleanUpMemoryOfCurrentFeed() {
-        self.snapshot.itemIdentifiers.forEach({
-            if case .postCard(let postCard) = $0 {
+        for itemIdentifier in snapshot.itemIdentifiers {
+            if case let .postCard(postCard) = itemIdentifier {
                 postCard.clearCache()
-            } else if case .activity(let activityCard) = $0 {
+            } else if case let .activity(activityCard) = itemIdentifier {
                 activityCard.postCard?.clearCache()
             }
-        })
+        }
     }
-    
+
     func pauseAllVideos() {
-        self.snapshot.itemIdentifiers.forEach({
-            if case .postCard(let postCard) = $0 {
+        for itemIdentifier in snapshot.itemIdentifiers {
+            if case let .postCard(postCard) = itemIdentifier {
                 postCard.videoPlayer?.pause()
-            } else if case .activity(let activityCard) = $0 {
+            } else if case let .activity(activityCard) = itemIdentifier {
                 activityCard.postCard?.videoPlayer?.pause()
             }
-        })
+        }
     }
-    
-    public var didViewRecently: Bool {
-        let secsSinceViewed = self.viewedDate.distance(to: NSDate.now)
+
+    var didViewRecently: Bool {
+        let secsSinceViewed = viewedDate.distance(to: NSDate.now)
         // check if the feed was opened in the last 10 seconds.
         return secsSinceViewed < 10.0
     }
 }
 
 // MARK: - Force reload ForYou feed
+
 extension NewsFeedViewModel {
-    func forceReloadForYou() -> Void {
-        if self.type == .forYou {
-            self.removeAll(type: .forYou)
+    func forceReloadForYou() {
+        if type == .forYou {
+            removeAll(type: .forYou)
             let type = self.type
-            self.displayLoader(forType: type)
+            displayLoader(forType: type)
             Task { [weak self] in
                 guard let self else { return }
                 try await self.loadListData(type: type, fetchType: .refresh)
             }
         } else {
             // silently clear cache
-            self.listData.clear(forType: .forYou)
-            self.saveToDisk(items: [], position: NewsFeedScrollPosition(), feedType: .forYou)
+            listData.clear(forType: .forYou)
+            saveToDisk(items: [], position: NewsFeedScrollPosition(), feedType: .forYou)
         }
     }
 }
 
 // MARK: - Notification handlers
+
 private extension NewsFeedViewModel {
-    
     @objc func onPostCardUpdate(notification: Notification) {
         if let postCard = notification.userInfo?["postCard"] as? PostCardModel {
             if let isDeleted = notification.userInfo?["deleted"] as? Bool, isDeleted == true {
                 // Delete post card data in list data and data source
-                self.remove(card: postCard, forType: self.type)
+                remove(card: postCard, forType: type)
             } else {
                 // Replace activity data in list that include this post card
-                if NewsFeedTypes.allActivityTypes.contains(self.type) {
-                    self.listData.activity.forEach { (key, activities) in
-                        if let index = activities.firstIndex(where: {$0.extractPostCard()?.uniqueId == postCard.uniqueId}) {
-                            if case .activity(let activity) = activities[index] {
+                if NewsFeedTypes.allActivityTypes.contains(type) {
+                    for (key, activities) in listData.activity {
+                        if let index = activities.firstIndex(where: { $0.extractPostCard()?.uniqueId == postCard.uniqueId }) {
+                            if case let .activity(activity) = activities[index] {
                                 activity.postCard = postCard
                                 let activityType: NotificationType? = key == "all" ? nil : NotificationType(rawValue: key)
-                                self.update(with: .activity(activity), forType: .activity(activityType))
+                                update(with: .activity(activity), forType: .activity(activityType))
                             }
                         }
                     }
                 } else {
                     // Replace post card data in list data and data source
-                    self.update(with: .postCard(postCard), forType: self.type)
+                    update(with: .postCard(postCard), forType: type)
                 }
             }
         }
     }
-    
+
     @objc func onStatusUpdate(notification: Notification) {
         // Only observe the notification if it's tied to the current user.
         if (notification.userInfo!["currentUserFullAcct"] as! String) == AccountsManager.shared.currentUser()?.fullAcct {
@@ -628,8 +629,8 @@ private extension NewsFeedViewModel {
             }
         }
     }
-    
-    @objc private func onModerationChange(notification: Notification) {
-        self.refreshSnapshot()
+
+    @objc private func onModerationChange(notification _: Notification) {
+        refreshSnapshot()
     }
 }

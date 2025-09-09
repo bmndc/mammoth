@@ -15,12 +15,11 @@ protocol Jumpable {
     func barDoubleTap(didSelect index: Int)
 }
 
-var previousTapDate: Date? = nil
-var previousTappedIndex: Int?  = nil
+var previousTapDate: Date?
+var previousTappedIndex: Int?
 
 extension Jumpable {
-
-    func controlBar(didSelect index: Int) {        
+    func controlBar(didSelect index: Int) {
         // Determine if this is a single or a double tap
         var isDoubleTap = false
         if index == previousTappedIndex {
@@ -31,16 +30,16 @@ extension Jumpable {
         previousTapDate = Date()
         previousTappedIndex = index
         if isDoubleTap {
-            self.barDoubleTap(didSelect: index)
+            barDoubleTap(didSelect: index)
         } else {
-            self.barSingleTap(didSelect: index)
+            barSingleTap(didSelect: index)
         }
     }
-        
+
     func barDoubleTap(didSelect index: Int) {
         log.warning(#function)
         triggerHaptic2Impact()
-        
+
         // Jump to Newest
         let jumpToSelector = Selector("jumpToNewest")
         if let currentViewController = viewControllerAtIndex(index) {
@@ -56,7 +55,4 @@ extension Jumpable {
             log.error("[jumpToSelector] cannot find VC at index")
         }
     }
-
-
-
 }

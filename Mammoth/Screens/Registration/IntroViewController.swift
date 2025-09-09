@@ -10,41 +10,40 @@ import Foundation
 import UIKit
 
 class IntroViewController: UIViewController {
-    
-    @IBOutlet weak var closeButton: UIButton!
-    @IBOutlet weak var icon: UIImageView!
-    @IBOutlet weak var titleText: UILabel!
-    @IBOutlet weak var descriptionText: UILabel!
-    @IBOutlet weak var signUpButton: UIButton!
-    @IBOutlet weak var signInButton: UIButton!
-    @IBOutlet weak var miniIcon: UIImageView!
-    
-    @IBOutlet weak var tealBox: UIView!     // the area available to center the mammoth in
-    @IBOutlet weak var orangeBox: UIView!   // vertically centered in the tealBox
-    @IBOutlet weak var yellowBox: UIView!   // horizontally centered in orangeBox
-                                            // note that the mammoth trunk is beyond the box
-    
+    @IBOutlet var closeButton: UIButton!
+    @IBOutlet var icon: UIImageView!
+    @IBOutlet var titleText: UILabel!
+    @IBOutlet var descriptionText: UILabel!
+    @IBOutlet var signUpButton: UIButton!
+    @IBOutlet var signInButton: UIButton!
+    @IBOutlet var miniIcon: UIImageView!
+
+    @IBOutlet var tealBox: UIView! // the area available to center the mammoth in
+    @IBOutlet var orangeBox: UIView! // vertically centered in the tealBox
+    @IBOutlet var yellowBox: UIView! // horizontally centered in orangeBox
+    // note that the mammoth trunk is beyond the box
+
     var fromPlus: Bool = false
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .custom.backgroundTint
-        
-        self.setupUI()
+        view.backgroundColor = .custom.backgroundTint
+
+        setupUI()
         SignInViewController.loadInstances(isFromSignIn: true)
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(true, animated: false)
@@ -54,26 +53,26 @@ class IntroViewController: UIViewController {
         navigationController?.setNavigationBarHidden(false, animated: false)
         super.viewDidDisappear(animated)
     }
-        
-    func setupUI() {
-        self.titleText.textColor = .custom.highContrast
-        self.descriptionText.textColor = .custom.mediumContrast
-        self.miniIcon.image = self.miniIcon.image?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
-        self.miniIcon.tintColor = .custom.highContrast
-        
-        self.signUpButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
-        self.signUpButton.setTitleColor(.custom.highContrast, for: .normal)
-        self.signUpButton.backgroundColor = .custom.OVRLYMedContrast
-        self.signUpButton.layer.cornerRadius = 8
-        self.signUpButton.addTarget(self, action: #selector(self.signUpTapped), for: .touchUpInside)
 
-        self.signInButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
-        self.signInButton.setTitleColor(.custom.highContrast, for: .normal)
-        self.signInButton.backgroundColor = .clear
-        self.signInButton.layer.cornerRadius = 8
-        self.signInButton.layer.borderColor = UIColor.custom.OVRLYMedContrast.cgColor
-        self.signInButton.layer.borderWidth = 1
-        self.signInButton.addTarget(self, action: #selector(self.signInTapped), for: .touchUpInside)
+    func setupUI() {
+        titleText.textColor = .custom.highContrast
+        descriptionText.textColor = .custom.mediumContrast
+        miniIcon.image = miniIcon.image?.withRenderingMode(UIImage.RenderingMode.alwaysTemplate)
+        miniIcon.tintColor = .custom.highContrast
+
+        signUpButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        signUpButton.setTitleColor(.custom.highContrast, for: .normal)
+        signUpButton.backgroundColor = .custom.OVRLYMedContrast
+        signUpButton.layer.cornerRadius = 8
+        signUpButton.addTarget(self, action: #selector(signUpTapped), for: .touchUpInside)
+
+        signInButton.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+        signInButton.setTitleColor(.custom.highContrast, for: .normal)
+        signInButton.backgroundColor = .clear
+        signInButton.layer.cornerRadius = 8
+        signInButton.layer.borderColor = UIColor.custom.OVRLYMedContrast.cgColor
+        signInButton.layer.borderWidth = 1
+        signInButton.addTarget(self, action: #selector(signInTapped), for: .touchUpInside)
 
         if !fromPlus {
             closeButton.isHidden = true
@@ -81,14 +80,14 @@ class IntroViewController: UIViewController {
 
         let backItem = UIBarButtonItem()
         backItem.title = "Login"
-        self.navigationItem.backBarButtonItem = backItem
+        navigationItem.backBarButtonItem = backItem
 
         tealBox.backgroundColor = .clear
         orangeBox.backgroundColor = .clear
         yellowBox.backgroundColor = .clear
     }
-    
-    @IBAction func closeTapped(_ sender: Any) {
+
+    @IBAction func closeTapped(_: Any) {
         triggerHapticImpact(style: .light)
         dismiss(animated: true)
     }
@@ -97,22 +96,22 @@ class IntroViewController: UIViewController {
         triggerHapticImpact()
         let vc = SignUpViewController()
         vc.isModalInPresentation = true
-        self.navigationController?.pushViewController(vc, animated: true)
-        self.navigationController?.setNavigationBarHidden(false, animated: false)
+        navigationController?.pushViewController(vc, animated: true)
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
-    
+
     @objc func signInTapped() {
         triggerHapticImpact(style: .light)
         showMastodonSignIn()
     }
-    
+
     private func showMastodonSignIn() {
         let vc = SignInViewController()
-        vc.fromPlus = self.fromPlus
-        self.navigationController?.pushViewController(vc, animated: true)
-        self.navigationController?.setNavigationBarHidden(false, animated: false)
+        vc.fromPlus = fromPlus
+        navigationController?.pushViewController(vc, animated: true)
+        navigationController?.setNavigationBarHidden(false, animated: false)
     }
-     
+
     private func showBlueskySignIn() {
         let vc = BlueskySignInViewController()
         vc.delegate = self
@@ -121,14 +120,12 @@ class IntroViewController: UIViewController {
 }
 
 extension IntroViewController: BlueskySignInViewControllerDelegate {
-    
     func onSignIn(authResponse: BlueskyAPI.AuthResponse) {
         Task {
             try await AccountsManager.shared
                 .addExistingBlueskyAccount(authResponse: authResponse)
-            
+
             dismiss(animated: false)
         }
     }
-    
 }

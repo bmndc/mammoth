@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Login {
+public enum Login {
     /// Performs a silent login.
     ///
     /// - Parameters:
@@ -22,14 +22,15 @@ public struct Login {
                               clientSecret: String,
                               scopes: [AccessScope],
                               username: String,
-                              password: String) -> Request<LoginSettings> {
+                              password: String) -> Request<LoginSettings>
+    {
         let parameters = [
             Parameter(name: "client_id", value: clientID),
             Parameter(name: "client_secret", value: clientSecret),
             Parameter(name: "scope", value: scopes.map(toString).joined(separator: " ")),
             Parameter(name: "grant_type", value: "password"),
             Parameter(name: "username", value: username),
-            Parameter(name: "password", value: password)
+            Parameter(name: "password", value: password),
         ]
 
         let method = HTTPMethod.post(.parameters(parameters))

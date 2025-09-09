@@ -5,24 +5,24 @@
 //  Created by Benoit Nolens on 29/11/2023.
 //
 
-import UIKit
-import StoreKit
 import ArkanaKeys
+import StoreKit
+import UIKit
 
 public let didUpdatePurchaseStatus = Notification.Name("didUpdatePurchaseStatus")
 
 class IAPManager: NSObject {
     static let shared = IAPManager()
-    
+
     static let GOLD_MONTH_PRODUCT_ID = "com.theblvd.mammoth.gold.monthly"
     static let GOLD_YEAR_PRODUCT_ID = "com.theblvd.mammoth.gold.yearly"
-    
-    public enum IAPManagerAlertType {
+
+    enum IAPManagerAlertType {
         case disabled
         case restored
         case purchased
         case failed(Error?)
-        
+
         func toString() -> String {
             switch self {
             case .disabled: "disabled"
@@ -31,7 +31,7 @@ class IAPManager: NSObject {
             case .failed: "failed"
             }
         }
-        
+
         func message() -> String {
             switch self {
             case .disabled: return "Purchases are disabled on your device!"
@@ -45,37 +45,37 @@ class IAPManager: NSObject {
     fileprivate let isTestFlight = Bundle.main.appStoreReceiptURL?.lastPathComponent == "sandboxReceipt"
 
     fileprivate var appConfiguration: AppConfiguration {
-      if isDebug {
-        return .Debug
-      } else if isTestFlight {
-        return .TestFlight
-      } else {
-        return .AppStore
-      }
+        if isDebug {
+            return .Debug
+        } else if isTestFlight {
+            return .TestFlight
+        } else {
+            return .AppStore
+        }
     }
 
     fileprivate enum AppConfiguration: String {
-      case Debug
-      case TestFlight
-      case AppStore
+        case Debug
+        case TestFlight
+        case AppStore
     }
 
     fileprivate var isDebug: Bool {
-      #if DEBUG
-      return true
-      #else
-      return false
-      #endif
+        #if DEBUG
+            return true
+        #else
+            return false
+        #endif
     }
 
     fileprivate typealias ProductId = String
-    
+
     fileprivate var productsRequest = SKProductsRequest()
     fileprivate var pendingFetchProduct: String!
-    
-    public var iapProducts = [SKProduct]()
-    public var purchaseStatusBlock: ((IAPManagerAlertType) -> Void)?
-    public var fetchAvailableProductsBlock : (([SKProduct]) -> Void)? = nil {
+
+    var iapProducts = [SKProduct]()
+    var purchaseStatusBlock: ((IAPManagerAlertType) -> Void)?
+    var fetchAvailableProductsBlock: (([SKProduct]) -> Void)? {
         didSet {
             if !iapProducts.isEmpty {
                 fetchAvailableProductsBlock?(iapProducts)
@@ -83,42 +83,42 @@ class IAPManager: NSObject {
         }
     }
 
-    public func prepareForUse() {
+    func prepareForUse() {
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.appDidBecomeActive),
+                                               selector: #selector(appDidBecomeActive),
                                                name: appDidBecomeActiveNotification,
                                                object: nil)
-        
+
         fetchAvailableProducts()
         Task {
             await syncLocalPurchaseState()
         }
     }
-    
+
     @objc private func appDidBecomeActive() {
         Task {
             await syncLocalPurchaseState()
         }
     }
-    
+
     private func fetchAvailableProducts() {
         productsRequest.cancel()
-        
+
         let productIdentifiers = NSSet(objects: Self.GOLD_YEAR_PRODUCT_ID, Self.GOLD_MONTH_PRODUCT_ID)
         productsRequest = SKProductsRequest(productIdentifiers: productIdentifiers as! Set<String>)
         productsRequest.delegate = self
         productsRequest.start()
     }
-    
-    public func canMakePurchases() -> Bool { return SKPaymentQueue.canMakePayments() }
-    
-    public func purchaseProduct(productIdentifier: String) {
+
+    func canMakePurchases() -> Bool { return SKPaymentQueue.canMakePayments() }
+
+    func purchaseProduct(productIdentifier: String) {
         if iapProducts.isEmpty {
             pendingFetchProduct = productIdentifier
             fetchAvailableProducts()
             return
         }
-        
+
         if canMakePurchases() {
             for product in iapProducts {
                 if product.productIdentifier == productIdentifier {
@@ -132,41 +132,42 @@ class IAPManager: NSObject {
             NotificationCenter.default.post(name: didUpdatePurchaseStatus, object: self, userInfo: ["status": IAPManagerAlertType.disabled.toString()])
         }
     }
-    
-    public func restorePurchase(){
+
+    func restorePurchase() {
         SKPaymentQueue.default().add(self)
         SKPaymentQueue.default().restoreCompletedTransactions()
     }
 }
 
 // MARK: - Upgrade alert
+
 extension IAPManager {
-    
     private var upgradeActionCount: Int {
         if let actionCount = UserDefaults.standard.value(forKey: "upgrade-action-count") as? Int {
             return actionCount
         }
         return 0
     }
+
     private var shouldShowUpgradeAlert: Bool {
-        return self.upgradeActionCount == 3
+        return upgradeActionCount == 3
     }
-    
+
     func showUpgradeAlertIfNeeded() {
         guard !Self.isGoldMember else { return }
-        UserDefaults.standard.set(self.upgradeActionCount + 1, forKey: "upgrade-action-count")
-        if self.shouldShowUpgradeAlert {
+        UserDefaults.standard.set(upgradeActionCount + 1, forKey: "upgrade-action-count")
+        if shouldShowUpgradeAlert {
             let alert = UIAlertController(title: "Upgrade to Gold!", message: "Support Mammoth to get custom app icons and priority access to new features.", preferredStyle: .alert)
             alert.addAction(UIAlertAction(title: "No Thanks", style: .default, handler: nil))
-            let actionButton = UIAlertAction(title: "Learn More", style: .default, handler: {_ in
+            let actionButton = UIAlertAction(title: "Learn More", style: .default, handler: { _ in
                 DispatchQueue.main.async {
                     let vc = SettingsViewController(expandUpgradeCell: true)
                     getTopMostViewController()?.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
                 }
             })
-            
+
             actionButton.setValue(UIColor.custom.gold, forKey: "titleTextColor")
-            
+
             alert.addAction(actionButton)
             getTopMostViewController()?.present(alert, animated: true)
         }
@@ -174,26 +175,27 @@ extension IAPManager {
 }
 
 // MARK: - Local IAP state store access
+
 extension IAPManager {
-    public static var isGoldMember: Bool {
-        if let purchaseId = self.loadPurchase(), [Self.GOLD_MONTH_PRODUCT_ID, Self.GOLD_YEAR_PRODUCT_ID].contains(purchaseId) {
+    static var isGoldMember: Bool {
+        if let purchaseId = loadPurchase(), [GOLD_MONTH_PRODUCT_ID, GOLD_YEAR_PRODUCT_ID].contains(purchaseId) {
             return true
         }
         return false
     }
-    
+
     @discardableResult
     private static func storePurchase(purchaseId: String) -> Bool {
         return KeyChainHelper.saveStringToKeychain(service: "com.theblvd.mammoth", key: "mammoth_gold_plan", value: purchaseId)
     }
-    
+
     private static func loadPurchase() -> String? {
         return KeyChainHelper.getStringFromKeychain(service: "com.theblvd.mammoth", key: "mammoth_gold_plan")
     }
-    
+
     private func syncLocalPurchaseState() async {
         if Self.isGoldMember == true {
-            let isValidReceipt = await self.isReceiptValid()
+            let isValidReceipt = await isReceiptValid()
             if !isValidReceipt {
                 KeyChainHelper.deleteStringFromKeychain(service: "com.theblvd.mammoth", key: "mammoth_gold_plan")
             }
@@ -202,29 +204,31 @@ extension IAPManager {
 }
 
 // MARK: - SKProductsRequestDelegate
+
 extension IAPManager: SKProductsRequestDelegate {
-    public func productsRequest (_ request: SKProductsRequest, didReceive response: SKProductsResponse) {
+    func productsRequest(_: SKProductsRequest, didReceive response: SKProductsResponse) {
         if response.products.count > 0 {
             // set the IAP products and make sure yearly is the first item
-            iapProducts = response.products.sorted(by: { (left, right) in
-                return left.productIdentifier == Self.GOLD_YEAR_PRODUCT_ID
+            iapProducts = response.products.sorted(by: { left, _ in
+                left.productIdentifier == Self.GOLD_YEAR_PRODUCT_ID
             })
             fetchAvailableProductsBlock?(response.products)
-            
+
             if let product = pendingFetchProduct {
                 purchaseProduct(productIdentifier: product)
             }
         }
     }
-    
-    public func request(_ request: SKRequest, didFailWithError error: Error) {
+
+    func request(_: SKRequest, didFailWithError error: Error) {
         log.error("Error load products: \(error)")
     }
 }
 
 // MARK: - SKPaymentTransactionObserver
+
 extension IAPManager: SKPaymentTransactionObserver {
-    func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
+    func paymentQueue(_: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         for transaction: AnyObject in transactions {
             if let trans = transaction as? SKPaymentTransaction {
                 switch trans.transactionState {
@@ -251,24 +255,24 @@ extension IAPManager: SKPaymentTransactionObserver {
             }
         }
     }
-    
-    func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
+
+    func paymentQueue(_: SKPaymentQueue, shouldAddStorePayment _: SKPayment, for product: SKProduct) -> Bool {
         if canMakePurchases() {
             let payment = SKPayment(product: product)
             SKPaymentQueue.default().add(self)
             SKPaymentQueue.default().add(payment)
-            
+
             return true
         } else {
             return false
         }
     }
-    
-    func paymentQueue(_ queue: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
+
+    func paymentQueue(_: SKPaymentQueue, restoreCompletedTransactionsFailedWithError error: Error) {
         purchaseStatusBlock?(.failed(error))
         NotificationCenter.default.post(name: didUpdatePurchaseStatus, object: self, userInfo: ["status": IAPManagerAlertType.failed(error).toString()])
     }
-    
+
     func paymentQueueRestoreCompletedTransactionsFinished(_ queue: SKPaymentQueue) {
         for transaction: AnyObject in queue.transactions {
             if let trans = transaction as? SKPaymentTransaction {
@@ -278,13 +282,13 @@ extension IAPManager: SKPaymentTransactionObserver {
                     SKPaymentQueue.default().finishTransaction(trans)
                     purchaseStatusBlock?(.restored)
                     NotificationCenter.default.post(name: didUpdatePurchaseStatus, object: self, userInfo: ["status": IAPManagerAlertType.restored.toString()])
-                   return
+                    return
                 default:
                     break
                 }
             }
         }
-        
+
         if !Self.isGoldMember {
             let error = NSError(domain: "Restore Failed", code: -1)
             purchaseStatusBlock?(.failed(error))
@@ -294,9 +298,10 @@ extension IAPManager: SKPaymentTransactionObserver {
 }
 
 // MARK: - Receipt validation
+
 extension IAPManager {
     // Status code returned by remote server
-    public enum ReceiptStatus: Int {
+    enum ReceiptStatus: Int {
         // Not decodable status
         case unknown = -2
         // No status returned
@@ -320,18 +325,18 @@ extension IAPManager {
         // This receipt is from the production environment, but it was sent to the test environment for verification. Send it to the production environment instead.
         case productionEnvironment = 21008
 
-        var isValid: Bool { return self == .valid}
+        var isValid: Bool { return self == .valid }
     }
-    
+
     enum ReceiptValidationResult {
         case success(data: Data)
         case failure(error: Error)
     }
-    
+
     func isReceiptValid() async -> Bool {
-        let validationResult = await self.validateReceipt()
+        let validationResult = await validateReceipt()
         switch validationResult {
-        case .success(let data):
+        case let .success(data):
             if let jsonResponse = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                 if let status = jsonResponse["status"] as? Int {
                     let receiptStatus = ReceiptStatus(rawValue: status) ?? ReceiptStatus.unknown
@@ -342,26 +347,27 @@ extension IAPManager {
                 log.error("Failed to parse receipt validation response")
                 return false
             }
-        case .failure(let error):
+        case let .failure(error):
             // Server Error (Timeout)
             if (error as NSError).code != -1 {
                 return true
             }
             return false
         }
-        
+
         log.debug("Receipt validation without code")
         return false
     }
 
     var validationURLString: String {
-      if appConfiguration != .AppStore { return "https://sandbox.itunes.apple.com/verifyReceipt" }
-      return "https://buy.itunes.apple.com/verifyReceipt"
+        if appConfiguration != .AppStore { return "https://sandbox.itunes.apple.com/verifyReceipt" }
+        return "https://buy.itunes.apple.com/verifyReceipt"
     }
 
     func validateReceipt() async -> ReceiptValidationResult {
         guard let appStoreReceiptURL = Bundle.main.appStoreReceiptURL,
-              FileManager.default.fileExists(atPath: appStoreReceiptURL.path) else {
+              FileManager.default.fileExists(atPath: appStoreReceiptURL.path)
+        else {
             return .failure(error: NSError(domain: "Receipt Validation", code: -1, userInfo: [NSLocalizedDescriptionKey: "No receipt found"]))
         }
 
@@ -395,4 +401,3 @@ extension IAPManager {
         }
     }
 }
-

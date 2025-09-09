@@ -5,50 +5,51 @@
 //  Created by Benoit Nolens on 27/11/2023.
 //
 
-import UIKit
-import StoreKit
 import ArkanaKeys
+import StoreKit
+import UIKit
 
 // MARK: - UITableViewCell
 
 final class UpgradeCell: UITableViewCell {
     static let reuseIdentifier = "UpgradeCell"
-    public var delegate: UpgradeViewDelegate? {
+    var delegate: UpgradeViewDelegate? {
         set {
-            self.rootView.delegate = newValue
+            rootView.delegate = newValue
         }
-        
+
         get {
-            return self.rootView.delegate
+            return rootView.delegate
         }
     }
-    
-    public let rootView = UpgradeRootView()
-    
+
+    let rootView = UpgradeRootView()
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
-        self.selectionStyle = .none
-        self.contentView.backgroundColor = .clear
-        self.backgroundColor = .clear
-        
-        self.contentView.addSubview(rootView)
+
+        selectionStyle = .none
+        contentView.backgroundColor = .clear
+        backgroundColor = .clear
+
+        contentView.addSubview(rootView)
         rootView.translatesAutoresizingMaskIntoConstraints = false
-        self.rootView.pinEdges()
+        rootView.pinEdges()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.delegate = nil
-        self.rootView.prepareForReuse()
+        delegate = nil
+        rootView.prepareForReuse()
     }
-    
+
     func configure(expanded: Bool, title: String, featureName: String? = nil) {
-        self.rootView.configure(expanded: expanded, title: title, featureName: featureName)
+        rootView.configure(expanded: expanded, title: title, featureName: featureName)
     }
 }
 
@@ -56,48 +57,49 @@ final class UpgradeCell: UITableViewCell {
 
 final class UpgradeItem: UICollectionViewCell {
     static let reuseIdentifier = "UpgradeItem"
-    public weak var delegate: UpgradeViewDelegate? {
+    weak var delegate: UpgradeViewDelegate? {
         set {
-            self.rootView.delegate = newValue
+            rootView.delegate = newValue
         }
-        
+
         get {
-            return self.rootView.delegate
+            return rootView.delegate
         }
     }
-    
+
     private let rootView = UpgradeRootView()
-    public var parentWidth: CGFloat?
-    
+    var parentWidth: CGFloat?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        
-       self.contentView.backgroundColor = .clear
-       self.backgroundColor = .clear
 
-       self.contentView.addSubview(rootView)
-       rootView.translatesAutoresizingMaskIntoConstraints = false
-       self.rootView.pinEdges()
+        contentView.backgroundColor = .clear
+        backgroundColor = .clear
+
+        contentView.addSubview(rootView)
+        rootView.translatesAutoresizingMaskIntoConstraints = false
+        rootView.pinEdges()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
         let attributes = super.preferredLayoutAttributesFitting(layoutAttributes)
-        attributes.size = CGSize(width: (self.parentWidth ?? self.bounds.width) - 40, height: attributes.size.height)
+        attributes.size = CGSize(width: (parentWidth ?? bounds.width) - 40, height: attributes.size.height)
         return attributes
     }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.delegate = nil
-        self.rootView.prepareForReuse()
+        delegate = nil
+        rootView.prepareForReuse()
     }
-    
+
     func configure(expanded: Bool, title: String, featureName: String? = nil) {
-        self.rootView.configure(expanded: expanded, title: title, featureName: featureName)
+        rootView.configure(expanded: expanded, title: title, featureName: featureName)
     }
 }
 
@@ -108,14 +110,13 @@ protocol UpgradeViewDelegate: AnyObject {
 }
 
 final class UpgradeRootView: UIView, UpgradeOptionDelegate {
-    
     enum UpgradeViewState {
         case loading
         case unsubscribed
         case subscribed
         case thanks
     }
-    
+
     private let mainStack = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -129,7 +130,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         stackView.layoutMargins = .init(top: 14, left: 18, bottom: 14, right: 18)
         return stackView
     }()
-    
+
     private let headerStack = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -141,7 +142,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         stackView.preservesSuperviewLayoutMargins = false
         return stackView
     }()
-    
+
     private let expandedStack = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -166,7 +167,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         stackView.preservesSuperviewLayoutMargins = false
         return stackView
     }()
-    
+
     private let productOptionsStack = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -180,7 +181,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         stackView.layoutMargins.top = 8
         return stackView
     }()
-    
+
     private let customBackground = {
         let view = GradientBorderView(colors: UIColor.gradients.goldBorder, startPoint: .init(x: 0, y: 0), endPoint: .init(x: 1, y: 1))
         view.layer.borderWidth = 2
@@ -189,13 +190,13 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private let titleLabel: GradientLabel = {
         let label = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         label.numberOfLines = 1
         return label
     }()
-    
+
     private let createOptionLabel: (_ text: String) -> UIStackView = { text in
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -207,16 +208,16 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         slash.text = "/"
         slash.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 3, weight: .heavy)
         stackView.addArrangedSubview(slash)
-        
+
         let label = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         label.text = text
         label.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 3, weight: .regular)
         label.numberOfLines = 1
-        
+
         stackView.addArrangedSubview(label)
         return stackView
     }
-    
+
     private let descriptionLabel: UILabel = {
         let label = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         label.text = NSLocalizedString("settings.gold.community", comment: "")
@@ -224,7 +225,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         label.numberOfLines = 0
         return label
     }()
-    
+
     private let actionButton: GradientButton = {
         let button = GradientButton(colors: UIColor.gradients.goldButtonBackground, startPoint: .init(x: 1, y: 0.5), endPoint: .init(x: 0, y: 1))
         button.translatesAutoresizingMaskIntoConstraints = false
@@ -237,7 +238,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         button.contentEdgeInsets = .init(top: 10, left: 17, bottom: 10, right: 17)
         return button
     }()
-    
+
     private let restoreButton: GradientLabel = {
         let label = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         label.numberOfLines = 1
@@ -247,7 +248,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         label.isUserInteractionEnabled = true
         return label
     }()
-    
+
     private let expandIcon: UILabel = {
         let icon = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         icon.numberOfLines = 1
@@ -256,9 +257,9 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
         icon.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 1, weight: .black)
         return icon
     }()
-    
-    public weak var delegate: UpgradeViewDelegate?
-    
+
+    weak var delegate: UpgradeViewDelegate?
+
     private let gradientBorder = CAGradientLayer()
     private let gradientBorderShape = CAShapeLayer()
     private let loader = UIActivityIndicatorView(style: .medium)
@@ -267,63 +268,64 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
     private var iapProducts: [SKProduct] = [] {
         didSet {
             if oldValue != iapProducts {
-                self.clearProductOptions()
-                self.setupProductOptions(products: iapProducts)
+                clearProductOptions()
+                setupProductOptions(products: iapProducts)
             }
         }
     }
-    public var state: UpgradeViewState = IAPManager.isGoldMember ? .subscribed : .loading {
+
+    var state: UpgradeViewState = IAPManager.isGoldMember ? .subscribed : .loading {
         didSet {
             if oldValue != state {
                 configureUIForState(state)
-                self.delegate?.onStateChange(state: state)
-                
-                if self.delegate == nil {
+                delegate?.onStateChange(state: state)
+
+                if delegate == nil {
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
                 }
             }
         }
     }
-    
+
     private(set) var expanded: Bool = false
-    
-    override init(frame: CGRect) {
+
+    override init(frame _: CGRect) {
         super.init(frame: .zero)
-        self.setupUI()
-        
-        let restoreGesture = UITapGestureRecognizer(target: self, action: #selector(self.onRestorePress))
-        self.restoreButton.addGestureRecognizer(restoreGesture)
-        
-        IAPManager.shared.fetchAvailableProductsBlock = { (products) in
+        setupUI()
+
+        let restoreGesture = UITapGestureRecognizer(target: self, action: #selector(onRestorePress))
+        restoreButton.addGestureRecognizer(restoreGesture)
+
+        IAPManager.shared.fetchAvailableProductsBlock = { products in
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 self.iapProducts = products
                 self.state = IAPManager.isGoldMember ? .subscribed : .unsubscribed
             }
         }
-        
-        IAPManager.shared.purchaseStatusBlock = { (type) in
+
+        IAPManager.shared.purchaseStatusBlock = { type in
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                
+
                 switch type {
                 case .disabled:
                     AnalyticsManager.track(event: .failedToUpgrade)
                     let alert = UIAlertController(title: NSLocalizedString("error.purchaseError", comment: ""), message: type.message(), preferredStyle: UIAlertController.Style.alert)
                     alert.addAction(UIAlertAction(title: NSLocalizedString("generic.ok", comment: ""), style: UIAlertAction.Style.default, handler: nil))
-            
+
                     if let presentingVC = getTopMostViewController() {
                         presentingVC.present(alert, animated: true, completion: nil)
                     }
-                case .failed(let error):
+                case let .failed(error):
                     self.state = .unsubscribed
                     AnalyticsManager.track(event: .failedToUpgrade)
-                    
+
                     guard (error as? NSError)?.description.range(of: NSLocalizedString("error.paymentSheet", comment: "")) == nil else { return }
-                    
+
                     let alert = UIAlertController(title: NSLocalizedString("error.purchaseError", comment: ""), message: type.message(), preferredStyle: UIAlertController.Style.alert)
                     alert.addAction(UIAlertAction(title: NSLocalizedString("generic.ok", comment: ""), style: UIAlertAction.Style.default, handler: nil))
-            
+
                     if let presentingVC = getTopMostViewController() {
                         presentingVC.present(alert, animated: true, completion: nil)
                     }
@@ -337,31 +339,32 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
             }
         }
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func prepareForReuse() {
-        self.delegate = nil
+        delegate = nil
         setupUIFromSettings()
     }
-    
+
     func onOptionSelect(planId: String) {
-        self.options.forEach({
-            if $0.planId == planId {
-                $0.selected = true
+        for option in options {
+            if option.planId == planId {
+                option.selected = true
             } else {
-                $0.selected = false
+                option.selected = false
             }
-        })
+        }
     }
-    
+
     @objc func onActionButtonPressed() {
-        switch self.state {
+        switch state {
         case .unsubscribed:
-            self.state = .loading
-            if let selected = self.options.first(where: { $0.selected })?.planId {
+            state = .loading
+            if let selected = options.first(where: { $0.selected })?.planId {
                 IAPManager.shared.purchaseProduct(productIdentifier: selected)
             }
         case .thanks, .subscribed:
@@ -370,7 +373,7 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
             break
         }
     }
-    
+
     private func openCommunityWebView() {
         let userId = (AccountsManager.shared.currentAccount as? MastodonAcctData)?.remoteFullOriginalAcct
         let queryItems = [URLQueryItem(name: "id", value: userId)]
@@ -385,53 +388,53 @@ final class UpgradeRootView: UIView, UpgradeOptionDelegate {
             log.error("unable to generate correct community URL")
         }
     }
-    
+
     @objc func onRestorePress() {
-        self.state = .loading
+        state = .loading
         IAPManager.shared.restorePurchase()
     }
 }
 
 private extension UpgradeRootView {
     func setupUI() {
-        self.contentMode = .top
-        self.backgroundColor = .clear
-        self.clipsToBounds = true
-        self.backgroundColor = .clear
-        self.layoutMargins = .zero
-        
-        self.addSubview(customBackground)
-        self.addSubview(mainStack)
-        
+        contentMode = .top
+        backgroundColor = .clear
+        clipsToBounds = true
+        backgroundColor = .clear
+        layoutMargins = .zero
+
+        addSubview(customBackground)
+        addSubview(mainStack)
+
         mainStack.addArrangedSubview(headerStack)
-        
+
         headerStack.addArrangedSubview(titleLabel)
         headerStack.addArrangedSubview(expandIcon)
         headerStack.addArrangedSubview(loader)
-        
+
         titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
         expandIcon.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
-        
+
         NSLayoutConstraint.activate([
-            customBackground.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            customBackground.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            customBackground.topAnchor.constraint(equalTo: self.topAnchor),
-            customBackground.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            
-            mainStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
-            mainStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
-            mainStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor),
-            mainStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor),
-            
-            headerStack.leadingAnchor.constraint(equalTo: self.mainStack.layoutMarginsGuide.leadingAnchor),
-            headerStack.trailingAnchor.constraint(equalTo: self.mainStack.layoutMarginsGuide.trailingAnchor),
+            customBackground.leadingAnchor.constraint(equalTo: leadingAnchor),
+            customBackground.trailingAnchor.constraint(equalTo: trailingAnchor),
+            customBackground.topAnchor.constraint(equalTo: topAnchor),
+            customBackground.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            mainStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+            mainStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
+            mainStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor),
+
+            headerStack.leadingAnchor.constraint(equalTo: mainStack.layoutMarginsGuide.leadingAnchor),
+            headerStack.trailingAnchor.constraint(equalTo: mainStack.layoutMarginsGuide.trailingAnchor),
         ])
-        
+
         expandedStack.addArrangedSubview(descriptionLabel)
         expandedStack.addArrangedSubview(optionsListStack)
         expandedStack.addArrangedSubview(productOptionsStack)
-        
+
         optionsListStack.addArrangedSubview(createOptionLabel(NSLocalizedString("settings.gold.earlyAccess", comment: "")))
         var appIconBenefit = NSLocalizedString("settings.gold.icons", comment: "")
         if !UIApplication.shared.supportsAlternateIcons {
@@ -440,79 +443,78 @@ private extension UpgradeRootView {
         optionsListStack.addArrangedSubview(createOptionLabel(appIconBenefit))
         optionsListStack.addArrangedSubview(createOptionLabel(NSLocalizedString("settings.gold.support", comment: "")))
         optionsListStack.addArrangedSubview(createOptionLabel(NSLocalizedString("settings.gold.vote", comment: "")))
-        
+
         mainStack.addArrangedSubview(expandedStack)
         expandedStack.isHidden = true
-        
+
         expandedStack.addArrangedSubview(actionButton)
         expandedStack.addArrangedSubview(restoreButton)
-                
+
         NSLayoutConstraint.activate([
-            expandedStack.trailingAnchor.constraint(equalTo: self.mainStack.layoutMarginsGuide.trailingAnchor),
+            expandedStack.trailingAnchor.constraint(equalTo: mainStack.layoutMarginsGuide.trailingAnchor),
             actionButton.trailingAnchor.constraint(equalTo: expandedStack.layoutMarginsGuide.trailingAnchor),
-            restoreButton.trailingAnchor.constraint(equalTo: expandedStack.layoutMarginsGuide.trailingAnchor)
+            restoreButton.trailingAnchor.constraint(equalTo: expandedStack.layoutMarginsGuide.trailingAnchor),
         ])
-        
-        actionButton.addTarget(self, action: #selector(self.onActionButtonPressed), for: .touchUpInside)
-        
+
+        actionButton.addTarget(self, action: #selector(onActionButtonPressed), for: .touchUpInside)
+
         setupUIFromSettings()
-        configureUIForState(self.state)
+        configureUIForState(state)
     }
-    
+
     func setupUIFromSettings() {
         titleLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 1, weight: .bold)
     }
-    
+
     func setupProductOptions(products: [SKProduct]) {
-        self.options = []
-        products.forEach({ [weak self] product in
+        options = []
+        products.forEach { [weak self] product in
             guard let self else { return }
             let isYearly = product.productIdentifier == IAPManager.GOLD_YEAR_PRODUCT_ID
-            
+
             let currencyFormatter = NumberFormatter()
             currencyFormatter.usesGroupingSeparator = true
             currencyFormatter.numberStyle = .currency
             currencyFormatter.locale = product.priceLocale
-            
+
             let priceString = currencyFormatter.string(from: product.price)
-            
+
             let option = UpgradeOption(title: product.localizedTitle,
                                        description: product.localizedDescription,
                                        price: priceString ?? "",
                                        selected: isYearly,
                                        planId: product.productIdentifier,
                                        badge: isYearly ? NSLocalizedString("settings.gold.bestDeal", comment: "") : nil)
-            
+
             option.delegate = self
-            
+
             self.options.append(option)
             productOptionsStack.addArrangedSubview(option)
-            
+
             let c = option.trailingAnchor.constraint(equalTo: expandedStack.layoutMarginsGuide.trailingAnchor)
             c.isActive = true
             self.optionsContraints.append(c)
-        })
+        }
     }
-    
+
     func clearProductOptions() {
-        self.options.forEach({
-            productOptionsStack.removeArrangedSubview($0)
-            $0.removeFromSuperview()
-        })
-        
-        self.options = []
-        
-        NSLayoutConstraint.deactivate(self.optionsContraints)
-        self.optionsContraints = []
+        for option in options {
+            productOptionsStack.removeArrangedSubview(option)
+            option.removeFromSuperview()
+        }
+
+        options = []
+
+        NSLayoutConstraint.deactivate(optionsContraints)
+        optionsContraints = []
     }
 }
 
 extension UpgradeRootView {
     func configure(expanded: Bool, title: String, featureName: String?) {
-        
-        self.titleLabel.text = title
-        
-        if expanded && IAPManager.shared.iapProducts.isEmpty {
+        titleLabel.text = title
+
+        if expanded, IAPManager.shared.iapProducts.isEmpty {
             IAPManager.shared.prepareForUse()
             IAPManager.shared.fetchAvailableProductsBlock = { products in
                 DispatchQueue.main.async {
@@ -522,32 +524,32 @@ extension UpgradeRootView {
             }
             return
         }
-        
-        self.expand(expanded)
-        
+
+        expand(expanded)
+
         if expanded {
             expandIcon.text = "–"
             expandIcon.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 1, weight: .black)
         } else {
             expandIcon.text = featureName ?? "+"
-            
+
             if featureName != nil {
                 expandIcon.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 1, weight: .regular)
             } else {
                 expandIcon.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 1, weight: .black)
             }
         }
-        
-        self.configureUIForState(self.state)
+
+        configureUIForState(state)
     }
-    
+
     private func expand(_ expanded: Bool) {
         self.expanded = expanded
-        
+
         if expanded {
             expandedStack.alpha = 0
             expandedStack.isHidden = false
-                        
+
             UIView.animate(withDuration: 0.12, delay: 0.21) {
                 self.expandedStack.alpha = 1
             }
@@ -556,54 +558,52 @@ extension UpgradeRootView {
             // to prevent an animation glitch
             DispatchQueue.main.async {
                 self.expandedStack.alpha = 0
-
             }
-            self.expandedStack.isHidden = true
+            expandedStack.isHidden = true
         }
     }
-    
+
     func configureUIForState(_ state: UpgradeViewState) {
         switch state {
         case .loading:
-            self.loader.isHidden = false
-            self.expandIcon.isHidden = true
-            self.loader.hidesWhenStopped = true
-            self.expandedStack.isHidden = true
-            self.loader.startAnimating()
+            loader.isHidden = false
+            expandIcon.isHidden = true
+            loader.hidesWhenStopped = true
+            expandedStack.isHidden = true
+            loader.startAnimating()
         case .subscribed:
-            self.loader.stopAnimating()
-            self.expandIcon.isHidden = false
-            self.productOptionsStack.isHidden = true
-            self.expandedStack.isHidden = !self.expanded
-            self.titleLabel.text = NSLocalizedString("settings.gold.active", comment: "")
-            self.descriptionLabel.isHidden = false
-            self.optionsListStack.isHidden = true
-            self.actionButton.setTitle(NSLocalizedString("settings.gold.join", comment: ""), for: .normal)
-            self.restoreButton.isHidden = true
+            loader.stopAnimating()
+            expandIcon.isHidden = false
+            productOptionsStack.isHidden = true
+            expandedStack.isHidden = !expanded
+            titleLabel.text = NSLocalizedString("settings.gold.active", comment: "")
+            descriptionLabel.isHidden = false
+            optionsListStack.isHidden = true
+            actionButton.setTitle(NSLocalizedString("settings.gold.join", comment: ""), for: .normal)
+            restoreButton.isHidden = true
         case .unsubscribed:
-            self.loader.stopAnimating()
-            self.loader.isHidden = true
-            self.expandIcon.isHidden = false
-            self.expandedStack.isHidden = !self.expanded
-            self.productOptionsStack.isHidden = false
-            self.descriptionLabel.isHidden = true
-            self.optionsListStack.isHidden = false
-            self.actionButton.setTitle(NSLocalizedString("settings.gold.upgrade", comment: ""), for: .normal)
-            self.restoreButton.isHidden = false
+            loader.stopAnimating()
+            loader.isHidden = true
+            expandIcon.isHidden = false
+            expandedStack.isHidden = !expanded
+            productOptionsStack.isHidden = false
+            descriptionLabel.isHidden = true
+            optionsListStack.isHidden = false
+            actionButton.setTitle(NSLocalizedString("settings.gold.upgrade", comment: ""), for: .normal)
+            restoreButton.isHidden = false
         case .thanks:
-            self.loader.stopAnimating()
-            self.expandIcon.isHidden = false
-            self.titleLabel.text = NSLocalizedString("settings.gold.active", comment: "")
-            self.productOptionsStack.isHidden = true
-            self.expandedStack.isHidden = !self.expanded
-            self.descriptionLabel.isHidden = false
-            self.optionsListStack.isHidden = true
-            self.actionButton.setTitle(NSLocalizedString("settings.gold.join", comment: ""), for: .normal)
-            self.restoreButton.isHidden = true
+            loader.stopAnimating()
+            expandIcon.isHidden = false
+            titleLabel.text = NSLocalizedString("settings.gold.active", comment: "")
+            productOptionsStack.isHidden = true
+            expandedStack.isHidden = !expanded
+            descriptionLabel.isHidden = false
+            optionsListStack.isHidden = true
+            actionButton.setTitle(NSLocalizedString("settings.gold.join", comment: ""), for: .normal)
+            restoreButton.isHidden = true
         }
     }
 }
-
 
 // MARK: - Upgrade Option View
 
@@ -620,7 +620,7 @@ final class UpgradeOption: UIView {
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private let mainStack: UIStackView = {
         let mainStack = UIStackView()
         mainStack.axis = .horizontal
@@ -629,7 +629,7 @@ final class UpgradeOption: UIView {
         mainStack.translatesAutoresizingMaskIntoConstraints = false
         return mainStack
     }()
-    
+
     private let leftColumn: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -637,28 +637,28 @@ final class UpgradeOption: UIView {
         stackView.alignment = .leading
         return stackView
     }()
-    
+
     private let titleLabel: GradientLabel = {
         let label = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         label.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 1, weight: .bold)
         label.numberOfLines = 1
         return label
     }()
-    
+
     private let descriptionLabel: GradientLabel = {
         let label = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         label.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 3, weight: .regular)
         label.numberOfLines = 1
         return label
     }()
-    
+
     private let priceLabel: GradientLabel = {
         let label = GradientLabel(colors: UIColor.gradients.goldText, startPoint: .init(x: 1, y: 1), endPoint: .init(x: 0, y: 0))
         label.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 1, weight: .bold)
         label.numberOfLines = 1
         return label
     }()
-    
+
     private let badgeLabel: UIButton = {
         let label = UIButton()
         label.titleLabel?.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 4, weight: .heavy)
@@ -672,75 +672,77 @@ final class UpgradeOption: UIView {
         label.translatesAutoresizingMaskIntoConstraints = false
         return label
     }()
-    
-    public let planId: String
-    public var selected: Bool = false {
+
+    let planId: String
+    var selected: Bool = false {
         didSet {
-            self.layoutSubviews()
+            layoutSubviews()
         }
     }
+
     weak var delegate: UpgradeOptionDelegate?
-    
+
     private var backgroundColors: [CGColor] {
-        if self.traitCollection.userInterfaceStyle == .dark {
+        if traitCollection.userInterfaceStyle == .dark {
             return [
-                UIColor(red: 82.0/255.0, green: 61.0/255.0, blue: 30.0/255.0, alpha: 1.0).cgColor,
-                UIColor(red: 109.0/255.0, green: 81.0/255.0, blue: 38.0/255.0, alpha: 1.0).cgColor,
+                UIColor(red: 82.0 / 255.0, green: 61.0 / 255.0, blue: 30.0 / 255.0, alpha: 1.0).cgColor,
+                UIColor(red: 109.0 / 255.0, green: 81.0 / 255.0, blue: 38.0 / 255.0, alpha: 1.0).cgColor,
             ]
         } else {
             return [
-                UIColor(red: 221.0/255.0, green: 175.0/255.0, blue: 107.0/255.0, alpha: 0.8).cgColor,
-                UIColor(red: 238.0/255.0, green: 180.0/255.0, blue: 92.0/255.0, alpha: 0.8).cgColor,
+                UIColor(red: 221.0 / 255.0, green: 175.0 / 255.0, blue: 107.0 / 255.0, alpha: 0.8).cgColor,
+                UIColor(red: 238.0 / 255.0, green: 180.0 / 255.0, blue: 92.0 / 255.0, alpha: 0.8).cgColor,
             ]
         }
     }
-    
+
     init(title: String, description: String, price: String, selected: Bool, planId: String, badge: String? = nil) {
         self.planId = planId
         super.init(frame: .zero)
         self.selected = selected
-        self.translatesAutoresizingMaskIntoConstraints = false
-        self.setupUI()
-        
-        self.titleLabel.text = title
-        self.descriptionLabel.text = description
-        self.priceLabel.text = price
-        
+        translatesAutoresizingMaskIntoConstraints = false
+        setupUI()
+
+        titleLabel.text = title
+        descriptionLabel.text = description
+        priceLabel.text = price
+
         if let badge {
-            self.badgeLabel.setTitle(badge, for: .normal)
+            badgeLabel.setTitle(badge, for: .normal)
         } else {
-            self.badgeLabel.isHidden = true
+            badgeLabel.isHidden = true
         }
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.onPress))
-        self.addGestureRecognizer(tapGesture)
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onPress))
+        addGestureRecognizer(tapGesture)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
-        
-        if self.bounds.size.height != 0 && self.selected {
-            self.customBackground.backgroundColor = UIColor.gradient(colors: self.backgroundColors, startPoint: .init(x: 0, y: 1), endPoint: .init(x: 1, y: 0), bounds: self.customBackground.bounds)
+
+        if bounds.size.height != 0, selected {
+            customBackground.backgroundColor = UIColor.gradient(colors: backgroundColors, startPoint: .init(x: 0, y: 1), endPoint: .init(x: 1, y: 0), bounds: customBackground.bounds)
         } else {
-            self.customBackground.backgroundColor = .clear
+            customBackground.backgroundColor = .clear
         }
-        
-        if self.selected && self.traitCollection.userInterfaceStyle == .light {
+
+        if selected, traitCollection.userInterfaceStyle == .light {
             titleLabel.colors = [
                 UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor,
-                UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor
+                UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor,
             ]
             descriptionLabel.colors = [
                 UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor,
-                UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor
+                UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor,
             ]
             priceLabel.colors = [
                 UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor,
-                UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor
+                UIColor(red: 255, green: 255, blue: 255, alpha: 1.0).cgColor,
             ]
         } else {
             titleLabel.colors = UIColor.gradients.goldText
@@ -748,40 +750,40 @@ final class UpgradeOption: UIView {
             priceLabel.colors = UIColor.gradients.goldText
         }
     }
-    
+
     private func setupUI() {
-        self.addSubview(customBackground)
-        self.addSubview(mainStack)
-        
+        addSubview(customBackground)
+        addSubview(mainStack)
+
         mainStack.addArrangedSubview(leftColumn)
-        self.layoutMargins = .init(top: 18, left: 16, bottom: 18, right: 16)
-        
+        layoutMargins = .init(top: 18, left: 16, bottom: 18, right: 16)
+
         leftColumn.addArrangedSubview(titleLabel)
         leftColumn.addArrangedSubview(descriptionLabel)
-        
+
         mainStack.addArrangedSubview(priceLabel)
-        
+
         mainStack.addSubview(badgeLabel)
-        
+
         NSLayoutConstraint.activate([
-            customBackground.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            customBackground.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            customBackground.topAnchor.constraint(equalTo: self.topAnchor),
-            customBackground.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            
-            mainStack.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
-            mainStack.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
-            mainStack.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor),
-            mainStack.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor),
-            
+            customBackground.leadingAnchor.constraint(equalTo: leadingAnchor),
+            customBackground.trailingAnchor.constraint(equalTo: trailingAnchor),
+            customBackground.topAnchor.constraint(equalTo: topAnchor),
+            customBackground.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            mainStack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+            mainStack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+            mainStack.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
+            mainStack.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor),
+
             badgeLabel.leadingAnchor.constraint(equalTo: mainStack.leadingAnchor, constant: -5),
-            badgeLabel.topAnchor.constraint(equalTo: mainStack.topAnchor, constant: -26)
+            badgeLabel.topAnchor.constraint(equalTo: mainStack.topAnchor, constant: -26),
         ])
     }
-    
+
     @objc func onPress() {
-        self.selected = !self.selected
-        self.layoutSubviews()
-        self.delegate?.onOptionSelect(planId: self.planId)
+        selected = !selected
+        layoutSubviews()
+        delegate?.onOptionSelect(planId: planId)
     }
 }

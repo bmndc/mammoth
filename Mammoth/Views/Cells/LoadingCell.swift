@@ -11,26 +11,26 @@ import UIKit
 
 class LoadingCell: UITableViewCell {
     static let reuseIdentifier = "LoadingCell"
-    
+
     var loadingIndicator = UIActivityIndicatorView()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
-        self.selectionStyle = .none
-        self.separatorInset = .zero
-        self.layoutMargins = .zero
-        self.contentView.preservesSuperviewLayoutMargins = false
-        
-        self.backgroundColor = .custom.background
-        self.contentView.backgroundColor = .custom.background
-        self.isOpaque = true
-        self.contentView.isOpaque = true
-        
+
+        selectionStyle = .none
+        separatorInset = .zero
+        layoutMargins = .zero
+        contentView.preservesSuperviewLayoutMargins = false
+
+        backgroundColor = .custom.background
+        contentView.backgroundColor = .custom.background
+        isOpaque = true
+        contentView.isOpaque = true
+
         loadingIndicator.translatesAutoresizingMaskIntoConstraints = false
         loadingIndicator.hidesWhenStopped = true
         contentView.addSubview(loadingIndicator)
-                
+
         NSLayoutConstraint.activate([
             loadingIndicator.centerXAnchor.constraint(equalTo: contentView.centerXAnchor),
             loadingIndicator.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 20),
@@ -38,14 +38,15 @@ class LoadingCell: UITableViewCell {
             loadingIndicator.widthAnchor.constraint(equalToConstant: 20),
         ])
     }
-    
+
     func startAnimation() {
-        self.backgroundColor = .custom.background
-        self.contentView.backgroundColor = .custom.background
+        backgroundColor = .custom.background
+        contentView.backgroundColor = .custom.background
         loadingIndicator.startAnimating()
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }

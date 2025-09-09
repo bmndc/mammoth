@@ -7,46 +7,45 @@
 //
 
 import Foundation
+import NaturalLanguage
 import UIKit
 import Vision
-import NaturalLanguage
 
 class TextShareViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
     let btn0 = UIButton(type: .custom)
     let btn2 = UIButton(type: .custom)
     var tableView = UITableView()
     var id: String = ""
     var keyHeight: CGFloat = 0
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
-        
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell2 {
-            self.addText(cell1.altText.text ?? "")
+            addText(cell1.altText.text ?? "")
         }
     }
-    
+
     @objc func keyboardWillChange(notification: Notification) {
         if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
             let keyboardRectangle = keyboardFrame.cgRectValue
@@ -54,19 +53,18 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
             keyHeight = CGFloat(keyboardHeight)
         }
     }
-    
-    func addText(_ altText: String) {
+
+    func addText(_: String) {
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell2 {
             GlobalStruct.shareAsImageTextCaption = cell1.altText.text ?? ""
             UserDefaults.standard.set(GlobalStruct.shareAsImageTextCaption, forKey: "shareAsImageTextCaption")
             NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
         }
     }
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -75,7 +73,7 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
                 UIColor.custom.mainTextColor = .secondaryLabel
             }
             self.tableView.reloadData()
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -93,7 +91,7 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
             } else {
                 self.extendedLayoutIncludesOpaqueBars = false
             }
-            
+
             for cell in self.tableView.visibleCells {
                 if let cell = cell as? AltTextCell2 {
                     cell.backgroundColor = .custom.backgroundTint
@@ -101,7 +99,7 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
             }
         }
     }
-    
+
     override var keyCommands: [UIKeyCommand]? {
         let closeWindow = UIKeyCommand(input: "w", modifierFlags: [.command], action: #selector(dismissTap))
         closeWindow.discoverabilityTitle = NSLocalizedString("generic.dismiss", comment: "")
@@ -110,57 +108,57 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
         }
         return [closeWindow]
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custom.backgroundTint
-        
-        self.navigationItem.title = "Caption Text"
-        
-        NotificationCenter.default.addObserver(self,selector: #selector(keyboardWillChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
-        
+
+        navigationItem.title = "Caption Text"
+
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+
         // set up nav bar
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
-        
+
         let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
         btn0.setImage(UIImage(systemName: "xmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
         btn0.backgroundColor = UIColor.label.withAlphaComponent(0.08)
         btn0.layer.cornerRadius = 14
         btn0.imageEdgeInsets = UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7)
         btn0.frame = CGRect(x: 0, y: 0, width: 28, height: 28)
-        btn0.addTarget(self, action: #selector(self.dismissTap), for: .touchUpInside)
+        btn0.addTarget(self, action: #selector(dismissTap), for: .touchUpInside)
         btn0.accessibilityLabel = NSLocalizedString("generic.dismiss", comment: "")
         let moreButton0 = UIBarButtonItem(customView: btn0)
-        self.navigationItem.setLeftBarButton(moreButton0, animated: true)
-        
+        navigationItem.setLeftBarButton(moreButton0, animated: true)
+
         btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
         btn2.backgroundColor = UIColor.label.withAlphaComponent(0.08)
         btn2.layer.cornerRadius = 14
         btn2.imageEdgeInsets = UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7)
         btn2.frame = CGRect(x: 0, y: 0, width: 28, height: 28)
-        btn2.addTarget(self, action: #selector(self.addTap), for: .touchUpInside)
+        btn2.addTarget(self, action: #selector(addTap), for: .touchUpInside)
         btn2.accessibilityLabel = "Caption text"
         let moreButton1 = UIBarButtonItem(customView: btn2)
-        self.navigationItem.setRightBarButton(moreButton1, animated: true)
-        
+        navigationItem.setRightBarButton(moreButton1, animated: true)
+
         // set up table
         setupTable()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell2 {
@@ -168,17 +166,17 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
             cell1.altText.becomeFirstResponder()
         }
     }
-    
+
     @objc func addTap() {
         triggerHapticImpact(style: .light)
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
-    
+
     @objc func dismissTap() {
         triggerHapticImpact(style: .light)
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
-    
+
     func setupTable() {
         tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.register(AltTextCell2.self, forCellReuseIdentifier: "AltTextCell2")
@@ -193,28 +191,28 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
         tableView.tableFooterView = UIView(frame: .zero)
         view.addSubview(tableView)
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    func numberOfSections(in _: UITableView) -> Int {
         return 1
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return 1
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+
+    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "AltTextCell2", for: indexPath) as! AltTextCell2
-        
+
         cell.altText.placeholder = "Caption text..."
         cell.altText.accessibilityLabel = "Caption text..."
-        cell.altText.addTarget(self, action: #selector(self.textFieldDidChange(_:)), for: .editingChanged)
-        
+        cell.altText.addTarget(self, action: #selector(textFieldDidChange(_:)), for: .editingChanged)
+
         cell.altText.tag = indexPath.section
-        
+
         cell.separatorInset = .zero
         let bgColorView = UIView()
         bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
@@ -222,31 +220,27 @@ class TextShareViewController: UIViewController, UITableViewDataSource, UITableV
         cell.backgroundColor = .custom.quoteTint
         return cell
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        
-    }
-    
-    @objc func textFieldDidChange(_ textField: UITextField) {
+
+    func tableView(_: UITableView, didSelectRowAt _: IndexPath) {}
+
+    @objc func textFieldDidChange(_: UITextField) {
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell2 {
             let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
             if cell1.altText.text != "" {
-                self.btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
+                btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(.white, renderingMode: .alwaysOriginal), for: .normal)
                 btn2.backgroundColor = .custom.baseTint
             } else {
-                self.btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
+                btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
                 btn2.backgroundColor = UIColor.label.withAlphaComponent(0.08)
             }
         }
     }
-    
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+
+    func tableView(_: UITableView, titleForFooterInSection _: Int) -> String? {
         return "Add a text caption to posts you're sharing as images."
     }
-    
-    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
         return UITableView.automaticDimension
     }
-    
 }
-

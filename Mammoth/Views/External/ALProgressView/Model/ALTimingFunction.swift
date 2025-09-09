@@ -53,10 +53,10 @@ public enum ALTimingFunction: String, CaseIterable, Hashable {
     case easeInBack
     case easeOutBack
     case easeInOutBack
-    
+
     var function: CAMediaTimingFunction {
         switch self {
-        case .`default`:
+        case .default:
             return CAMediaTimingFunction(name: CAMediaTimingFunctionName.default)
         case .linear:
             return CAMediaTimingFunction(name: CAMediaTimingFunctionName.linear)

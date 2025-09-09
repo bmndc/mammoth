@@ -9,9 +9,7 @@
 import Foundation
 import UIKit
 
-
 public class ProfileCacher {
-
     public static let shared = ProfileCacher()
 
     var prefetchImages: Set<UIImageView> = []
@@ -61,7 +59,6 @@ public class ProfileCacher {
         preloadProfilesForIDs(Array(visibleIDs))
     }
 
-    
     public func preloadProfiles(table: UITableView, statuses: [Status]) {
         var visibleStatuses: [Status] = []
         let visibleIndexPaths = table.indexPathsForVisibleRows
@@ -75,7 +72,7 @@ public class ProfileCacher {
             preloadProfilesForStatuses(visibleStatuses)
         }
     }
-    
+
     private func preloadProfilesForStatuses(_ statuses: [Status]) {
         // These are a set of posts that would like to have the account info
         // prefetched.
@@ -83,19 +80,19 @@ public class ProfileCacher {
         // However, for posts that are being reblogged, their post.account.id
         // may not be valid (for our user's server). In that case, do a search
         // on the user's server for a valid ID, and go from there.
-        
+
         for status in statuses {
             if status.reblog != nil {
-                self.preloadProfile(id: status.reblog?.account?.id ?? "")
+                preloadProfile(id: status.reblog?.account?.id ?? "")
             } else {
-                self.preloadProfile(id: status.account?.id ?? "")
+                preloadProfile(id: status.account?.id ?? "")
             }
         }
     }
-    
+
     public func preloadProfilesForIDs(_ ids: [String]) {
         for id in ids {
-            self.preloadProfile(id: id)
+            preloadProfile(id: id)
         }
     }
 
@@ -136,12 +133,11 @@ public class ProfileCacher {
             }
         }
     }
-    
-    
+
     private func prefetchOtherUserData(id: String, userAccount: Account) {
         log.debug("M_PROFILE_CACHE", "Kicking off a network request for \(id)")
         let request = Accounts.account(id: id)
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let stat = (statuses.value) {
                 DispatchQueue.main.async {
                     self.savePrefetchedOtherUserDataToDisk(id: id, account: stat)
@@ -152,7 +148,7 @@ public class ProfileCacher {
             }
         }
     }
-    
+
     // This is generally private, but… used by the SuggestionsViewController
     func savePrefetchedOtherUserDataToDisk(id: String, account: Account) {
         log.debug("M_PROFILE_CACHE", "Saving otherUserData to disk: \(id) \(account.username)")
@@ -166,7 +162,7 @@ public class ProfileCacher {
 
     private func prefetchRelation(id: String, userAccount: Account, profileAccount: Account) {
         let request0 = Accounts.relationships(ids: [id])
-        AccountsManager.shared.currentAccountClient.run(request0) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request0) { statuses in
             if let stat = (statuses.value) {
                 if stat.count > 0 {
                     DispatchQueue.main.async {
@@ -186,17 +182,17 @@ public class ProfileCacher {
             log.error("error saving prefetched account to Disk")
         }
     }
-    
+
     private func prefetchAvatarAndHeader(id: String) {
         do {
             let account = try Disk.retrieve("profiles/\(id)/otherUserPro.json", from: .documents, as: Account.self)
-            
+
             let avatar = account.avatar
             if avatar != "" {
                 log.debug("M_PROFILE_CACHE", "Setting avatar URL for: \(id)")
                 let imageView = UIImageView()
                 prefetchImages.insert(imageView)
-                imageView.sd_setImage(with: URL(string: avatar), completed: { image, error, cacheType, url in
+                imageView.sd_setImage(with: URL(string: avatar), completed: { _, _, _, _ in
                     // We can release the imageView now
                     self.prefetchImages.remove(imageView)
                     // Note - this is the last piece of loading the account, relation, and avatar.
@@ -204,12 +200,12 @@ public class ProfileCacher {
                     log.debug("M_PROFILE_CACHE", "Got account + relation + avatar for: \(account.username) - id: \(id)  account.id: \(account.id) !!!!")
                 })
             }
-            
+
             let header = account.header
             if header != "" {
                 let imageView = UIImageView()
                 prefetchImages.insert(imageView)
-                imageView.sd_setImage(with: URL(string: header), completed: { image, error, cacheType, url in
+                imageView.sd_setImage(with: URL(string: header), completed: { _, _, _, _ in
                     self.prefetchImages.remove(imageView)
                 })
             }

@@ -8,13 +8,13 @@
 
 import Foundation
 #if canImport(ActivityKit)
-import ActivityKit
+    import ActivityKit
 
-struct UndoStruct: ActivityAttributes {
-    struct ContentState: Codable, Hashable {
-        let state: Int
-        let text: String
-        var deliveryTimer: ClosedRange<Date>
+    struct UndoStruct: ActivityAttributes {
+        struct ContentState: Codable, Hashable {
+            let state: Int
+            let text: String
+            var deliveryTimer: ClosedRange<Date>
+        }
     }
-}
 #endif

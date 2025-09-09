@@ -11,56 +11,57 @@ import UIKit
 class BlurredBackground: UIView {
     static let blurEffectDimmed = UIBlurEffect(style: .regular)
     static let blurEffect = UIBlurEffect(style: .systemUltraThinMaterial)
-    
+
     private let blurEffectView: UIVisualEffectView
-    
+
     private let underlay: UIView = {
         let view = UIView()
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
-    
+
     private var isDimmed: Bool = false
-    
-    init(dimmed: Bool = false, underlayAlpha: CGFloat? = nil) {
+
+    init(dimmed: Bool = false, underlayAlpha _: CGFloat? = nil) {
         if dimmed {
             blurEffectView = UIVisualEffectView(effect: BlurredBackground.blurEffectDimmed)
         } else {
             blurEffectView = UIVisualEffectView(effect: BlurredBackground.blurEffect)
         }
-        
+
         blurEffectView.translatesAutoresizingMaskIntoConstraints = false
-        
+
         super.init(frame: .zero)
-        
-        self.isDimmed = dimmed
-        self.addSubview(underlay)
-        self.addSubview(blurEffectView)
-        
+
+        isDimmed = dimmed
+        addSubview(underlay)
+        addSubview(blurEffectView)
+
         NSLayoutConstraint.activate([
-            underlay.topAnchor.constraint(equalTo: self.topAnchor),
-            underlay.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            underlay.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            underlay.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            
-            blurEffectView.topAnchor.constraint(equalTo: self.topAnchor),
-            blurEffectView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            blurEffectView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            blurEffectView.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            underlay.topAnchor.constraint(equalTo: topAnchor),
+            underlay.leadingAnchor.constraint(equalTo: leadingAnchor),
+            underlay.trailingAnchor.constraint(equalTo: trailingAnchor),
+            underlay.bottomAnchor.constraint(equalTo: bottomAnchor),
+
+            blurEffectView.topAnchor.constraint(equalTo: topAnchor),
+            blurEffectView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            blurEffectView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            blurEffectView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
-        
-        self.onThemeChange()
+
+        onThemeChange()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func onThemeChange() {
         blurEffectView.alpha = 1.0
-        
-        if (self.traitCollection.userInterfaceStyle == .light) {
-            underlay.backgroundColor = .custom.background.darker(by: 0.65)?.withAlphaComponent(self.isDimmed ? 0.75 : 0.35)
+
+        if traitCollection.userInterfaceStyle == .light {
+            underlay.backgroundColor = .custom.background.darker(by: 0.65)?.withAlphaComponent(isDimmed ? 0.75 : 0.35)
             if isDimmed {
                 blurEffectView.effect = Self.blurEffectDimmed
             } else {
@@ -78,7 +79,7 @@ class BlurredBackground: UIView {
                     underlay.backgroundColor = .custom.background.lighter(by: 0.27)?.withAlphaComponent(0.95)
                 }
             } else {
-                underlay.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: self.isDimmed ? 0.85 : 0.45)
+                underlay.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: isDimmed ? 0.85 : 0.45)
                 if isDimmed {
                     blurEffectView.effect = Self.blurEffectDimmed
                 } else {
@@ -87,15 +88,14 @@ class BlurredBackground: UIView {
             }
         }
     }
-    
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
-         if #available(iOS 13.0, *) {
-             if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-                 self.onThemeChange()
-             }
-         }
+
+        if #available(iOS 13.0, *) {
+            if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                self.onThemeChange()
+            }
+        }
     }
-    
 }

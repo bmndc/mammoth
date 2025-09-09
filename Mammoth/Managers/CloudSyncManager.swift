@@ -6,8 +6,8 @@
 //  Copyright © 2024 The BLVD. All rights reserved.
 //
 
-struct CloudSyncConstants {
-    struct Keys {
+enum CloudSyncConstants {
+    enum Keys {
         static let kLastFollowingSyncDate = "com.theblvd.mammoth.icloud.following.lastsync"
         static let kLastFollowingSyncID = "com.theblvd.mammoth.icloud.following.syncid"
         static let kLastForYouSyncDate = "com.theblvd.mammoth.icloud.foryou.lastsync"
@@ -23,27 +23,25 @@ struct CloudSyncConstants {
 
 class CloudSyncManager {
     static let sharedManager = CloudSyncManager()
-    
+
     // Toggle these on/off while refresh cycle is happening to avoid scroll conflicts
     var shouldSaveFollowing = false
     var shouldSaveForYou = false
     var shouldSaveFederated = false
     var shouldSaveMentionsIn = false
     var shouldSaveMentionsOut = false
-    
+
     private let jsonEncoder = JSONEncoder()
     private let jsonDecoder = JSONDecoder()
     private var syncDebouncer: Timer?
     private var cloudStore = NSUbiquitousKeyValueStore.default
     private var userDefaults = UserDefaults.standard
 
-    init() {
+    init() {}
 
-    }
-    
-    public func enableSaving(forFeedType feedType: NewsFeedTypes) {
+    func enableSaving(forFeedType feedType: NewsFeedTypes) {
         if !GlobalStruct.cloudSync { return }
-        
+
         switch feedType {
         case .following:
             shouldSaveFollowing = true
@@ -59,8 +57,8 @@ class CloudSyncManager {
             return
         }
     }
-    
-    public func disableSaving(forFeedType feedType: NewsFeedTypes) {
+
+    func disableSaving(forFeedType feedType: NewsFeedTypes) {
         switch feedType {
         case .following:
             shouldSaveFollowing = false
@@ -76,8 +74,8 @@ class CloudSyncManager {
             return
         }
     }
-    
-    public func disableAllSaving() {
+
+    func disableAllSaving() {
         shouldSaveFollowing = false
         shouldSaveForYou = false
         shouldSaveFederated = false
@@ -85,9 +83,9 @@ class CloudSyncManager {
         shouldSaveMentionsOut = false
     }
 
-    public func saveSyncStatus(for type: NewsFeedTypes, scrollPosition: NewsFeedScrollPosition) {
+    func saveSyncStatus(for type: NewsFeedTypes, scrollPosition: NewsFeedScrollPosition) {
         if !GlobalStruct.cloudSync { return }
-        
+
         switch type {
         case .following:
             if !shouldSaveFollowing {
@@ -112,23 +110,23 @@ class CloudSyncManager {
         default:
             return
         }
-        
+
         // Trying without debounce, we want to more eagerly save if we're doing tight syncing
-        self.setSyncStatus(for: type, scrollPosition: scrollPosition)
-        
-        /*syncDebouncer?.invalidate()
-        syncDebouncer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
-            self?.setSyncStatus(for: type, scrollPosition: scrollPosition)
-        }*/
+        setSyncStatus(for: type, scrollPosition: scrollPosition)
+
+        /* syncDebouncer?.invalidate()
+         syncDebouncer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: false) { [weak self] _ in
+             self?.setSyncStatus(for: type, scrollPosition: scrollPosition)
+         } */
     }
 
-    public func cloudSavedPosition(for type: NewsFeedTypes) -> NewsFeedScrollPosition? {
+    func cloudSavedPosition(for type: NewsFeedTypes) -> NewsFeedScrollPosition? {
         if !GlobalStruct.cloudSync { return nil }
-        
+
         let (itemKey, dateKey) = keys(for: type)
-        
+
         guard !itemKey.isEmpty, !dateKey.isEmpty else { return nil }
-        
+
         if let scrollPositionJSON = cloudStore.data(forKey: itemKey) {
             do {
                 let scrollPosition = try jsonDecoder.decode(NewsFeedScrollPosition.self, from: scrollPositionJSON)
@@ -143,10 +141,10 @@ class CloudSyncManager {
 
     private func setSyncStatus(for type: NewsFeedTypes, scrollPosition: NewsFeedScrollPosition) {
         if !GlobalStruct.cloudSync { return }
-        
+
         let (itemKey, dateKey) = keys(for: type)
         guard !itemKey.isEmpty, !dateKey.isEmpty else { return }
-        
+
         do {
             let scrollPositionJSON = try jsonEncoder.encode(scrollPosition)
             let syncDate = Date()
@@ -192,6 +190,5 @@ class CloudSyncManager {
         default:
             return .activity(nil) // unsupported type
         }
-
     }
 }

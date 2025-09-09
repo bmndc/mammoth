@@ -12,14 +12,12 @@
 //      For Mastodon: account type, Account, InstanceData
 //      For Bluesky: account type, ____TBD
 
-
 import Foundation
 
 enum NetworkAcctData: Codable {
     case mastodonAcctData(MastodonAcctData)
     case blueskyAcctData(BlueskyAcctData)
-    
-    
+
     var unassociated: Unassociated {
         switch self {
         case .mastodonAcctData: return .mastodonAcctData
@@ -29,21 +27,21 @@ enum NetworkAcctData: Codable {
 
     func asAcctDataType() -> any AcctDataType {
         switch self {
-        case .mastodonAcctData(let mastodonAcctData):
+        case let .mastodonAcctData(mastodonAcctData):
             return mastodonAcctData
-        case .blueskyAcctData(let blueskyAcctData):
+        case let .blueskyAcctData(blueskyAcctData):
             return blueskyAcctData
         }
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
 
         switch try container.decode(String.self, forKey: .type) {
         case Unassociated.mastodonAcctData.rawValue:
-            self = .mastodonAcctData(try container.decode(MastodonAcctData.self, forKey: .attributes))
+            self = try .mastodonAcctData(container.decode(MastodonAcctData.self, forKey: .attributes))
         case Unassociated.blueskyAcctData.rawValue:
-            self = .blueskyAcctData(try container.decode(BlueskyAcctData.self, forKey: .attributes))
+            self = try .blueskyAcctData(container.decode(BlueskyAcctData.self, forKey: .attributes))
         default: fatalError("Unknown type")
         }
     }
@@ -52,8 +50,8 @@ enum NetworkAcctData: Codable {
         var container = encoder.container(keyedBy: CodingKeys.self)
 
         switch self {
-        case .mastodonAcctData(let mastodonAcctData): try container.encode(mastodonAcctData, forKey: .attributes)
-        case .blueskyAcctData(let blueskyAcctData): try container.encode(blueskyAcctData, forKey: .attributes)
+        case let .mastodonAcctData(mastodonAcctData): try container.encode(mastodonAcctData, forKey: .attributes)
+        case let .blueskyAcctData(blueskyAcctData): try container.encode(blueskyAcctData, forKey: .attributes)
         }
 
         try container.encode(unassociated.rawValue, forKey: .type)
@@ -68,7 +66,6 @@ enum NetworkAcctData: Codable {
         case attributes
         case type
     }
-
 }
 
 enum AcctType: String, Codable {
@@ -76,34 +73,32 @@ enum AcctType: String, Codable {
     case Bluesky
 }
 
-
 protocol AcctDataType: Equatable, Hashable, Codable, AcctDataViewModel {
     var acctType: AcctType { get }
     var uniqueID: String { get }
     func diskFolderName() -> String
 }
 
-extension Equatable where Self : AcctDataType {
-  func isEqualTo(other: any AcctDataType) -> Bool {
-    guard let o = other as? Self else { return false }
-    return self == o
-  }
+extension Equatable where Self: AcctDataType {
+    func isEqualTo(other: any AcctDataType) -> Bool {
+        guard let o = other as? Self else { return false }
+        return self == o
+    }
 }
 
 struct MastodonAcctData: AcctDataType {
-
     static func == (lhs: MastodonAcctData, rhs: MastodonAcctData) -> Bool {
         return lhs.acctType == rhs.acctType &&
-               lhs.account == rhs.account &&
-               lhs.instanceData == rhs.instanceData
+            lhs.account == rhs.account &&
+            lhs.instanceData == rhs.instanceData
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(account.fullAcct)
     }
 
     var acctType: AcctType { .Mastodon }
-    
+
     let uniqueID: String
     let account: Account
     let instanceData: InstanceData
@@ -113,7 +108,7 @@ struct MastodonAcctData: AcctDataType {
     var forYou: ForYouAccount
     @available(*, deprecated, message: "Using UserDefaults instead.")
     var wentThroughOnboarding: Bool // false for accounts coming from 1.x
-    
+
     let client: Client
     let mothClient: Client
     let featureClient: Client
@@ -128,21 +123,21 @@ struct MastodonAcctData: AcctDataType {
         case forYou
         case wentThroughOnboarding
     }
-    
-    init(account: Account, instanceData: InstanceData, client: Client, defaultPostVisibility: Visibility, defaultPostingLanguage: String?, emoticons: [Emoji], forYou: ForYouAccount, uniqueID: String? = nil) {
+
+    init(account: Account, instanceData: InstanceData, client _: Client, defaultPostVisibility: Visibility, defaultPostingLanguage: String?, emoticons: [Emoji], forYou: ForYouAccount, uniqueID: String? = nil) {
         self.uniqueID = uniqueID ?? UUID().uuidString
         self.account = account
         self.instanceData = instanceData
-        self.client = Client(baseURL: "https://\(instanceData.returnedText)", accessToken: instanceData.accessToken)
-        self.mothClient = Client(baseURL: "https://\(instanceData.returnedText)", accessToken: instanceData.accessToken)
-        self.featureClient = Client(baseURL: "https://\(instanceData.returnedText)", accessToken: instanceData.accessToken)
+        client = Client(baseURL: "https://\(instanceData.returnedText)", accessToken: instanceData.accessToken)
+        mothClient = Client(baseURL: "https://\(instanceData.returnedText)", accessToken: instanceData.accessToken)
+        featureClient = Client(baseURL: "https://\(instanceData.returnedText)", accessToken: instanceData.accessToken)
         self.defaultPostVisibility = defaultPostVisibility
         self.defaultPostingLanguage = defaultPostingLanguage
         self.emoticons = emoticons
         self.forYou = forYou
-        self.wentThroughOnboarding = false
+        wentThroughOnboarding = false
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         uniqueID = try container.decode(String.self, forKey: .uniqueID)
@@ -180,11 +175,11 @@ struct MastodonAcctData: AcctDataType {
         } catch {
             defaultPostingLanguage = nil
         }
-        
-        _ = try container.superDecoder ( )
+
+        _ = try container.superDecoder()
     }
 
-    public func encode(to encoder: Encoder) throws {
+    func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(uniqueID, forKey: .uniqueID)
         try container.encode(account, forKey: .account)
@@ -195,19 +190,17 @@ struct MastodonAcctData: AcctDataType {
         try container.encode(forYou, forKey: .forYou)
         // try container.encode(wentThroughOnboarding, forKey: .wentThroughOnboarding) Deprecated
     }
-    
+
     func diskFolderName() -> String {
         return account.fullAcct
     }
 }
 
-
 struct BlueskyAcctData: AcctDataType {
-
     static func == (lhs: BlueskyAcctData, rhs: BlueskyAcctData) -> Bool {
         return lhs.uniqueID == rhs.uniqueID
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(uniqueID)
     }
@@ -215,16 +208,16 @@ struct BlueskyAcctData: AcctDataType {
     var acctType: AcctType { .Bluesky }
     var uniqueID: String { "Bluesky-\(userID)" }
     func diskFolderName() -> String { uniqueID }
-    
+
     var userID: String
     var handle: String
     var displayName: String
     var avatar: String
-    
+
     var tokenSet: BlueskyAPI.TokenSet
-    
+
     let api: BlueskyAPI
-    
+
     private enum CodingKeys: String, CodingKey {
         case userID
         case handle
@@ -232,7 +225,7 @@ struct BlueskyAcctData: AcctDataType {
         case avatar
         case tokenSet
     }
-    
+
     init(
         userID: String,
         handle: String,
@@ -245,10 +238,10 @@ struct BlueskyAcctData: AcctDataType {
         self.displayName = displayName
         self.avatar = avatar
         self.tokenSet = tokenSet
-        
+
         api = BlueskyAPI(tokenSet: tokenSet)
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         userID = try container.decode(String.self, forKey: .userID)
@@ -256,11 +249,11 @@ struct BlueskyAcctData: AcctDataType {
         displayName = try container.decode(String.self, forKey: .displayName)
         avatar = try container.decode(String.self, forKey: .avatar)
         tokenSet = try container.decode(BlueskyAPI.TokenSet.self, forKey: .tokenSet)
-        
+
         api = BlueskyAPI(tokenSet: tokenSet)
     }
-    
-    public func encode(to encoder: Encoder) throws {
+
+    func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(userID, forKey: .userID)
         try container.encode(handle, forKey: .handle)
@@ -268,5 +261,4 @@ struct BlueskyAcctData: AcctDataType {
         try container.encode(avatar, forKey: .avatar)
         try container.encode(tokenSet, forKey: .tokenSet)
     }
-
 }

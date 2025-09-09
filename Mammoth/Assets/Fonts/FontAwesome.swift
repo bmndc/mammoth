@@ -9,7 +9,6 @@
 import Foundation
 import UIKit
 
-
 // Usage
 // UIImage image = FontAwesome.image(fromChar:"\u{f085}", color: UIColor.white, size: 30.0)
 //
@@ -20,44 +19,44 @@ import UIKit
 // traitCollectionDidChange & when GlobalStruct.themeOverride is assigned
 
 enum ColorTheme: String {
-    case dark = "dark"
-    case light = "light"
-    case systemDefault = "systemDefault"
+    case dark
+    case light
+    case systemDefault
 }
 
 class FontAwesome {
-
     static var cachedImages: [String: UIImage] = [:]
-    static var systemColorTheme: ColorTheme = ColorTheme.systemDefault
-    
+    static var systemColorTheme: ColorTheme = .systemDefault
+
     // where ever global theme override is set we want to call and capture
     // on launch
-    public static func setColorTheme(theme:ColorTheme) {
+    static func setColorTheme(theme: ColorTheme) {
         clearCache()
         // set systemColorTheme
         systemColorTheme = theme
     }
-    
 
     private static func clearCache() {
         cachedImages = [:]
     }
-    public static func image(fromChar char: String,
-                             color: UIColor? = nil,
-                             size: CGFloat = 19.0,
-                             weight: UIFont.Weight = .regular) -> UIImage {
 
+    static func image(fromChar char: String,
+                      color: UIColor? = nil,
+                      size: CGFloat = 19.0,
+                      weight: UIFont.Weight = .regular) -> UIImage
+    {
         let cacheKey = char + "-" + StringFromUIColor(color) + " - \(size) - \(weight)"
         if let cachedValue = cachedImages[cacheKey] {
             // log.debug("got image from cache: \(cacheKey)")
             return cachedValue
         }
-        
+
         let label = UILabel(frame: .zero)
-        
+
         if let font = UIFont(name: "Font Awesome 6 Pro", size: size),
            let unicode = char.unicodeScalars.first,
-           isSupported(unicode: unicode, font: font) {
+           isSupported(unicode: unicode, font: font)
+        {
             switch weight {
             case .bold:
                 label.font = font.bold
@@ -73,28 +72,27 @@ class FontAwesome {
             label.font = UIFont(name: "Font Awesome 6 Brands", size: size)
         }
 
-        if color != nil  {
+        if color != nil {
             label.textColor = color
         } else {
-            if (systemColorTheme != ColorTheme.systemDefault) {
-                label.textColor = systemColorTheme == ColorTheme.light ? UIColor.black : UIColor.white //light or dark
+            if systemColorTheme != ColorTheme.systemDefault {
+                label.textColor = systemColorTheme == ColorTheme.light ? UIColor.black : UIColor.white // light or dark
             }
         }
-        
+
         label.text = char
         label.sizeToFit()
         let renderer = UIGraphicsImageRenderer(size: label.frame.size)
         let image = renderer.image(actions: { context in
             label.layer.render(in: context.cgContext)
         })
-        
+
         // log.debug("setting image to cache: \(cacheKey)")
         cachedImages[cacheKey] = image
-        
+
         return image
     }
 }
-
 
 func StringFromUIColor(_ color: UIColor?) -> String {
     if color == nil {
@@ -117,8 +115,7 @@ func isSupported(unicode: UnicodeScalar, font: UIFont) -> Bool {
     let coreFont: CTFont = font
     let characterSet: CharacterSet = CTFontCopyCharacterSet(coreFont) as CharacterSet
     return characterSet.contains(unicode)
- }
-
+}
 
 extension UIFont {
     var bold: UIFont { return withWeight(.bold) }

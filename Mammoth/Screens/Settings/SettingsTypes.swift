@@ -9,12 +9,11 @@
 import Foundation
 
 public enum SettingsItem {
-    
     enum Style {
         case normal
         case destructive
     }
-    
+
     case upgrade
     case appIcon
     case postAppearance
@@ -23,24 +22,24 @@ public enum SettingsItem {
     case accounts
     case pushNotifications
     case siriShortcuts
-    
+
     case getInTouch
     case subscriptions
     case openSourceCredits
-    
+
     case openLinks
     case readerView
     case development
-    
+
     case analytics
     case sourceCode
-    
+
     case appLock
-    
+
     case cloudSync
-    
+
     case clearData
-    
+
     var title: String {
         switch self {
         case .upgrade: return ""
@@ -64,7 +63,7 @@ public enum SettingsItem {
         case .clearData: return NSLocalizedString("settings.clearData", comment: "")
         }
     }
-    
+
     var imageName: String {
         switch self {
         case .upgrade: return ""
@@ -88,14 +87,13 @@ public enum SettingsItem {
         case .clearData: return "\u{f1f8}"
         }
     }
-    
+
     var style: Style {
         switch self {
         case .clearData: return .destructive
         default: return .normal
         }
     }
-    
 }
 
 public struct SettingsSection {

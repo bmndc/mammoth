@@ -13,8 +13,8 @@ extension URLComponents {
         guard
             let realBaseURL = URL(string: baseURL),
             let completeURL = URL(string: request.path, relativeTo: realBaseURL)
-            else {
-                return nil
+        else {
+            return nil
         }
 
         self.init(url: completeURL, resolvingAgainstBaseURL: true)

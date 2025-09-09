@@ -16,5 +16,4 @@ extension String {
                                     withAttributes: attributes)
         }
     }
-    
 }

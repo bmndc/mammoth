@@ -23,31 +23,31 @@
 //  THE SOFTWARE.
 //
 
-import UIKit
 import LocalAuthentication
+import UIKit
 
 open class BioMetricAuthenticator: NSObject {
-
     // MARK: - Singleton
+
     public static let shared = BioMetricAuthenticator()
-    
+
     // MARK: - Private
-    private override init() {}
-    
+
+    override private init() {}
+
     // MARK: - Public
+
     public var allowableReuseDuration: TimeInterval = 0
 }
 
-// MARK:- Public
+// MARK: - Public
 
 public extension BioMetricAuthenticator {
-    
     /// checks if biometric authentication can be performed currently on the device.
     class func canAuthenticate() -> Bool {
-        
         var isBiometricAuthenticationAvailable = false
         var error: NSError? = nil
-        
+
         if LAContext().canEvaluatePolicy(
             LAPolicy.deviceOwnerAuthenticationWithBiometrics,
             error: &error
@@ -56,7 +56,7 @@ public extension BioMetricAuthenticator {
         }
         return isBiometricAuthenticationAvailable
     }
-    
+
     /// Check for biometric authentication
     class func authenticateWithBioMetrics(
         reason: String,
@@ -64,18 +64,17 @@ public extension BioMetricAuthenticator {
         cancelTitle: String? = "",
         completion: @escaping (Result<Bool, AuthenticationError>) -> Void
     ) {
-        
         // reason
         let reasonString = reason.isEmpty
             ? BioMetricAuthenticator.shared.defaultBiometricAuthenticationReason()
             : reason
-        
+
         // context
         let context = LAContext()
         context.touchIDAuthenticationAllowableReuseDuration = BioMetricAuthenticator.shared.allowableReuseDuration
         context.localizedFallbackTitle = fallbackTitle
         context.localizedCancelTitle = cancelTitle
-        
+
         // authenticate
         BioMetricAuthenticator.shared.evaluate(
             policy: .deviceOwnerAuthenticationWithBiometrics,
@@ -84,22 +83,21 @@ public extension BioMetricAuthenticator {
             completion: completion
         )
     }
-    
+
     /// Check for device passcode authentication
     class func authenticateWithPasscode(
         reason: String,
         cancelTitle: String? = "",
-        completion: @escaping (Result<Bool, AuthenticationError>) -> ()
+        completion: @escaping (Result<Bool, AuthenticationError>) -> Void
     ) {
-        
         // reason
         let reasonString = reason.isEmpty
             ? BioMetricAuthenticator.shared.defaultPasscodeAuthenticationReason()
             : reason
-        
+
         let context = LAContext()
         context.localizedCancelTitle = cancelTitle
-        
+
         // authenticate
         BioMetricAuthenticator.shared.evaluate(
             policy: .deviceOwnerAuthentication,
@@ -108,31 +106,31 @@ public extension BioMetricAuthenticator {
             completion: completion
         )
     }
-    
+
     /// checks if device supports face id and authentication can be done
     func faceIDAvailable() -> Bool {
         let context = LAContext()
         var error: NSError?
-        
+
         let canEvaluate = context.canEvaluatePolicy(
             LAPolicy.deviceOwnerAuthenticationWithBiometrics,
             error: &error
         )
         return canEvaluate && context.biometryType == .faceID
     }
-    
+
     /// checks if device supports touch id and authentication can be done
     func touchIDAvailable() -> Bool {
         let context = LAContext()
         var error: NSError?
-        
+
         let canEvaluate = context.canEvaluatePolicy(
             LAPolicy.deviceOwnerAuthenticationWithBiometrics,
             error: &error
         )
         return canEvaluate && context.biometryType == .touchID
     }
-    
+
     /// checks if device has faceId
     /// this is added to identify if device has faceId or touchId
     /// note: this will not check if devices can perform biometric authentication
@@ -143,32 +141,31 @@ public extension BioMetricAuthenticator {
     }
 }
 
-// MARK:- Private
-extension BioMetricAuthenticator {
+// MARK: - Private
 
+extension BioMetricAuthenticator {
     /// get authentication reason to show while authentication
     private func defaultBiometricAuthenticationReason() -> String {
         return faceIDAvailable() ? kFaceIdAuthenticationReason : kTouchIdAuthenticationReason
     }
-    
+
     /// get passcode authentication reason to show while entering device passcode after multiple failed attempts.
     private func defaultPasscodeAuthenticationReason() -> String {
         return faceIDAvailable() ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
     }
-    
+
     /// evaluate policy
     private func evaluate(
         policy: LAPolicy,
         with context: LAContext,
         reason: String,
-        completion: @escaping (Result<Bool, AuthenticationError>) -> ()
+        completion: @escaping (Result<Bool, AuthenticationError>) -> Void
     ) {
-        
-        context.evaluatePolicy(policy, localizedReason: reason) { (success, err) in
+        context.evaluatePolicy(policy, localizedReason: reason) { success, err in
             DispatchQueue.main.async {
                 if success {
                     completion(.success(true))
-                }else {
+                } else {
                     let errorType = AuthenticationError.initWithError(err as! LAError)
                     completion(.failure(errorType))
                 }

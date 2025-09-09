@@ -6,24 +6,23 @@
 import Foundation
 
 extension Model {
-    enum Actor { }
+    enum Actor {}
 }
 
 extension Model.Actor {
-    
     struct ProfileViewBasic: LexiconType {
         static var type: String { "app.bsky.actor.defs#profileViewBasic" }
-        
+
         var did: String
         var handle: String
         var displayName: String?
         var avatar: String?
         var viewer: ViewerState?
     }
-    
+
     struct ProfileView: LexiconType {
         static var type: String { "app.bsky.actor.defs#profileViewBasic" }
-        
+
         var did: String
         var handle: String
         var displayName: String?
@@ -31,10 +30,10 @@ extension Model.Actor {
         var avatar: String?
         var viewer: ViewerState?
     }
-    
+
     struct ProfileViewDetailed: LexiconType {
         static var type: String { "app.bsky.actor.defs#profileViewDetailed" }
-        
+
         var did: String
         var handle: String
         var displayName: String?
@@ -47,54 +46,45 @@ extension Model.Actor {
         var indexedAt: Date?
         var viewer: ViewerState?
     }
-    
+
     struct ViewerState: LexiconType {
         static var type: String { "app.bsky.actor.defs#viewerState" }
-        
+
         var following: String?
         var followedBy: String?
-        
+
         var blocking: String?
         var blockedBy: Bool?
-        
+
         var muted: Bool?
     }
-    
 }
 
 extension Model.Actor.ProfileView {
-    
     var uiHandle: String { "@\(handle)" }
     var uiDisplayName: String {
         let name = displayName ?? handle
         return name.trimmingCharacters(in: .whitespaces)
     }
-    
 }
 
 extension Model.Actor.ProfileViewBasic {
-    
     var uiHandle: String { "@\(handle)" }
     var uiDisplayName: String {
         let name = displayName ?? handle
         return name.trimmingCharacters(in: .whitespaces)
     }
-    
 }
 
 extension Model.Actor.ProfileViewDetailed {
-    
     var uiHandle: String { "@\(handle)" }
     var uiDisplayName: String {
         let name = displayName ?? handle
         return name.trimmingCharacters(in: .whitespaces)
     }
-    
 }
 
 extension Model.Actor.ViewerState {
-    
     func isBlocked() -> Bool { blocking != nil }
     func isMuted() -> Bool { muted == true }
-    
 }

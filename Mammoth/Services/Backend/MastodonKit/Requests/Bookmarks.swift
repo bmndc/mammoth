@@ -8,18 +8,18 @@
 
 import Foundation
 
-public struct Bookmarks {
+public enum Bookmarks {
     public static func bookmarks(range: RequestRange = .default) -> Request<[Status]> {
         let rangeParameters = range.parameters(limit: between(1, and: 40, default: 20)) ?? []
         let method = HTTPMethod.get(.parameters(rangeParameters))
-        
+
         return Request<[Status]>(path: "/api/v1/bookmarks", method: method)
     }
-    
+
     public static func bookmark(id: String) -> Request<Status> {
         return Request<Status>(path: "/api/v1/statuses/\(id)/bookmark", method: .post(.empty))
     }
-    
+
     public static func unbookmark(id: String) -> Request<Status> {
         return Request<Status>(path: "/api/v1/statuses/\(id)/unbookmark", method: .post(.empty))
     }

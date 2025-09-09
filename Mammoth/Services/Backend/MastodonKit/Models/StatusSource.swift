@@ -17,14 +17,14 @@ public class StatusSource: Codable {
     public let account: Account
     /// Channel ID (optional)
     public let channelID: String?
-    
+
     private enum CodingKeys: String, CodingKey {
         case source
         case title
         case account = "originating_account"
         case channelID = "channel_id"
     }
-    
+
     init(source: StatusSourceType, title: String?, account: Account, channelID: String?) {
         self.source = source
         self.title = title
@@ -34,9 +34,9 @@ public class StatusSource: Codable {
 }
 
 extension StatusSource: Equatable {
-    static public func ==(lhs: StatusSource, rhs: StatusSource) -> Bool {
-       return lhs.source == rhs.source &&
-              lhs.title == rhs.title &&
-              lhs.account == rhs.account
+    public static func == (lhs: StatusSource, rhs: StatusSource) -> Bool {
+        return lhs.source == rhs.source &&
+            lhs.title == rhs.title &&
+            lhs.account == rhs.account
     }
 }

@@ -24,4 +24,3 @@ public class Mark: Codable {
         case updatedAt = "updated_at"
     }
 }
-

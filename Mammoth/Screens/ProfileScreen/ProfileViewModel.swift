@@ -9,12 +9,11 @@
 import Foundation
 
 final class ProfileViewModel {
-    
     enum ViewTypes: Int, CaseIterable {
         case posts = 0
         case postsAndReplies
         case subscription
-        
+
         func labelText() -> String {
             switch self {
             case .posts:
@@ -25,7 +24,7 @@ final class ProfileViewModel {
                 return NSLocalizedString("profile.subscription", comment: "")
             }
         }
-        
+
         func key() -> String {
             switch self {
             case .posts:
@@ -37,12 +36,12 @@ final class ProfileViewModel {
             }
         }
     }
-    
+
     enum ProfileScreenType {
         case own
         case others
     }
-    
+
     private struct ListData {
         var posts: [PostCardModel]?
         var postsAndReplies: [PostCardModel]?
@@ -50,15 +49,15 @@ final class ProfileViewModel {
         var postsCursorId: String?
         var postsAndRepliesCursorId: String?
         var subscriptionsCursorId: String?
-        
+
         func listForType(type: ViewTypes) -> [PostCardModel]? {
             switch type {
             case .posts:
-                return self.posts
+                return posts
             case .postsAndReplies:
-                return self.postsAndReplies
+                return postsAndReplies
             case .subscription:
-                return self.subscription
+                return subscription
             }
         }
     }
@@ -67,13 +66,13 @@ final class ProfileViewModel {
         case postsData(PostCardModel?)
         case postsAndReplies(PostCardModel?)
     }
-    
+
     enum NetworkError: Error {
         case userNotFound
     }
-    
+
     weak var delegate: RequestDelegate?
-        
+
     private var type: ViewTypes
     private var state: ViewState {
         didSet {
@@ -82,60 +81,61 @@ final class ProfileViewModel {
             }
         }
     }
-    public var screenType: ProfileScreenType
-    public var isLoadingOriginals: Bool = true
-    
-    private var listData: ListData = ListData()
+
+    var screenType: ProfileScreenType
+    var isLoadingOriginals: Bool = true
+
+    private var listData: ListData = .init()
     private var isLoadMoreEnabled: Bool = true
-    
+
     var user: UserCardModel?
-    
+
     init(_ type: ViewTypes = .posts, fullAcct: String, serverName: String) {
-        self.state = .loading
+        state = .loading
         self.type = type
-        self.screenType = .others
-        
-        self.addObservers()
-        
+        screenType = .others
+
+        addObservers()
+
         // When initialized with a fullAcct string and serverName (eg when tapping an account tag)
         // we lookup the account based on the account tag
         Task { [weak self] in
             guard let self else { return }
-            
+
             // If server is Threads.net, use the user's local instance
             let serverName = (serverName == "www.threads.net")
                 ? AccountsManager.shared.currentAccountClient.baseHost
                 : serverName
-            
+
             if let account = await AccountService.lookup(fullAcct, serverName: serverName) {
                 // Lookup on account's instance
-                                
+
                 let premiumAccount = await MainActor.run { [weak self] in self?.user?.tippableAccount }
                 let user = UserCardModel(account: account, instanceName: serverName, requestFollowStatusUpdate: .force, premiumAccount: premiumAccount)
-                
+
                 let tippableAccount = try? await user.getTipInfo()
 
                 await MainActor.run {
                     self.user = user
                     self.user?.tippableAccount = tippableAccount
                 }
-                
+
                 await self.loadListData(type: self.type)
-                
+
             } else if let account = await AccountService.lookup(fullAcct, serverName: AccountsManager.shared.currentAccountClient.baseHost) {
                 // Lookup on signed in user's local instance.
                 // This is a fallback for non-mastodon instances
-                
+
                 let premiumAccount = await MainActor.run { [weak self] in self?.user?.tippableAccount }
                 let user = UserCardModel(account: account, instanceName: AccountsManager.shared.currentAccountClient.baseHost, requestFollowStatusUpdate: .force, premiumAccount: premiumAccount)
-                
+
                 let tippableAccount = try? await user.getTipInfo()
 
                 await MainActor.run {
                     self.user = user
                     self.user?.tippableAccount = tippableAccount
                 }
-                
+
                 await self.loadListData(type: self.type)
             } else {
                 await MainActor.run {
@@ -150,10 +150,10 @@ final class ProfileViewModel {
         self.type = type
         self.user = user
         self.screenType = (user?.isSelf ?? false) ? .own : screenType
-        self.state = .success
-        
-        self.addObservers()
-        
+        state = .success
+
+        addObservers()
+
         DispatchQueue.main.asyncAfter(deadline: .now()) {
             if screenType == .others {
                 Task { [weak self] in
@@ -164,7 +164,7 @@ final class ProfileViewModel {
                         self?.delegate?.didUpdate(with: .success)
                     }
                 }
-                
+
                 if let account = user?.account {
                     let newStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: .force)
                     if newStatus != self.user?.followStatus {
@@ -177,94 +177,95 @@ final class ProfileViewModel {
             }
         }
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     func addObservers() {
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.appDidBecomeActive),
+                                               selector: #selector(appDidBecomeActive),
                                                name: appDidBecomeActiveNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onPostCardUpdate),
+                                               selector: #selector(onPostCardUpdate),
                                                name: PostActions.didUpdatePostCardNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onUserCardUpdate),
+                                               selector: #selector(onUserCardUpdate),
                                                name: UserActions.didUpdateUserCardNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.didSwitchAccount),
+                                               selector: #selector(didSwitchAccount),
                                                name: didSwitchCurrentAccountNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onReloadPinned),
+                                               selector: #selector(onReloadPinned),
                                                name: NSNotification.Name(rawValue: "reloadPinned"),
                                                object: nil)
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onNewPostSent),
+                                               selector: #selector(onNewPostSent),
                                                name: NSNotification.Name(rawValue: "updateFeed"),
                                                object: nil)
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onAvatarDidChange),
+                                               selector: #selector(onAvatarDidChange),
                                                name: didUpdateAccountAvatar,
                                                object: nil)
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onHeaderDidChange),
+                                               selector: #selector(onHeaderDidChange),
                                                name: didUpdateAccountHeader,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onFollowStatusUpdate),
+                                               selector: #selector(onFollowStatusUpdate),
                                                name: didChangeFollowStatusNotification,
                                                object: nil)
     }
 }
 
 // MARK: - DataSource
+
 extension ProfileViewModel {
-    func numberOfItems(forSection section: Int) -> Int {
-        switch(self.type) {
+    func numberOfItems(forSection _: Int) -> Int {
+        switch type {
         case .posts:
-            return max((self.listData.posts?.count ?? 0) + (self.shouldDisplayLoader() ? 1 : 0), 1)
+            return max((listData.posts?.count ?? 0) + (shouldDisplayLoader() ? 1 : 0), 1)
         case .postsAndReplies:
-            return max((self.listData.postsAndReplies?.count ?? 0) + (self.shouldDisplayLoader() ? 1 : 0), 1)
+            return max((listData.postsAndReplies?.count ?? 0) + (shouldDisplayLoader() ? 1 : 0), 1)
         case .subscription:
-            return max((self.listData.subscription?.count ?? 0) + (self.shouldDisplayLoader() ? 1 : 0), 1)
+            return max((listData.subscription?.count ?? 0) + (shouldDisplayLoader() ? 1 : 0), 1)
         }
     }
-    
+
     var numberOfSections: Int {
         return 1
     }
-    
+
     func shouldDisplayLoader() -> Bool {
-        if self.state == .loading {
+        if state == .loading {
             return true
         }
         return false
     }
-    
+
     func isListEmpty() -> Bool {
-        if self.state == .loading {
+        if state == .loading {
             return false
         }
-        switch(self.type) {
+        switch type {
         case .posts:
-            return self.listData.posts?.isEmpty ?? true
+            return listData.posts?.isEmpty ?? true
         case .postsAndReplies:
-            return self.listData.postsAndReplies?.isEmpty ?? true
+            return listData.postsAndReplies?.isEmpty ?? true
         case .subscription:
-            return self.listData.subscription?.isEmpty ?? true
+            return listData.subscription?.isEmpty ?? true
         }
     }
-    
+
     func hasHeader(forSection sectionIndex: Int) -> Bool {
         if sectionIndex == 0 {
             return true
@@ -273,25 +274,25 @@ extension ProfileViewModel {
     }
 
     func getInfo(forIndexPath indexPath: IndexPath) -> PostCardModel? {
-        switch(self.type) {
+        switch type {
         case .posts:
-            return self.listData.posts?.count ?? 0 > indexPath.row ? self.listData.posts?[indexPath.row] : nil
+            return listData.posts?.count ?? 0 > indexPath.row ? listData.posts?[indexPath.row] : nil
         case .postsAndReplies:
-            return self.listData.postsAndReplies?.count ?? 0 > indexPath.row ? self.listData.postsAndReplies?[indexPath.row] : nil
+            return listData.postsAndReplies?.count ?? 0 > indexPath.row ? listData.postsAndReplies?[indexPath.row] : nil
         case .subscription:
-            return self.listData.subscription?.count ?? 0 > indexPath.row ? self.listData.subscription?[indexPath.row] : nil
+            return listData.subscription?.count ?? 0 > indexPath.row ? listData.subscription?[indexPath.row] : nil
         }
     }
-    
+
     func shouldFetchNext(prefetchRowsAt indexPaths: [IndexPath]) -> Bool {
-        if !self.isLoadMoreEnabled {
+        if !isLoadMoreEnabled {
             return false
         }
-        
-        switch(self.state) {
+
+        switch state {
         case .loading:
             return false // Dont preload new items if already loading
-        case .error(_):
+        case .error:
             fallthrough
         case .success:
             let highest = indexPaths.reduce(0) {
@@ -301,15 +302,14 @@ extension ProfileViewModel {
                     return $1.row
                 }
             }
-            
-            let total = self.numberOfItems(forSection: 0)
-            
+
+            let total = numberOfItems(forSection: 0)
+
             if highest > total - 6 {
                 return true
             } else {
                 return false
             }
-            
         default:
             return false
         }
@@ -317,10 +317,11 @@ extension ProfileViewModel {
 }
 
 // MARK: - Service
+
 extension ProfileViewModel {
-    private func createRequest(forType: ViewTypes, user: UserCardModel, range: RequestRange = .default) async throws -> (pinned: [Status], statuses: [Status], cursorId: String?) {
+    private func createRequest(forType _: ViewTypes, user: UserCardModel, range: RequestRange = .default) async throws -> (pinned: [Status], statuses: [Status], cursorId: String?) {
         do {
-            switch(type) {
+            switch type {
             case .posts:
                 return try await AccountService.profilePosts(user: user, range: range, serverName: user.instanceName)
             case .postsAndReplies:
@@ -337,14 +338,14 @@ extension ProfileViewModel {
             // When fetching profiles on AP we cannot query the original instance.
             // We need to query the content through the user's mastodon instance
             let currentServer = AccountsManager.shared.currentAccountClient.baseHost
-            
+
             var localUser = user
-            if user.instanceName != nil && user.instanceName != currentServer {
-                localUser = await self.reloadUser(forceLocal: true) ?? user
+            if user.instanceName != nil, user.instanceName != currentServer {
+                localUser = await reloadUser(forceLocal: true) ?? user
                 await MainActor.run { self.state = .loading }
             }
-            
-            switch(type) {
+
+            switch type {
             case .posts:
                 let result = try await AccountService.profilePosts(user: localUser, range: range, serverName: currentServer)
                 await MainActor.run {
@@ -368,44 +369,44 @@ extension ProfileViewModel {
             }
         }
     }
-    
+
     private func getCursor(forType type: ViewTypes) -> String? {
         switch type {
         case .posts:
-            return self.listData.postsCursorId ?? self.listData.posts?.last?.id
+            return listData.postsCursorId ?? listData.posts?.last?.id
         case .postsAndReplies:
-            return self.listData.postsAndRepliesCursorId ?? self.listData.postsAndReplies?.last?.id
+            return listData.postsAndRepliesCursorId ?? listData.postsAndReplies?.last?.id
         case .subscription:
-            return self.listData.subscriptionsCursorId ?? self.listData.subscription?.last?.id
+            return listData.subscriptionsCursorId ?? listData.subscription?.last?.id
         }
     }
-    
+
     private func setCursor(_ cursorId: String?, forType type: ViewTypes) {
         switch type {
         case .posts:
-            self.listData.postsCursorId = cursorId
+            listData.postsCursorId = cursorId
         case .postsAndReplies:
-            self.listData.postsAndRepliesCursorId = cursorId
+            listData.postsAndRepliesCursorId = cursorId
         case .subscription:
-            self.listData.subscriptionsCursorId = cursorId
+            listData.subscriptionsCursorId = cursorId
         }
     }
-    
+
     // Replace the local user used on this profile screen with the currentUser in AccountManager
     func syncCurrentUser() {
-        if self.screenType == .own {
+        if screenType == .own {
             if let currentUser = AccountsManager.shared.currentAccount as? MastodonAcctData {
                 let currentAccount = currentUser.account
-                self.user = UserCardModel(account: currentAccount, premiumAccount: self.user?.tippableAccount)
+                user = UserCardModel(account: currentAccount, premiumAccount: user?.tippableAccount)
             }
         }
     }
-    
+
     @discardableResult
     func reloadUser(forceLocal: Bool = false) async -> UserCardModel? {
         do {
-            if self.screenType == .own {
-                await MainActor.run {self.state = .loading }
+            if screenType == .own {
+                await MainActor.run { self.state = .loading }
                 if let account = try await AccountService.currentUser() {
                     return await MainActor.run { [weak self] in
                         guard let self else { return nil }
@@ -418,12 +419,12 @@ extension ProfileViewModel {
                 let user = await MainActor.run { [weak self] in
                     return self?.user
                 }
-                    
+
                 guard var user else { return nil }
-                await MainActor.run {self.state = .loading }
-                
+                await MainActor.run { self.state = .loading }
+
                 let tippableAccount = try? await user.getTipInfo()
-                
+
                 // Fetch the profile on its original instance
                 let instanceName = user.instanceName ?? user.account?.server ?? AccountsManager.shared.currentAccountClient.baseHost
                 if let account = await AccountService.lookup(user.uniqueId, serverName: instanceName), !forceLocal {
@@ -432,7 +433,7 @@ extension ProfileViewModel {
                         let followStatus = self.user?.followStatus
                         let cachedProfilePic = self.user?.decodedProfilePic
                         let preSyncAccount = self.user?.account
-                        
+
                         self.user = UserCardModel(account: account, instanceName: instanceName, premiumAccount: tippableAccount)
                         self.user?.followStatus = followStatus
                         self.user?.decodedProfilePic = cachedProfilePic
@@ -443,18 +444,18 @@ extension ProfileViewModel {
                     }
                 } else {
                     // If the instance returns an error, search for the user on the user's instance
-                    if  let accountId = user.account?.fullAcct {
+                    if let accountId = user.account?.fullAcct {
                         if let account = await AccountService.lookup(accountId, serverName: AccountsManager.shared.currentAccountClient.baseHost) ?? user.account {
                             let premiumAccount = await MainActor.run { [weak self] in self?.user?.tippableAccount }
                             user = UserCardModel(account: account, instanceName: AccountsManager.shared.currentAccountClient.baseHost, premiumAccount: premiumAccount)
-                            
+
                             let user = user
                             return await MainActor.run { [weak self] in
                                 guard let self else { return nil }
                                 let followStatus = self.user?.followStatus
                                 let cachedProfilePic = self.user?.decodedProfilePic
                                 let preSyncAccount = self.user?.account
-                                
+
                                 self.user = user
                                 self.user?.followStatus = followStatus
                                 user.decodedProfilePic = cachedProfilePic
@@ -466,71 +467,71 @@ extension ProfileViewModel {
                     }
                 }
             }
-        } catch let error {
-            self.state = .error(error)
+        } catch {
+            state = .error(error)
         }
-        
+
         return nil
     }
-    
+
     func loadListData(type: ViewTypes? = nil, loadNextPage: Bool = false) async {
         let user = await MainActor.run { self.user }
         guard let user else { return }
-        await MainActor.run {self.state = .loading }
+        await MainActor.run { self.state = .loading }
         let currentType = type ?? self.type
-        
-        do  {
+
+        do {
             if loadNextPage {
                 if let lastId = await MainActor.run(body: { [weak self] in self?.getCursor(forType: currentType) }) {
-                    let (pinned, newStatuses, cursorId) = try await self.createRequest(forType: currentType,
-                                                                   user: user,
-                                                                   range: RequestRange.max(id: lastId, limit: 40))
-                    
+                    let (pinned, newStatuses, cursorId) = try await createRequest(forType: currentType,
+                                                                                  user: user,
+                                                                                  range: RequestRange.max(id: lastId, limit: 40))
+
                     let cursorHasChanged = await MainActor.run { [weak self] () -> Bool in
                         guard let self else { return false }
                         let previousCursor = self.getCursor(forType: currentType)
                         self.setCursor(cursorId, forType: currentType)
                         return cursorId != nil && previousCursor != cursorId
                     }
-                    
+
                     guard !(cursorHasChanged && newStatuses.isEmpty) else {
                         // Load the next page if no statuses are returned but the cursor changed.
                         // This probably means the page only included direct posts. We filter those out
                         // in the client.
-                        await self.loadListData(type: currentType, loadNextPage: true)
+                        await loadListData(type: currentType, loadNextPage: true)
                         return
                     }
-                    
+
                     // Fetch the latest version of user from the main thread
                     let user = await MainActor.run { [weak self] in
                         guard let self else { return nil }
                         return self.user
                     } ?? user
-                    
-                    let pinnedPostCards = pinned.map({ PostCardModel(status: $0, withStaticMetrics: false, instanceName: user.instanceName ?? user.account?.server) })
-                        .removeFiltered()  // Remove pinned statuses flags as hidden by one of the filters
-                    let pinnedIds = pinnedPostCards.map({ $0.id })
-                    
-                    let newPostCards = newStatuses.map({
+
+                    let pinnedPostCards = pinned.map { PostCardModel(status: $0, withStaticMetrics: false, instanceName: user.instanceName ?? user.account?.server) }
+                        .removeFiltered() // Remove pinned statuses flags as hidden by one of the filters
+                    let pinnedIds = pinnedPostCards.map { $0.id }
+
+                    let newPostCards = newStatuses.map {
                         PostCardModel(status: $0, withStaticMetrics: false, instanceName: user.instanceName ?? user.account?.server)
-                    })
-                        .filter({ !pinnedIds.contains($0.id) }) // Remove pinned items from main list
-                        .removeFiltered() // Remove statuses flags as hidden by one of the filters
-                    
+                    }
+                    .filter { !pinnedIds.contains($0.id) } // Remove pinned items from main list
+                    .removeFiltered() // Remove statuses flags as hidden by one of the filters
+
                     await MainActor.run { [weak self] in
                         guard let self else { return }
                         var postsToPreload: [PostCardModel] = []
                         switch currentType {
                         case .posts:
                             if let current = self.listData.posts {
-                                let currentIds = current.map({ $0.id })
-                                let newPosts = newPostCards.filter({ !currentIds.contains($0.id) })
+                                let currentIds = current.map { $0.id }
+                                let newPosts = newPostCards.filter { !currentIds.contains($0.id) }
                                 if cursorId == nil {
                                     self.isLoadMoreEnabled = false
                                 }
-                                
+
                                 postsToPreload.append(contentsOf: newPosts)
-                                
+
                                 // append new posts to current posts and remove dups
                                 self.listData.posts?.append(contentsOf: newPosts)
                             } else {
@@ -538,17 +539,17 @@ extension ProfileViewModel {
                                 postsToPreload.append(contentsOf: newPostCards)
                                 self.listData.posts = pinnedPostCards + newPostCards
                             }
-                                                        
+
                         case .postsAndReplies:
                             if let current = self.listData.postsAndReplies {
-                                let currentIds = current.map({ $0.id })
-                                let newPosts = newPostCards.filter({ !currentIds.contains($0.id) })
+                                let currentIds = current.map { $0.id }
+                                let newPosts = newPostCards.filter { !currentIds.contains($0.id) }
                                 if cursorId == nil {
                                     self.isLoadMoreEnabled = false
                                 }
-                                
+
                                 postsToPreload.append(contentsOf: newPosts)
-                                
+
                                 // append new posts to current posts and remove dups
                                 self.listData.postsAndReplies = current + newPosts
                             } else {
@@ -556,16 +557,17 @@ extension ProfileViewModel {
                                 postsToPreload.append(contentsOf: newPostCards)
                                 self.listData.postsAndReplies = pinnedPostCards + newPostCards
                             }
+
                         case .subscription:
                             if let current = self.listData.subscription {
-                                let currentIds = current.map({ $0.id })
-                                let newPosts = newPostCards.filter({ !currentIds.contains($0.id) })
+                                let currentIds = current.map { $0.id }
+                                let newPosts = newPostCards.filter { !currentIds.contains($0.id) }
                                 if cursorId == nil {
                                     self.isLoadMoreEnabled = false
                                 }
-                                
+
                                 postsToPreload.append(contentsOf: newPosts)
-                                
+
                                 // append new posts to current posts and remove dups
                                 self.listData.subscription = current + newPosts
                             } else {
@@ -576,7 +578,7 @@ extension ProfileViewModel {
                         }
 
                         self.state = .success
-                        
+
                         // Preload quote posts and images
                         PostCardModel.preload(postCards: postsToPreload)
                     }
@@ -586,46 +588,46 @@ extension ProfileViewModel {
                     }
                 }
             } else {
-                self.isLoadMoreEnabled = true
-                let (pinned, statuses, cursorId) = try await self.createRequest(forType: currentType, user: user)
-                
+                isLoadMoreEnabled = true
+                let (pinned, statuses, cursorId) = try await createRequest(forType: currentType, user: user)
+
                 let cursorHasChanged = await MainActor.run { [weak self] () -> Bool in
                     guard let self else { return false }
                     let previousCursor = self.getCursor(forType: currentType)
                     self.setCursor(cursorId, forType: currentType)
                     return cursorId != nil && previousCursor != cursorId
                 }
-                
+
                 guard !(cursorHasChanged && statuses.isEmpty) else {
                     // Load the next page if no statuses are returned but the cursor changed.
                     // This probably means the page only included direct posts. We filter those out
                     // in the client.
-                    await self.loadListData(type: currentType, loadNextPage: true)
+                    await loadListData(type: currentType, loadNextPage: true)
                     return
                 }
-                
+
                 // Fetch the latest version of user from the main thread
                 let user = await MainActor.run { [weak self] in
                     guard let self else { return nil }
                     return self.user
                 } ?? user
-                
-                let pinnedPostCards = pinned.map({ PostCardModel(status: $0, withStaticMetrics: false, instanceName: user.instanceName ?? user.account?.server) })
-                    .removeFiltered()  // Remove pinned statuses flags as hidden by one of the filters
-                let pinnedIds = pinnedPostCards.map({ $0.id })
-                
-                let mainPostCards = statuses.map({
+
+                let pinnedPostCards = pinned.map { PostCardModel(status: $0, withStaticMetrics: false, instanceName: user.instanceName ?? user.account?.server) }
+                    .removeFiltered() // Remove pinned statuses flags as hidden by one of the filters
+                let pinnedIds = pinnedPostCards.map { $0.id }
+
+                let mainPostCards = statuses.map {
                     PostCardModel(status: $0, withStaticMetrics: false, instanceName: user.instanceName ?? user.account?.server)
-                })
-                    .filter({ !pinnedIds.contains($0.id) }) // Remove pinned items from main list
-                    .removeFiltered()  // Remove statuses flags as hidden by one of the filters
-                
+                }
+                .filter { !pinnedIds.contains($0.id) } // Remove pinned items from main list
+                .removeFiltered() // Remove statuses flags as hidden by one of the filters
+
                 await MainActor.run { [weak self] in
                     guard let self else { return }
                     if cursorId == nil {
                         self.isLoadMoreEnabled = false
                     }
-                
+
                     switch currentType {
                     case .posts:
                         self.listData.posts = pinnedPostCards + mainPostCards
@@ -634,123 +636,125 @@ extension ProfileViewModel {
                     case .subscription:
                         self.listData.subscription = pinnedPostCards + mainPostCards
                     }
-                    
+
                     self.state = .success
-                    
+
                     // Preload quote posts and images
                     PostCardModel.preload(postCards: pinnedPostCards + mainPostCards)
                 }
             }
-            
-        } catch let error {
+
+        } catch {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 self.state = .error(error)
             }
         }
     }
-    
+
     func preloadCards(atIndexPaths indexPaths: [IndexPath]) {
-        indexPaths.forEach({
-            switch(self.type) {
+        for indexPath in indexPaths {
+            switch type {
             case .posts:
-                if let list = self.listData.posts, list.count > $0.row {
-                    let card = list[$0.row]
-                    
+                if let list = listData.posts, list.count > indexPath.row {
+                    let card = list[indexPath.row]
+
                     if card.quotePostStatus == .loading {
                         card.preloadQuotePost()
                     }
-                    
+
                     PostCardModel.imageDecodeQueue.async {
                         card.preloadImages()
                     }
-                    
+
                     if card.mediaDisplayType == .singleVideo || card.mediaDisplayType == .singleGIF {
                         card.preloadVideo()
                     }
                 }
             case .postsAndReplies:
-                if let list = self.listData.postsAndReplies, list.count > $0.row {
-                    let card = list[$0.row]
-                    
+                if let list = listData.postsAndReplies, list.count > indexPath.row {
+                    let card = list[indexPath.row]
+
                     if card.quotePostStatus == .loading {
                         card.preloadQuotePost()
                     }
-                    
+
                     PostCardModel.imageDecodeQueue.async {
                         card.preloadImages()
                     }
-                    
+
                     if card.mediaDisplayType == .singleVideo || card.mediaDisplayType == .singleGIF {
                         card.preloadVideo()
                     }
                 }
             case .subscription:
-                if let list = self.listData.subscription, list.count > $0.row {
-                    let card = list[$0.row]
-                    
+                if let list = listData.subscription, list.count > indexPath.row {
+                    let card = list[indexPath.row]
+
                     if card.quotePostStatus == .loading {
                         card.preloadQuotePost()
                     }
-                    
+
                     PostCardModel.imageDecodeQueue.async {
                         card.preloadImages()
                     }
-                    
+
                     if card.mediaDisplayType == .singleVideo || card.mediaDisplayType == .singleGIF {
                         card.preloadVideo()
                     }
                 }
             }
-        })
-    }
-    
-    func cancelPreloadCards(atIndexPaths indexPaths: [IndexPath]) {
-        indexPaths.forEach({
-            switch(self.type) {
-            case .posts:
-                if let list = self.listData.posts, list.count > $0.row {
-                    let card = list[$0.row]
-                    card.cancelAllPreloadTasks()
-                }
-            case .postsAndReplies:
-                if let list = self.listData.postsAndReplies, list.count > $0.row {
-                    let card = list[$0.row]
-                    card.cancelAllPreloadTasks()
-                }
-            case .subscription:
-                if let list = self.listData.subscription, list.count > $0.row {
-                    let card = list[$0.row]
-                    card.cancelAllPreloadTasks()
-                }
-            }
-        })
-    }
-    
-    func stopAllVideos() {
-        if let list = self.listData.posts {
-            list.forEach({
-                $0.videoPlayer?.pause()
-            })
         }
-        
-        if let list = self.listData.postsAndReplies {
-            list.forEach({
-                $0.videoPlayer?.pause()
-            })
+    }
+
+    func cancelPreloadCards(atIndexPaths indexPaths: [IndexPath]) {
+        for indexPath in indexPaths {
+            switch type {
+            case .posts:
+                if let list = listData.posts, list.count > indexPath.row {
+                    let card = list[indexPath.row]
+                    card.cancelAllPreloadTasks()
+                }
+            case .postsAndReplies:
+                if let list = listData.postsAndReplies, list.count > indexPath.row {
+                    let card = list[indexPath.row]
+                    card.cancelAllPreloadTasks()
+                }
+            case .subscription:
+                if let list = listData.subscription, list.count > indexPath.row {
+                    let card = list[indexPath.row]
+                    card.cancelAllPreloadTasks()
+                }
+            }
+        }
+    }
+
+    func stopAllVideos() {
+        if let list = listData.posts {
+            for item in list {
+                item.videoPlayer?.pause()
+            }
+        }
+
+        if let list = listData.postsAndReplies {
+            for item in list {
+                item.videoPlayer?.pause()
+            }
         }
     }
 }
 
 // MARK: - Notification handlers
+
 private extension ProfileViewModel {
     @objc func appDidBecomeActive() {
-        if self.user == nil,
-            self.screenType == .own {
-            self.syncCurrentUser()
+        if user == nil,
+           screenType == .own
+        {
+            syncCurrentUser()
         }
-        
-        if self.user != nil {
+
+        if user != nil {
             Task { [weak self] in
                 guard let self else { return }
                 // Load posts when app is active
@@ -759,26 +763,25 @@ private extension ProfileViewModel {
             }
         }
     }
-    
+
     @objc func onPostCardUpdate(notification: Notification) {
         if let postCard = notification.userInfo?["postCard"] as? PostCardModel {
-            
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                let postCardIndex = self.listData.posts?.firstIndex(where: {$0.uniqueId == postCard.uniqueId})
-                let replyCardIndex = self.listData.postsAndReplies?.firstIndex(where: {$0.uniqueId == postCard.uniqueId})
-                
+                let postCardIndex = self.listData.posts?.firstIndex(where: { $0.uniqueId == postCard.uniqueId })
+                let replyCardIndex = self.listData.postsAndReplies?.firstIndex(where: { $0.uniqueId == postCard.uniqueId })
+
                 if let isDeleted = notification.userInfo?["deleted"] as? Bool, isDeleted == true {
                     if let postCardIndex {
                         // Delete post card data in posts list data
                         self.listData.posts?.remove(at: postCardIndex)
                     }
-                    
+
                     if let replyCardIndex {
                         // Delete post card data in posts & replies list data
                         self.listData.postsAndReplies?.remove(at: replyCardIndex)
                     }
-                    
+
                     switch self.type {
                     case .posts:
                         // Request a table view cell refresh
@@ -819,12 +822,12 @@ private extension ProfileViewModel {
                         // Replace post card data in posts list data
                         self.listData.posts?[postCardIndex] = postCard
                     }
-                    
+
                     if let replyCardIndex {
                         // Replace post card data in posts & replies list data
                         self.listData.postsAndReplies?[replyCardIndex] = postCard
                     }
-                    
+
                     switch self.type {
                     case .posts:
                         // Request a table view cell refresh
@@ -846,102 +849,107 @@ private extension ProfileViewModel {
             }
         }
     }
-    
+
     @objc func onUserCardUpdate(notification: Notification) {
         if let userCard = notification.userInfo?["userCard"] as? UserCardModel,
-            userCard.account?.fullAcct == self.user?.account?.fullAcct {
+           userCard.account?.fullAcct == self.user?.account?.fullAcct
+        {
             // Override user with updated user
-            self.user = userCard
+            user = userCard
             // Override user in each post card
-            self.listData.posts = self.listData.posts?.map({ postCard in postCard.withNewUser(user: userCard) })
-            self.listData.postsAndReplies = self.listData.postsAndReplies?.map({ postCard in postCard.withNewUser(user: userCard) })
+            listData.posts = listData.posts?.map { postCard in postCard.withNewUser(user: userCard) }
+            listData.postsAndReplies = listData.postsAndReplies?.map { postCard in postCard.withNewUser(user: userCard) }
             // Update profile header
-            self.delegate?.didUpdate(with: .success)
+            delegate?.didUpdate(with: .success)
         }
     }
-    
+
     @objc func didSwitchAccount(notification: Notification) {
         if let userCard = notification.userInfo?["userCard"] as? UserCardModel,
-           self.screenType == .own {
+           screenType == .own
+        {
             // Override user with updated user
-            self.user = userCard
-           
+            user = userCard
+
             Task { [weak self] in
                 guard let self else { return }
                 await self.loadListData(type: self.type)
             }
         }
     }
-    
-    @objc func onReloadPinned(notification: Notification) {
+
+    @objc func onReloadPinned(notification _: Notification) {
         Task { [weak self] in
             guard let self else { return }
             if self.screenType == .own && self.user == nil {
                 self.syncCurrentUser()
             }
-            
+
             await self.reloadUser()
             await self.loadListData(type: self.type)
         }
     }
-    
+
     @objc func onAvatarDidChange(notification: Notification) {
         let acctData = notification.userInfo?["account"] as? any AcctDataType
         if let account = (acctData as? MastodonAcctData)?.account,
-           account.fullAcct == self.user?.account?.fullAcct {
+           account.fullAcct == self.user?.account?.fullAcct
+        {
             // Override user with updated user account
-            let userCard = UserCardModel(account: account, instanceName: self.user?.instanceName, premiumAccount: self.user?.tippableAccount)
-            let preSyncAccount = self.user?.preSyncAccount
-            let cachedProfilePic = self.user?.decodedProfilePic
-            
-            self.user = userCard
-            self.user?.decodedProfilePic = cachedProfilePic
-            self.user?.preSyncAccount = preSyncAccount
+            let userCard = UserCardModel(account: account, instanceName: user?.instanceName, premiumAccount: user?.tippableAccount)
+            let preSyncAccount = user?.preSyncAccount
+            let cachedProfilePic = user?.decodedProfilePic
+
+            user = userCard
+            user?.decodedProfilePic = cachedProfilePic
+            user?.preSyncAccount = preSyncAccount
             // Override user in each post card
-            self.listData.posts = self.listData.posts?.map({ postCard in postCard.withNewUser(user: userCard) })
-            self.listData.postsAndReplies = self.listData.postsAndReplies?.map({ postCard in postCard.withNewUser(user: userCard) })
+            listData.posts = listData.posts?.map { postCard in postCard.withNewUser(user: userCard) }
+            listData.postsAndReplies = listData.postsAndReplies?.map { postCard in postCard.withNewUser(user: userCard) }
             // Update profile header
-            self.delegate?.didUpdate(with: .success)
+            delegate?.didUpdate(with: .success)
         }
     }
-    
+
     @objc func onHeaderDidChange(notification: Notification) {
         let acctData = notification.userInfo?["account"] as? any AcctDataType
         if let account = (acctData as? MastodonAcctData)?.account,
-           account.fullAcct == self.user?.account?.fullAcct {
+           account.fullAcct == self.user?.account?.fullAcct
+        {
             // Override user with updated user account
-            let userCard = UserCardModel(account: account, instanceName: self.user?.instanceName, premiumAccount: self.user?.tippableAccount)
-            let preSyncAccount = self.user?.preSyncAccount
-            let cachedProfilePic = self.user?.decodedProfilePic
-            
-            self.user = userCard
-            self.user?.decodedProfilePic = cachedProfilePic
-            self.user?.preSyncAccount = preSyncAccount
+            let userCard = UserCardModel(account: account, instanceName: user?.instanceName, premiumAccount: user?.tippableAccount)
+            let preSyncAccount = user?.preSyncAccount
+            let cachedProfilePic = user?.decodedProfilePic
+
+            user = userCard
+            user?.decodedProfilePic = cachedProfilePic
+            user?.preSyncAccount = preSyncAccount
             // Update profile header
-            self.delegate?.didUpdate(with: .success)
+            delegate?.didUpdate(with: .success)
         }
     }
-    
+
     @objc func onFollowStatusUpdate(notification: Notification) {
-        if let updatedfullAcct = notification.userInfo!["otherUserFullAcct"] as? String, 
-            let currentAccount = self.user?.account {
+        if let updatedfullAcct = notification.userInfo!["otherUserFullAcct"] as? String,
+           let currentAccount = user?.account
+        {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                
+
                 let tippableUser = self.user?.tippableAccount?.user
                 if updatedfullAcct == currentAccount.fullAcct || updatedfullAcct == tippableUser?.account?.fullAcct {
                     let userCard = UserCardModel(account: currentAccount, instanceName: self.user?.instanceName, premiumAccount: self.user?.tippableAccount)
                     let preSyncAccount = self.user?.preSyncAccount
                     let cachedProfilePic = self.user?.decodedProfilePic
-                    
+
                     if let premiumAcct = userCard.tippableAccount?.user?.account {
                         userCard.tippableAccount?.isFollowed = FollowManager.shared.followStatusForAccount(premiumAcct, requestUpdate: .none) == .following
                     }
-                    
+
                     self.user = userCard
                     self.user?.decodedProfilePic = cachedProfilePic
                     self.user?.preSyncAccount = preSyncAccount
-                    
+
                     if userCard.followStatus != .inProgress {
                         // Update profile header
                         self.delegate?.didUpdate(with: .success)
@@ -950,9 +958,9 @@ private extension ProfileViewModel {
             }
         }
     }
-    
+
     @objc func onNewPostSent() {
-        if self.screenType == .own {
+        if screenType == .own {
             Task { [weak self] in
                 await self?.loadListData()
             }
@@ -962,11 +970,11 @@ private extension ProfileViewModel {
 
 extension ProfileViewModel: ProfileSectionHeaderDelegate {
     func didChangeSegment(with selectedSegment: ViewTypes) {
-        self.type = selectedSegment
-        
+        type = selectedSegment
+
         // Force a reload
-        self.delegate?.didUpdate(with: .success)
-        
+        delegate?.didUpdate(with: .success)
+
         Task { [weak self] in
             guard let self else { return }
             await self.loadListData(type: selectedSegment)

@@ -1,6 +1,5 @@
-import SwiftJWT
 import ArkanaKeys
-
+import SwiftJWT
 
 /// Claims are the embedded payload in a JWT
 /// sub: accounts full remote username
@@ -16,7 +15,6 @@ private func mothSocialSecretKey() -> Data {
     } else {
         return ArkanaKeys.Production().mothSocialSecretKey.data(using: .utf8)!
     }
-    
 }
 
 /// Generate JWT for authorization specificly to Moth.Social for Mammoth related API calls
@@ -27,15 +25,9 @@ func MothSocialJWT(acct: String) -> String {
     /// Create the signer
     let hsJWTEncoder = JWTEncoder(jwtSigner: JWTSigner.hs256(key: mothSocialSecretKey()))
     do {
-       return try hsJWTEncoder.encodeToString(jwt)
+        return try hsJWTEncoder.encodeToString(jwt)
     } catch {
         log.error("Failed to encode JWT: \(error)")
         return ""
     }
 }
-
-
-    
-    
-    
-

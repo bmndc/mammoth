@@ -30,45 +30,45 @@ struct IdentityData: Codable {
     let isBot: Bool
     let pushEnabled: Bool
     let unsubscribed: Bool
-    
+
     init(from acctData: MastodonAcctData, allAccounts: [any AcctDataType]) {
-        self.id = acctData.account.fullAcct.sha256
-        self.created_at = acctData.account.createdAt
-        
-        self.server = acctData.account.server
-        self.followersCount = acctData.account.followersCount
-        self.followingCount = acctData.account.followingCount
-        self.statusesCount =  acctData.account.statusesCount
-        self.lastStatusAt = acctData.account.lastStatusAt
-        self.accountCreatedAt = acctData.account.createdAt
-        self.numberOfSubscribedChannels = acctData.forYou.subscribedChannels.count
-        self.subscribedChannels = acctData.forYou.subscribedChannels.map({ $0.title })
-        self.numberOfAccounts = allAccounts.count
-        self.isGoldMember = IAPManager.isGoldMember
-        self.hasAvatar = !acctData.account.avatar.isEmpty && !acctData.account.avatar.contains("original/missing.png")
-        self.hasBio = !acctData.account.note.isEmpty
-        self.isBot = acctData.account.bot
-        
+        id = acctData.account.fullAcct.sha256
+        created_at = acctData.account.createdAt
+
+        server = acctData.account.server
+        followersCount = acctData.account.followersCount
+        followingCount = acctData.account.followingCount
+        statusesCount = acctData.account.statusesCount
+        lastStatusAt = acctData.account.lastStatusAt
+        accountCreatedAt = acctData.account.createdAt
+        numberOfSubscribedChannels = acctData.forYou.subscribedChannels.count
+        subscribedChannels = acctData.forYou.subscribedChannels.map { $0.title }
+        numberOfAccounts = allAccounts.count
+        isGoldMember = IAPManager.isGoldMember
+        hasAvatar = !acctData.account.avatar.isEmpty && !acctData.account.avatar.contains("original/missing.png")
+        hasBio = !acctData.account.note.isEmpty
+        isBot = acctData.account.bot
+
         let themePrefix = GlobalStruct.overrideThemeHighContrast ? "HC:" : ""
         switch GlobalStruct.overrideTheme {
         case 1:
-            self.theme = "\(themePrefix)light"
+            theme = "\(themePrefix)light"
         case 2:
-            self.theme = "\(themePrefix)dark"
+            theme = "\(themePrefix)dark"
         default:
-            self.theme = "\(themePrefix)system"
+            theme = "\(themePrefix)system"
         }
-        
-        self.appLanguage = l10n.getCurrentLocale() ?? "en"
-        self.isLanguageSupported = l10n.isCurrentLanguageSupported()
-        
+
+        appLanguage = l10n.getCurrentLocale() ?? "en"
+        isLanguageSupported = l10n.isCurrentLanguageSupported()
+
         let notificationType = UIApplication.shared.currentUserNotificationSettings!.types
         if notificationType == [] {
-            self.pushEnabled = false
+            pushEnabled = false
         } else {
-            self.pushEnabled = true
+            pushEnabled = true
         }
-        
-        self.unsubscribed = false
+
+        unsubscribed = false
     }
 }

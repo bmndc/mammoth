@@ -6,13 +6,11 @@
 //  Copyright © 2024 The BLVD. All rights reserved.
 //
 
-import UIKit
 import MetaTextKit
+import UIKit
 
 extension UILabel {
-
     var isTruncated: Bool {
-
         guard let labelText = attributedText else {
             return false
         }
@@ -20,7 +18,8 @@ extension UILabel {
         let labelTextSize = labelText.boundingRect(
             with: CGSize(width: frame.size.width, height: .greatestFiniteMagnitude),
             options: .usesLineFragmentOrigin,
-            context: nil).size
+            context: nil
+        ).size
 
         return labelTextSize.height > bounds.size.height
     }

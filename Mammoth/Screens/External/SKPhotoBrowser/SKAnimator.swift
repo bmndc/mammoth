@@ -19,36 +19,38 @@ class SKAnimator: NSObject, SKPhotoBrowserAnimatorDelegate {
     fileprivate var finalImageViewFrame: CGRect = .zero
     fileprivate var initialCornerRadius: CGFloat = 0
 
-    internal lazy var backgroundView: UIView = {
+    lazy var backgroundView: UIView = {
         guard let window = UIApplication.shared.preferredApplicationWindow else { fatalError() }
-        
+
         let backgroundView = UIView(frame: window.frame)
         backgroundView.backgroundColor = SKPhotoBrowserOptions.backgroundColor
         backgroundView.alpha = 0.0
         return backgroundView
     }()
-    internal var senderOriginImage: UIImage!
-    internal var senderViewOriginalFrame: CGRect = .zero
-    internal var senderViewForAnimation: UIView?
-    
+
+    var senderOriginImage: UIImage!
+    var senderViewOriginalFrame: CGRect = .zero
+    var senderViewForAnimation: UIView?
+
     fileprivate var animationDuration: TimeInterval {
         if SKPhotoBrowserOptions.bounceAnimation { return 0.52 }
         return 0.52
     }
+
     fileprivate var animationDamping: CGFloat {
         if SKPhotoBrowserOptions.bounceAnimation { return 0.9 }
         return 0.9
     }
-    
+
     override init() {
         super.init()
         window?.addSubview(backgroundView)
     }
-    
+
     deinit {
         backgroundView.removeFromSuperview()
     }
-    
+
     func willPresent(_ browser: SKPhotoBrowser) {
         guard let sender = browser.delegate?.viewForPhoto?(browser, index: browser.currentPageIndex) ?? senderViewForAnimation else {
             presentAnimation(browser)
@@ -58,12 +60,12 @@ class SKAnimator: NSObject, SKPhotoBrowserAnimatorDelegate {
         let photo = browser.photoAtIndex(browser.currentPageIndex)
         let imageFromView = (senderOriginImage ?? browser.getImageFromView(sender)).rotateImageByOrientation()
         let imageRatio = imageFromView.size.width / imageFromView.size.height
-        
+
         senderViewOriginalFrame = calcOriginFrame(sender)
         finalImageViewFrame = calcFinalFrame(imageRatio)
         resizableImageView = UIImageView(image: imageFromView)
         initialCornerRadius = sender.layer.cornerRadius
-        
+
         if let resizableImageView = resizableImageView {
             resizableImageView.frame = senderViewOriginalFrame
             resizableImageView.clipsToBounds = true
@@ -78,7 +80,7 @@ class SKAnimator: NSObject, SKPhotoBrowserAnimatorDelegate {
 
         presentAnimation(browser)
     }
-    
+
     func willDismiss(_ browser: SKPhotoBrowser) {
         guard let sender = browser.delegate?.viewForPhoto?(browser, index: browser.currentPageIndex) ?? senderViewForAnimation else {
             return
@@ -92,7 +94,7 @@ class SKAnimator: NSObject, SKPhotoBrowserAnimatorDelegate {
             }
             return
         }
-        
+
         senderViewForAnimation = sender
         senderViewForAnimation?.isHidden = false
         browser.view.isHidden = true
@@ -100,17 +102,18 @@ class SKAnimator: NSObject, SKPhotoBrowserAnimatorDelegate {
         backgroundView.alpha = 1.0
         backgroundView.backgroundColor = .clear
         senderViewOriginalFrame = calcOriginFrame(sender)
-        
+
         if let resizableImageView = resizableImageView {
             let photo = browser.photoAtIndex(browser.currentPageIndex)
             let contentOffset = scrollView.contentOffset
             let scrollFrame = scrollView.imageView.frame
-            let offsetY = scrollView.center.y - (scrollView.bounds.height/2)
+            let offsetY = scrollView.center.y - (scrollView.bounds.height / 2)
             let frame = CGRect(
                 x: scrollFrame.origin.x - contentOffset.x,
                 y: scrollFrame.origin.y + contentOffset.y + offsetY - scrollView.contentOffset.y,
                 width: scrollFrame.width,
-                height: scrollFrame.height)
+                height: scrollFrame.height
+            )
 
             resizableImageView.image = image.rotateImageByOrientation()
             resizableImageView.frame = frame
@@ -137,10 +140,10 @@ private extension SKAnimator {
             return .zero
         }
     }
-    
+
     func calcFinalFrame(_ imageRatio: CGFloat) -> CGRect {
         guard !imageRatio.isNaN else { return .zero }
-        
+
         if SKMesurement.screenRatio < imageRatio {
             let width = SKMesurement.screenWidth
             let height = width / imageRatio
@@ -150,7 +153,7 @@ private extension SKAnimator {
         } else if SKPhotoBrowserOptions.longPhotoWidthMatchScreen && imageRatio <= 1.0 {
             let height = SKMesurement.screenWidth / imageRatio
             return CGRect(x: 0.0, y: 0, width: SKMesurement.screenWidth, height: height)
-            
+
         } else {
             let height = SKMesurement.screenHeight
             let width = height * imageRatio
@@ -161,14 +164,14 @@ private extension SKAnimator {
 }
 
 private extension SKAnimator {
-    func presentAnimation(_ browser: SKPhotoBrowser, completion: (() -> Void)? = nil) {
-        self.senderViewForAnimation?.alpha = 0
-        
-        let finalFrame = self.finalImageViewFrame
+    func presentAnimation(_ browser: SKPhotoBrowser, completion _: (() -> Void)? = nil) {
+        senderViewForAnimation?.alpha = 0
+
+        let finalFrame = finalImageViewFrame
         browser.view.isHidden = true
         browser.view.alpha = 0.0
-        
-        self.resizableImageView?.layer.cornerRadius = self.initialCornerRadius
+
+        resizableImageView?.layer.cornerRadius = initialCornerRadius
 
         if #available(iOS 11.0, *) {
             backgroundView.accessibilityIgnoresInvertColors = true
@@ -187,16 +190,17 @@ private extension SKAnimator {
                 self.resizableImageView?.frame = finalFrame
                 self.resizableImageView?.layer.cornerRadius = 0
             },
-            completion: { (_) -> Void in
+            completion: { _ in
                 browser.view.alpha = 1.0
                 browser.view.isHidden = false
                 self.backgroundView.isHidden = true
                 self.resizableImageView?.alpha = 0.0
-            })
+            }
+        )
     }
-    
-    func dismissAnimation(_ browser: SKPhotoBrowser, completion: (() -> Void)? = nil) {
-        let finalFrame = self.senderViewOriginalFrame
+
+    func dismissAnimation(_ browser: SKPhotoBrowser, completion _: (() -> Void)? = nil) {
+        let finalFrame = senderViewOriginalFrame
         UIView.animate(
             withDuration: animationDuration,
             delay: 0,
@@ -208,13 +212,13 @@ private extension SKAnimator {
                 self.resizableImageView?.layer.frame = finalFrame
                 self.resizableImageView?.layer.cornerRadius = self.initialCornerRadius
             },
-            completion: { (_) -> Void in
+            completion: { _ in
                 browser.dismissPhotoBrowser(animated: true) {
                     self.resizableImageView?.removeFromSuperview()
                     self.backgroundView.removeFromSuperview()
                     self.senderViewForAnimation?.alpha = 1
                 }
-            })
+            }
+        )
     }
 }
-

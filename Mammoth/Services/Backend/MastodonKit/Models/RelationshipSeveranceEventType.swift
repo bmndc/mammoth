@@ -13,6 +13,6 @@ public enum RelationshipSeveranceEventType: String, Codable, CaseIterable {
     case domain_block
     /// The user blocked a whole domain
     case user_domain_block
-    ///A moderator suspended a specific account
+    /// A moderator suspended a specific account
     case account_suspension
 }

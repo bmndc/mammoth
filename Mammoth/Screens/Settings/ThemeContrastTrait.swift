@@ -23,7 +23,6 @@ extension UITraitCollection {
     var themeContrast: ThemeContrast { self[ThemeContrastTrait.self] }
 }
 
-
 @available(iOS 17.0, *)
 extension UIMutableTraits {
     var themeContrast: ThemeContrast {

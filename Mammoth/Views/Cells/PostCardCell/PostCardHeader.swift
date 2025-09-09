@@ -6,15 +6,14 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import UIKit
 import Combine
+import Foundation
+import MastodonMeta
 import Meta
 import MetaTextKit
-import MastodonMeta
+import UIKit
 
 class PostCardHeader: UIView {
-
     enum PostCardHeaderTypes {
         case regular
         case forYou
@@ -24,11 +23,11 @@ class PostCardHeader: UIView {
         case mentions
         case following
         case list
-        
+
         func hasFollowButton(postCard: PostCardModel) -> Bool {
             let user = postCard.user
             let shouldShow = !postCard.isOwn && ((user?.followStatus as? FollowManager.FollowStatus) == .notFollowing || (user?.forceFollowButtonDisplay as? Bool) == true)
-            
+
             switch self {
             case .mentions, .quotePost:
                 return false
@@ -38,7 +37,7 @@ class PostCardHeader: UIView {
                 return shouldShow
             }
         }
-        
+
         var showUsertagUnderneath: Bool {
             switch self {
             case .mentions, .quotePost:
@@ -48,8 +47,9 @@ class PostCardHeader: UIView {
             }
         }
     }
-    
+
     // MARK: - Properties
+
     private let mainStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -59,14 +59,14 @@ class PostCardHeader: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     var isCenterAligned: Bool {
         get { mainStackView.alignment == .center }
         set { mainStackView.alignment = newValue ? .center : .leading }
     }
-    
+
     private var profilePic: PostCardProfilePic?
-    
+
     private let headerTitleStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -76,7 +76,7 @@ class PostCardHeader: UIView {
         stackView.layoutMargins = .zero
         return stackView
     }()
-    
+
     private let headerMainTitleStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -88,7 +88,7 @@ class PostCardHeader: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     private let rightAttributesStack: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -98,7 +98,7 @@ class PostCardHeader: UIView {
         stackView.layoutMargins = .zero
         return stackView
     }()
-    
+
     private let titleLabel: MetaLabel = {
         let label = MetaLabel()
         label.textColor = .custom.displayNames
@@ -110,17 +110,17 @@ class PostCardHeader: UIView {
         label.isUserInteractionEnabled = false
         label.lineBreakMode = .byTruncatingTail
         label.textContainer.lineBreakMode = .byTruncatingTail
-        
+
         label.textAttributes = [
             .font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold),
-            .foregroundColor: UIColor.custom.displayNames
+            .foregroundColor: UIColor.custom.displayNames,
         ]
 
         label.linkAttributes = label.textAttributes
-        
+
         return label
     }()
-    
+
     private let pinIcon: UIImageView = {
         let imageView = UIImageView(frame: CGRect(x: 0, y: 0, width: 20, height: 20))
         let config = UIImage.SymbolConfiguration(pointSize: GlobalStruct.smallerFontSize, weight: .light)
@@ -139,7 +139,7 @@ class PostCardHeader: UIView {
         label.backgroundColor = .custom.background
         return label
     }()
-    
+
     private let dateLabel: UILabel = {
         let label = UILabel()
         label.textColor = UIColor.custom.feintContrast
@@ -147,170 +147,173 @@ class PostCardHeader: UIView {
         label.backgroundColor = .custom.background
         return label
     }()
-    
-    private var heightConstraint: NSLayoutConstraint? = nil
+
+    private var heightConstraint: NSLayoutConstraint?
     private var followButton: FollowButton?
-    
+
     private var status: Status?
     private var postCard: PostCardModel?
     private var headerType: PostCardHeaderTypes = .regular
-    public var onPress: PostCardButtonCallback?
+    var onPress: PostCardButtonCallback?
     private var isPrivateMention: Bool = false
     private var isTipAccount: Bool = false
-    
+
     private var subscription: Cancellable?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupUI()
+        setupUI()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     deinit {
         self.stopTimeUpdates()
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     func prepareForReuse() {
-        self.directionalLayoutMargins = .zero
-        self.status = nil
-        self.postCard = nil
-        self.onPress = nil
-        self.profilePic?.prepareForReuse()
-        self.titleLabel.reset()
-        self.userTagLabel.text = nil
-        self.dateLabel.text = nil
-        
-        self.stopTimeUpdates()
+        directionalLayoutMargins = .zero
+        status = nil
+        postCard = nil
+        onPress = nil
+        profilePic?.prepareForReuse()
+        titleLabel.reset()
+        userTagLabel.text = nil
+        dateLabel.text = nil
+
+        stopTimeUpdates()
     }
-    
+
     func setupUIFromSettings() {
         userTagLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
         dateLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
-        
+
         titleLabel.textAttributes = [
             .font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold),
-            .foregroundColor: UIColor.custom.displayNames
+            .foregroundColor: UIColor.custom.displayNames,
         ]
 
         titleLabel.linkAttributes = titleLabel.textAttributes
-        
-        self.onThemeChange()
+
+        onThemeChange()
     }
 }
 
-
 // MARK: - Setup UI
+
 private extension PostCardHeader {
     func setupUI() {
-        self.isOpaque = true
-        self.directionalLayoutMargins = .zero
-        self.addSubview(mainStackView)
-        
-        self.heightConstraint = mainStackView.heightAnchor.constraint(equalToConstant: self.estimatedHeight())
-                
+        isOpaque = true
+        directionalLayoutMargins = .zero
+        addSubview(mainStackView)
+
+        heightConstraint = mainStackView.heightAnchor.constraint(equalToConstant: estimatedHeight())
+
         NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(equalTo: self.layoutMarginsGuide.topAnchor),
-            mainStackView.bottomAnchor.constraint(equalTo: self.layoutMarginsGuide.bottomAnchor),
-            mainStackView.leadingAnchor.constraint(equalTo: self.layoutMarginsGuide.leadingAnchor),
-            mainStackView.trailingAnchor.constraint(equalTo: self.layoutMarginsGuide.trailingAnchor),
-            self.heightConstraint!
+            mainStackView.topAnchor.constraint(equalTo: layoutMarginsGuide.topAnchor),
+            mainStackView.bottomAnchor.constraint(equalTo: layoutMarginsGuide.bottomAnchor),
+            mainStackView.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+            mainStackView.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+            heightConstraint!,
         ])
-        
+
         mainStackView.addArrangedSubview(headerTitleStackView)
         mainStackView.addArrangedSubview(rightAttributesStack)
-        
+
         rightAttributesStack.insertArrangedSubview(pinIcon, at: 0)
         rightAttributesStack.addArrangedSubview(dateLabel)
-        
+
         titleLabel.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         userTagLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         headerTitleStackView.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         headerTitleStackView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         dateLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         rightAttributesStack.setContentCompressionResistancePriority(.required, for: .horizontal)
-        
+
         headerMainTitleStackView.addArrangedSubview(titleLabel)
-        
-        self.followButton = FollowButton()
+
+        followButton = FollowButton()
         headerMainTitleStackView.addArrangedSubview(followButton!)
-        
-        self.profilePic = PostCardProfilePic(withSize: .small)
-        self.profilePic!.addTarget(self, action: #selector(profileTapped), for: .touchUpInside)
-        headerTitleStackView.insertArrangedSubview(self.profilePic!, at: 0)
-        
+
+        profilePic = PostCardProfilePic(withSize: .small)
+        profilePic!.addTarget(self, action: #selector(profileTapped), for: .touchUpInside)
+        headerTitleStackView.insertArrangedSubview(profilePic!, at: 0)
+
         headerTitleStackView.addArrangedSubview(headerMainTitleStackView)
         headerTitleStackView.addArrangedSubview(userTagLabel)
-        
+
         setupUIFromSettings()
     }
 }
 
 // MARK: - Estimated height
+
 extension PostCardHeader {
     static func estimatedHeight() -> CGFloat {
         return 24
     }
-    
+
     func estimatedHeight() -> CGFloat {
         let nameHeight = max(ceil(UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold).lineHeight) + 1, 24)
-        
-        if self.headerType.showUsertagUnderneath && GlobalStruct.displayName == .full {
+
+        if headerType.showUsertagUnderneath && GlobalStruct.displayName == .full {
             let tagHeight = ceil(UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular).lineHeight)
             return CGFloat(nameHeight + tagHeight)
         }
-        
+
         return nameHeight
     }
 }
 
 // MARK: - Configuration
+
 extension PostCardHeader {
     func configure(postCard: PostCardModel, headerType: PostCardHeaderTypes = .regular, isVerticallyCentered: Bool = false) {
         self.postCard = postCard
         self.headerType = headerType
 
-        if case .mastodon(let status) = postCard.data {
+        if case let .mastodon(status) = postCard.data {
             self.status = status
         }
-        
-        let shouldChangeTheme = self.isPrivateMention != postCard.isPrivateMention || self.isTipAccount != postCard.isTipAccount
-        self.isPrivateMention = postCard.isPrivateMention
-        self.isTipAccount = postCard.isTipAccount
-        
+
+        let shouldChangeTheme = isPrivateMention != postCard.isPrivateMention || isTipAccount != postCard.isTipAccount
+        isPrivateMention = postCard.isPrivateMention
+        isTipAccount = postCard.isTipAccount
+
         if headerType == .mentions {
-            self.titleLabel.isHidden = false
-            self.userTagLabel.isHidden = false
+            titleLabel.isHidden = false
+            userTagLabel.isHidden = false
             titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         } else {
             if GlobalStruct.displayName == .full {
-                self.titleLabel.isHidden = false
-                self.userTagLabel.isHidden = false
+                titleLabel.isHidden = false
+                userTagLabel.isHidden = false
                 titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
             } else if GlobalStruct.displayName == .usernameOnly {
-                self.titleLabel.isHidden = false
-                self.userTagLabel.isHidden = true
+                titleLabel.isHidden = false
+                userTagLabel.isHidden = true
                 titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
             } else if GlobalStruct.displayName == .usertagOnly {
-                self.titleLabel.isHidden = false
-                self.userTagLabel.isHidden = true
+                titleLabel.isHidden = false
+                userTagLabel.isHidden = true
                 titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            } else {                              // .none
-                self.titleLabel.isHidden = true
-                self.userTagLabel.isHidden = true
+            } else { // .none
+                titleLabel.isHidden = true
+                userTagLabel.isHidden = true
             }
         }
-        
+
         if headerType.hasFollowButton(postCard: postCard) {
             if let user = postCard.user {
-                self.followButton?.user = user
-                self.followButton?.alpha = self.followButton?.alpha == 1 ? 1 : 0
-                self.followButton?.isHidden = false
-                if self.followButton?.alpha == 0 {
-                    self.followButton?.transform = CGAffineTransform.identity.scaledBy(x: 0.95, y: 0.95)
+                followButton?.user = user
+                followButton?.alpha = followButton?.alpha == 1 ? 1 : 0
+                followButton?.isHidden = false
+                if followButton?.alpha == 0 {
+                    followButton?.transform = CGAffineTransform.identity.scaledBy(x: 0.95, y: 0.95)
                     // Call animation in next RunLoop because current RunLoop
                     // blocks all animations (in didUpdateSnapshot)
                     DispatchQueue.main.async {
@@ -318,36 +321,36 @@ extension PostCardHeader {
                             guard let self else { return }
                             self.followButton?.transform = CGAffineTransform.identity.scaledBy(x: 1.02, y: 1.02)
                             self.followButton?.alpha = 1
-                            }) { [weak self] finished in
-                                UIView.animate(withDuration: 0.3 / 1.5, animations: {
-                                    guard let self else { return }
-                                    self.followButton?.transform = CGAffineTransform.identity
-                                })
-                            }
+                        }) { [weak self] _ in
+                            UIView.animate(withDuration: 0.3 / 1.5, animations: {
+                                guard let self else { return }
+                                self.followButton?.transform = CGAffineTransform.identity
+                            })
+                        }
                     }
                 }
-                
+
             } else {
-                self.followButton?.isHidden = true
-                self.followButton?.alpha = 0
+                followButton?.isHidden = true
+                followButton?.alpha = 0
             }
         } else {
-            self.followButton?.isHidden = true
-            self.followButton?.alpha = 0
+            followButton?.isHidden = true
+            followButton?.alpha = 0
         }
 
         if headerType == .quotePost, let user = postCard.user {
-            self.profilePic!.configure(user: user)
-            self.profilePic!.isHidden = false
-        } else if let profilePic = self.profilePic, headerTitleStackView.arrangedSubviews.contains(profilePic) {
+            profilePic!.configure(user: user)
+            profilePic!.isHidden = false
+        } else if let profilePic = profilePic, headerTitleStackView.arrangedSubviews.contains(profilePic) {
             self.profilePic!.isHidden = true
         }
-        
-        self.configureMetaTextContent()
-        
-        self.userTagLabel.text = headerType == .detail ? postCard.fullUserTag.lowercased() : postCard.normalizedUserTag?.lowercased() ?? postCard.userTag.lowercased()
-        self.dateLabel.text = postCard.time
-        
+
+        configureMetaTextContent()
+
+        userTagLabel.text = headerType == .detail ? postCard.fullUserTag.lowercased() : postCard.normalizedUserTag?.lowercased() ?? postCard.userTag.lowercased()
+        dateLabel.text = postCard.time
+
         if headerType.showUsertagUnderneath {
             headerTitleStackView.axis = .vertical
             headerTitleStackView.alignment = .leading
@@ -359,51 +362,51 @@ extension PostCardHeader {
             headerTitleStackView.distribution = .fill
             headerTitleStackView.spacing = 5
         }
-        
+
         if postCard.isPinned {
-            self.pinIcon.isHidden = false
+            pinIcon.isHidden = false
         } else {
-            self.pinIcon.isHidden = true
+            pinIcon.isHidden = true
         }
-        
+
         // center header content vertically when the post has a carousel and no post text
-        if isVerticallyCentered && self.userTagLabel.isHidden {
-            self.directionalLayoutMargins = .init(top: 10, leading: 0, bottom: 12, trailing: 0)
+        if isVerticallyCentered, userTagLabel.isHidden {
+            directionalLayoutMargins = .init(top: 10, leading: 0, bottom: 12, trailing: 0)
         }
-        
+
         if shouldChangeTheme {
-            self.onThemeChange()
+            onThemeChange()
         }
     }
-    
+
     func configureMetaTextContent() {
         if GlobalStruct.displayName == .usertagOnly {
             let text = headerType == .detail ? postCard?.fullUserTag.lowercased() ?? "" : postCard?.userTag.lowercased() ?? ""
             let content = MastodonMetaContent.convert(text: MastodonContent(content: text, emojis: [:]))
-            self.titleLabel.configure(content: content)
+            titleLabel.configure(content: content)
         } else {
             if let metaContent = postCard?.user?.metaName {
-                self.titleLabel.configure(content: metaContent)
+                titleLabel.configure(content: metaContent)
             } else {
                 let text = postCard?.user?.name ?? ""
                 let content = MastodonMetaContent.convert(text: MastodonContent(content: text, emojis: [:]))
-                self.titleLabel.configure(content: content)
+                titleLabel.configure(content: content)
             }
         }
     }
-    
+
     func onThemeChange() {
-        self.profilePic?.onThemeChange()
+        profilePic?.onThemeChange()
         var backgroundColor = UIColor.custom.background
-        
-        if let postCard = self.postCard {
+
+        if let postCard = postCard {
             if postCard.isPrivateMention {
                 backgroundColor = .custom.OVRLYSoftContrast
             } else if postCard.isTipAccount {
                 // tip background.
             }
         }
-        
+
         self.backgroundColor = backgroundColor
         titleLabel.backgroundColor = backgroundColor
         userTagLabel.backgroundColor = backgroundColor
@@ -413,37 +416,37 @@ extension PostCardHeader {
         rightAttributesStack.backgroundColor = backgroundColor
         headerMainTitleStackView.backgroundColor = backgroundColor
         headerTitleStackView.backgroundColor = backgroundColor
-        
+
         if headerType == .mentions {
-            self.titleLabel.isHidden = false
-            self.userTagLabel.isHidden = false
+            titleLabel.isHidden = false
+            userTagLabel.isHidden = false
             titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
         } else {
             if GlobalStruct.displayName == .full {
-                self.titleLabel.isHidden = false
-                self.userTagLabel.isHidden = false
+                titleLabel.isHidden = false
+                userTagLabel.isHidden = false
                 titleLabel.setContentHuggingPriority(.defaultHigh, for: .horizontal)
             } else if GlobalStruct.displayName == .usernameOnly {
-                self.titleLabel.isHidden = false
-                self.userTagLabel.isHidden = true
+                titleLabel.isHidden = false
+                userTagLabel.isHidden = true
                 titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
             } else if GlobalStruct.displayName == .usertagOnly {
-                self.titleLabel.isHidden = false
-                self.userTagLabel.isHidden = true
+                titleLabel.isHidden = false
+                userTagLabel.isHidden = true
                 titleLabel.setContentHuggingPriority(.defaultLow, for: .horizontal)
-            } else {                              // .none
-                self.titleLabel.isHidden = true
-                self.userTagLabel.isHidden = true
+            } else { // .none
+                titleLabel.isHidden = true
+                userTagLabel.isHidden = true
             }
         }
-        
-        self.heightConstraint?.constant = self.estimatedHeight()
+
+        heightConstraint?.constant = estimatedHeight()
     }
-    
+
     func willDisplay() {
-        self.profilePic?.willDisplay()
+        profilePic?.willDisplay()
     }
-    
+
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         // Update all items that use .custom colors
@@ -454,22 +457,22 @@ extension PostCardHeader {
         pinIcon.tintColor = .custom.feintContrast
         userTagLabel.textColor = .custom.feintContrast
         dateLabel.textColor = .custom.feintContrast
-        
+
         setupUIFromSettings()
     }
-    
+
     func startTimeUpdates() {
-        if let createdAt = self.postCard?.createdAt {
+        if let createdAt = postCard?.createdAt {
             Task { [weak self] in
                 guard let self else { return }
-                var interval: Double = 60*60
-                var delay: Double = 60*15
+                var interval: Double = 60 * 60
+                var delay: Double = 60 * 15
                 let now = Date()
-                
-                let secondsRange = now.addingTimeInterval(-60)...now
-                let minutesRange = now.addingTimeInterval(-60*60)...now
-                let hoursRange = now.addingTimeInterval(-60*60*24)...now
-                
+
+                let secondsRange = now.addingTimeInterval(-60) ... now
+                let minutesRange = now.addingTimeInterval(-60 * 60) ... now
+                let hoursRange = now.addingTimeInterval(-60 * 60 * 24) ... now
+
                 if secondsRange ~= createdAt {
                     interval = 5
                     delay = 2
@@ -477,10 +480,10 @@ extension PostCardHeader {
                     interval = 30
                     delay = 15
                 } else if hoursRange ~= createdAt {
-                    interval = 60*60
-                    delay = 60*15
+                    interval = 60 * 60
+                    delay = 60 * 15
                 }
-                
+
                 await MainActor.run { [weak self] in
                     guard let self else { return }
                     self.subscription = RunLoop.main.schedule(
@@ -505,15 +508,16 @@ extension PostCardHeader {
             }
         }
     }
-    
+
     @objc func stopTimeUpdates() {
-        self.subscription?.cancel()
+        subscription?.cancel()
     }
 }
 
 // MARK: - Handlers
+
 extension PostCardHeader {
     @objc func profileTapped() {
-        self.onPress?(.profile, true, nil)
+        onPress?(.profile, true, nil)
     }
 }

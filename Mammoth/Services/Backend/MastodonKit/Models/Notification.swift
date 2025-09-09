@@ -33,34 +33,34 @@ public class Notificationt: Codable, Hashable {
         case report
         case relationshipSeveranceEvent = "relationship_severance_event"
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     public init(id: String,
                 type: NotificationType,
                 createdAt: String,
                 account: Account,
                 status: Status? = nil,
                 report: Report? = nil,
-                relationshipSeverance: RelationshipSeveranceEvent? = nil) {
+                relationshipSeverance: RelationshipSeveranceEvent? = nil)
+    {
         self.id = id
         self.type = type
         self.createdAt = createdAt
         self.account = account
         self.status = status
         self.report = report
-        self.relationshipSeveranceEvent = relationshipSeverance
+        relationshipSeveranceEvent = relationshipSeverance
     }
 }
 
-
 extension Notificationt: Equatable {}
 
-public func ==(lhs: Notificationt, rhs: Notificationt) -> Bool {
+public func == (lhs: Notificationt, rhs: Notificationt) -> Bool {
     let areEqual = lhs.id == rhs.id &&
         lhs.id == rhs.id
-    
+
     return areEqual
 }

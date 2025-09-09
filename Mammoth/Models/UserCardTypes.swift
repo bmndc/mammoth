@@ -16,7 +16,7 @@ enum UserCardButtonType: Int {
     case editDetails
     case editInfoAndLink
     case settings
-    
+
     case share
     case filters
     case muted
@@ -24,9 +24,9 @@ enum UserCardButtonType: Int {
     case bookmarks
     case likes
     case recentMedia
-    
+
     case link
-    
+
     // profile actions
     case message
     case mention
@@ -35,7 +35,7 @@ enum UserCardButtonType: Int {
     case unmute
     case block
     case unblock
-    
+
     case addToList
     case removeFromList
     case createNewList
@@ -44,8 +44,8 @@ enum UserCardButtonType: Int {
     case enableReposts
     case disableReposts
 
-    func icon(symbolConfig: UIImage.SymbolConfiguration? = nil, weight: UIFont.Weight = .regular ) -> UIImage? {
-        switch(self) {
+    func icon(symbolConfig _: UIImage.SymbolConfiguration? = nil, weight: UIFont.Weight = .regular) -> UIImage? {
+        switch self {
         case .editAvatar:
             return FontAwesome.image(fromChar: "\u{f2bd}", weight: weight)
         case .editHeader:

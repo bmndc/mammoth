@@ -6,13 +6,13 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import SDWebImage
-import Kingfisher
-import Meta
-import MastodonMeta
-import MetaTextKit
 import ArkanaKeys
+import Foundation
+import Kingfisher
+import MastodonMeta
+import Meta
+import MetaTextKit
+import SDWebImage
 
 class UserCardModel {
     let id: String
@@ -20,20 +20,20 @@ class UserCardModel {
     let name: String
     let userTag: String
     let username: String
-        
+
     let imageURL: String?
     let description: String?
     let isFollowing: Bool
     let emojis: [Emoji]?
-    
+
     var preSyncAccount: Account?
     let account: Account?
-    
+
     var instanceName: String?
-    
+
     let isLocked: Bool
     let isBot: Bool
-    
+
     var richName: NSAttributedString?
     let metaName: MastodonMetaContent?
 
@@ -45,145 +45,145 @@ class UserCardModel {
     let followersCount: String
     let fields: [HashType]?
     var relationship: Relationship?
-    
+
     // when the profile pic is decoded we store it here
     var decodedProfilePic: UIImage?
     var imagePrefetchToken: SDWebImagePrefetchToken?
-    
+
     // when a user has been followed we keep the unfollow button
     // until a hard refresh happens
     var forceFollowButtonDisplay: Bool = false
-    
+
     let joinedOn: Date?
-    
+
     var isSelf: Bool {
-        return self.account?.fullAcct != nil && AccountsManager.shared.currentUser()?.fullAcct != nil && AccountsManager.shared.currentUser()?.fullAcct == self.account?.fullAcct
+        return account?.fullAcct != nil && AccountsManager.shared.currentUser()?.fullAcct != nil && AccountsManager.shared.currentUser()?.fullAcct == account?.fullAcct
     }
-    
+
     var isMuted: Bool {
-        return ModerationManager.shared.mutedUsers.first(where: {$0.remoteFullOriginalAcct == self.uniqueId}) != nil
+        return ModerationManager.shared.mutedUsers.first(where: { $0.remoteFullOriginalAcct == self.uniqueId }) != nil
     }
-    
+
     var isBlocked: Bool {
-        return ModerationManager.shared.blockedUsers.first(where: {$0.remoteFullOriginalAcct == self.uniqueId}) != nil
+        return ModerationManager.shared.blockedUsers.first(where: { $0.remoteFullOriginalAcct == self.uniqueId }) != nil
     }
-    
+
     // if self is tippable.
     let isTippable: Bool
     // if a tippable account is detected in metadata.
     struct TippableAccount: Equatable {
-        var accountname: String	
+        var accountname: String
         var user: UserCardModel?
         var isFollowed: Bool?
     }
+
     var tippableAccount: TippableAccount?
 
-    
     // deprecated initializer
     init(name: String, userTag: String, imageURL: String?, description: String?, isFollowing: Bool, emojis: [Emoji]?, account: Account?) {
-        self.id = account?.id ?? ""
-        self.uniqueId = account?.remoteFullOriginalAcct ?? ""
+        id = account?.id ?? ""
+        uniqueId = account?.remoteFullOriginalAcct ?? ""
         self.name = name
         self.userTag = userTag
-        self.username = account?.username ?? ""
+        username = account?.username ?? ""
         self.emojis = emojis
-        
+
         self.imageURL = imageURL
         self.description = description?.stripHTML()
         self.isFollowing = isFollowing
         self.account = account
-        
+
         var emojisDic: MastodonContent.Emojis = [:]
-        self.emojis?.forEach({ emojisDic[$0.shortcode] = $0.url.absoluteString })
+        self.emojis?.forEach { emojisDic[$0.shortcode] = $0.url.absoluteString }
         do {
-            self.metaName = try MastodonMetaContent.convert(document: MastodonContent(content: self.name, emojis: emojisDic))
+            metaName = try MastodonMetaContent.convert(document: MastodonContent(content: self.name, emojis: emojisDic))
         } catch {
-            self.metaName = MastodonMetaContent.convert(text: MastodonContent(content: self.name, emojis: emojisDic))
+            metaName = MastodonMetaContent.convert(text: MastodonContent(content: self.name, emojis: emojisDic))
         }
-        
-        self.richName = NSMutableAttributedString(string: self.metaName!.string)
-        
-        self.richPreviewDescription = self.description != nil ? removeTrailingLinebreaks(string: NSAttributedString(string: self.description!)) : nil
-        
+
+        richName = NSMutableAttributedString(string: metaName!.string)
+
+        richPreviewDescription = self.description != nil ? removeTrailingLinebreaks(string: NSAttributedString(string: self.description!)) : nil
+
         do {
-            self.metaDescription = try MastodonMetaContent.convert(document: MastodonContent(content: self.description ?? "", emojis: emojisDic))
+            metaDescription = try MastodonMetaContent.convert(document: MastodonContent(content: self.description ?? "", emojis: emojisDic))
         } catch {
-            self.metaDescription = MastodonMetaContent.convert(text: MastodonContent(content: self.description ?? "", emojis: emojisDic))
+            metaDescription = MastodonMetaContent.convert(text: MastodonContent(content: self.description ?? "", emojis: emojisDic))
         }
-        
-        self.instanceName = nil
-        
-        self.isLocked = account?.locked ?? false
-        self.isBot = account?.bot ?? false
-        
+
+        instanceName = nil
+
+        isLocked = account?.locked ?? false
+        isBot = account?.bot ?? false
+
         if let account = account, !Self.isOwn(account: account) {
-            self.followStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: .none)
-            self.relationship = FollowManager.shared.relationshipForAccount(account, requestUpdate: false)
+            followStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: .none)
+            relationship = FollowManager.shared.relationshipForAccount(account, requestUpdate: false)
         }
-        
-        self.followingCount = max(account?.followingCount ?? 0, 0).formatUsingAbbrevation()
-        self.followersCount = max(account?.followersCount ?? 0, 0).formatUsingAbbrevation()
-        
-        self.fields = account?.fields
-        self.fields?.forEach({$0.configureMetaContent(with: emojisDic)})
-        self.joinedOn = account?.createdAt?.toDate()
-        self.isTippable = instanceName == ArkanaKeys.Global().subClubDomain
-        self.tippableAccount = nil
+
+        followingCount = max(account?.followingCount ?? 0, 0).formatUsingAbbrevation()
+        followersCount = max(account?.followersCount ?? 0, 0).formatUsingAbbrevation()
+
+        fields = account?.fields
+        fields?.forEach { $0.configureMetaContent(with: emojisDic) }
+        joinedOn = account?.createdAt?.toDate()
+        isTippable = instanceName == ArkanaKeys.Global().subClubDomain
+        tippableAccount = nil
     }
-    
+
     init(account: Account, instanceName: String? = nil, requestFollowStatusUpdate: FollowManager.NetworkUpdateType = .none, isFollowing: Bool = false, premiumAccount: TippableAccount? = nil) {
-        self.id = account.id
-        self.uniqueId = account.remoteFullOriginalAcct
-        self.name = !account.displayName.isEmpty ? account.displayName : account.username
-        self.userTag = account.fullAcct
-        self.username = account.username
-        self.imageURL = account.avatar
-        self.description = account.note
+        id = account.id
+        uniqueId = account.remoteFullOriginalAcct
+        name = !account.displayName.isEmpty ? account.displayName : account.username
+        userTag = account.fullAcct
+        username = account.username
+        imageURL = account.avatar
+        description = account.note
         self.isFollowing = isFollowing
-        self.emojis = account.emojis
+        emojis = account.emojis
         self.account = account
-        
+
         var emojisDic: MastodonContent.Emojis = [:]
-        self.emojis?.forEach({ emojisDic[$0.shortcode] = $0.url.absoluteString })
-        
+        emojis?.forEach { emojisDic[$0.shortcode] = $0.url.absoluteString }
+
         do {
-            self.metaName = try MastodonMetaContent.convert(document: MastodonContent(content: self.name, emojis: emojisDic))
+            metaName = try MastodonMetaContent.convert(document: MastodonContent(content: name, emojis: emojisDic))
         } catch {
-            self.metaName = MastodonMetaContent.convert(text: MastodonContent(content: self.name, emojis: emojisDic))
+            metaName = MastodonMetaContent.convert(text: MastodonContent(content: name, emojis: emojisDic))
         }
-        
-        if let _ = self.metaName {
-            self.richName = NSMutableAttributedString(string: self.metaName!.string)
+
+        if let _ = metaName {
+            richName = NSMutableAttributedString(string: metaName!.string)
         }
-        
-        self.richPreviewDescription = self.description != nil ? removeTrailingLinebreaks(string: NSAttributedString(string: self.description!)) : nil
-        
+
+        richPreviewDescription = description != nil ? removeTrailingLinebreaks(string: NSAttributedString(string: description!)) : nil
+
         do {
-            self.metaDescription = try MastodonMetaContent.convert(document: MastodonContent(content: self.description ?? "", emojis: emojisDic))
+            metaDescription = try MastodonMetaContent.convert(document: MastodonContent(content: description ?? "", emojis: emojisDic))
         } catch {
-            self.metaDescription = MastodonMetaContent.convert(text: MastodonContent(content: self.description ?? "", emojis: emojisDic))
+            metaDescription = MastodonMetaContent.convert(text: MastodonContent(content: description ?? "", emojis: emojisDic))
         }
-        
+
         self.instanceName = instanceName
-        
-        self.isLocked = account.locked
-        self.isBot = account.bot
-        
+
+        isLocked = account.locked
+        isBot = account.bot
+
         if !Self.isOwn(account: account) {
-            self.followStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: requestFollowStatusUpdate)
-            self.relationship = FollowManager.shared.relationshipForAccount(account, requestUpdate: false)
+            followStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: requestFollowStatusUpdate)
+            relationship = FollowManager.shared.relationshipForAccount(account, requestUpdate: false)
         }
-        
-        self.followingCount = max(account.followingCount, 0).formatUsingAbbrevation()
-        self.followersCount = max(account.followersCount, 0).formatUsingAbbrevation()
-        
-        self.fields = account.fields
-        self.fields?.forEach({$0.configureMetaContent(with: emojisDic)})
-        self.joinedOn = account.createdAt?.toDate()
-        self.isTippable = account.acct.hasSuffix(ArkanaKeys.Global().subClubDomain)
-        
-        if let premiumAccount{
-            self.tippableAccount = premiumAccount
+
+        followingCount = max(account.followingCount, 0).formatUsingAbbrevation()
+        followersCount = max(account.followersCount, 0).formatUsingAbbrevation()
+
+        fields = account.fields
+        fields?.forEach { $0.configureMetaContent(with: emojisDic) }
+        joinedOn = account.createdAt?.toDate()
+        isTippable = account.acct.hasSuffix(ArkanaKeys.Global().subClubDomain)
+
+        if let premiumAccount {
+            tippableAccount = premiumAccount
         } else {
             // detect tippable link in profile fields.
             var premiumAcct: String? = nil
@@ -194,36 +194,35 @@ class UserCardModel {
                 }
             }
             if let premiumAcct = premiumAcct {
-                self.tippableAccount = TippableAccount(accountname: premiumAcct)
+                tippableAccount = TippableAccount(accountname: premiumAcct)
             }
         }
     }
-    
+
     // Return an instance without description
     func simple() -> UserCardModel {
-        return UserCardModel(name: self.name,
-                        userTag: self.userTag,
-                        imageURL: self.imageURL,
-                        description: "",
-                        isFollowing: self.isFollowing,
-                        emojis: self.emojis,
-                        account: self.account)
+        return UserCardModel(name: name,
+                             userTag: userTag,
+                             imageURL: imageURL,
+                             description: "",
+                             isFollowing: isFollowing,
+                             emojis: emojis,
+                             account: account)
     }
-    
+
     func syncFollowStatus(_ requestUpdate: FollowManager.NetworkUpdateType = .whenUncertain) {
         if let account = account {
-            self.followStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: requestUpdate)
+            followStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: requestUpdate)
         }
     }
-    
+
     func setFollowStatus(_ followStatus: FollowManager.FollowStatus) {
         self.followStatus = followStatus
     }
-    
+
     static func isOwn(account: Account) -> Bool {
         return AccountsManager.shared.currentUser()?.fullAcct != nil && AccountsManager.shared.currentUser()?.fullAcct == account.fullAcct
     }
-    
 }
 
 extension UserCardModel {
@@ -235,19 +234,19 @@ extension UserCardModel {
 extension UserCardModel: Equatable {
     static func == (lhs: UserCardModel, rhs: UserCardModel) -> Bool {
         return lhs.id == rhs.id &&
-        lhs.name == rhs.name &&
-        lhs.imageURL == rhs.imageURL &&
-        lhs.description == rhs.description &&
-        lhs.followingCount == rhs.followingCount &&
-        lhs.followersCount == rhs.followersCount &&
-        lhs.isFollowing == rhs.isFollowing &&
-        lhs.followStatus == rhs.followStatus &&
-        lhs.relationship == rhs.relationship &&
-        lhs.fields == rhs.fields &&
-        lhs.isBot == rhs.isBot &&
-        lhs.isLocked == rhs.isLocked &&
-        lhs.emojis == rhs.emojis &&
-        lhs.tippableAccount == rhs.tippableAccount
+            lhs.name == rhs.name &&
+            lhs.imageURL == rhs.imageURL &&
+            lhs.description == rhs.description &&
+            lhs.followingCount == rhs.followingCount &&
+            lhs.followersCount == rhs.followersCount &&
+            lhs.isFollowing == rhs.isFollowing &&
+            lhs.followStatus == rhs.followStatus &&
+            lhs.relationship == rhs.relationship &&
+            lhs.fields == rhs.fields &&
+            lhs.isBot == rhs.isBot &&
+            lhs.isLocked == rhs.isLocked &&
+            lhs.emojis == rhs.emojis &&
+            lhs.tippableAccount == rhs.tippableAccount
     }
 }
 
@@ -258,63 +257,62 @@ extension UserCardModel: Hashable {
 }
 
 // MARK: - Preload
+
 extension UserCardModel {
-    
     static func preload(userCards: [UserCardModel]) {
         PostCardModel.imageDecodeQueue.async {
-            userCards.forEach({
-                $0.preloadImages()
-            })
+            for userCard in userCards {
+                userCard.preloadImages()
+            }
         }
     }
-    
+
     // Download, transform and cache profile pic
     func preloadImages() {
-        if let profilePicURLString = self.imageURL,
+        if let profilePicURLString = imageURL,
            !SDImageCache.shared.diskImageDataExists(withKey: profilePicURLString),
-           let profilePicURL = URL(string: profilePicURLString) {
-            
+           let profilePicURL = URL(string: profilePicURLString)
+        {
             let prefetcher = SDWebImagePrefetcher.shared
-            self.imagePrefetchToken = prefetcher.prefetchURLs([profilePicURL], context: [.imageTransformer: PostCardProfilePic.transformer], progress: nil)
+            imagePrefetchToken = prefetcher.prefetchURLs([profilePicURL], context: [.imageTransformer: PostCardProfilePic.transformer], progress: nil)
         }
-        
-        if let emojis = self.emojis, !emojis.isEmpty {
+
+        if let emojis = emojis, !emojis.isEmpty {
             let prefetcher = SDWebImagePrefetcher.shared
-            prefetcher.prefetchURLs(emojis.map({$0.url}), context: [.animatedImageClass: SDAnimatedImageView.self], progress: nil)
+            prefetcher.prefetchURLs(emojis.map { $0.url }, context: [.animatedImageClass: SDAnimatedImageView.self], progress: nil)
         }
     }
-    
+
     func cancelAllPreloadTasks() {
-        self.imagePrefetchToken?.cancel()
+        imagePrefetchToken?.cancel()
     }
-    
+
     func clearCache() {
-        self.decodedProfilePic = nil
+        decodedProfilePic = nil
     }
 }
 
 extension UserCardModel {
-    
     @discardableResult
     func getTipInfo() async throws -> UserCardModel.TippableAccount? {
-        if let tippableAccount = self.tippableAccount {
+        if let tippableAccount = tippableAccount {
             do {
-            let request = Search.search(query: tippableAccount.accountname + "@" + ArkanaKeys.Global().subClubDomain, resolve: true)
-            let result = try await ClientService.runRequest(request: request)
+                let request = Search.search(query: tippableAccount.accountname + "@" + ArkanaKeys.Global().subClubDomain, resolve: true)
+                let result = try await ClientService.runRequest(request: request)
                 if let account = (result.accounts.first) {
                     let followStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: .force) == .following
                     let premiumAccount = await MainActor.run { [weak self] in
                         self?.tippableAccount = TippableAccount(accountname: tippableAccount.accountname, user: UserCardModel(account: account), isFollowed: followStatus)
                         return self?.tippableAccount
                     }
-                    
+
                     return premiumAccount
                 }
             } catch {
                 log.error("error searching subclub account for \(tippableAccount.accountname) : \(error)")
             }
         }
-        
+
         return nil
     }
 }

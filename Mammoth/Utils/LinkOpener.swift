@@ -32,7 +32,6 @@ import Foundation
 import UIKit
 
 enum LinkOpener: String, CaseIterable {
-    
     case safari = "Safari"
     case mammoth = "In-App Browser"
     case brave = "Brave"
@@ -43,7 +42,7 @@ enum LinkOpener: String, CaseIterable {
     case firefoxFocus = "Firefox Focus"
     case operaMini = "Opera Mini"
     case operaTouch = "Opera Touch"
-    
+
     private var scheme: String {
         switch self {
         case .safari, .mammoth: return "https"
@@ -74,7 +73,7 @@ enum LinkOpener: String, CaseIterable {
     }
 
     var isInstalled: Bool {
-        guard let scheme = URL(string: "\(self.scheme)://") else {
+        guard let scheme = URL(string: "\(scheme)://") else {
             return false
         }
         return ProcessInfo.isRunningUnitTests || UIApplication.shared.canOpenURL(scheme)
@@ -98,7 +97,8 @@ enum LinkOpener: String, CaseIterable {
 
     func deeplink(to url: URL) -> URL {
         if let components = URLComponents(url: url, resolvingAgainstBaseURL: true),
-           components.scheme == "tel" {
+           components.scheme == "tel"
+        {
             return url
         }
 

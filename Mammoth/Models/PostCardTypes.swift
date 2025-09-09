@@ -14,7 +14,7 @@ enum PostCardButtonType: Int {
     case repost
     case quote
     case like
-    
+
     case more
     case bookmark
     case unbookmark
@@ -25,11 +25,11 @@ enum PostCardButtonType: Int {
     case editPost
     case deletePost
     case pinPost
-    
+
     case link
     case profile
     case postDetails
-    
+
     // profile actions
     case follow
     case message
@@ -45,13 +45,13 @@ enum PostCardButtonType: Int {
     case unblock
     case reportUser
     case reportPost
-    
+
     case likes
     case reposts
     case replies
-    
+
     func icon(symbolConfig: UIImage.SymbolConfiguration?) -> UIImage? {
-        switch(self) {
+        switch self {
         case .reply:
             return FontAwesome.image(fromChar: "\u{f075}", size: 16, weight: .regular)
         case .repost:
@@ -99,14 +99,14 @@ enum PostCardButtonType: Int {
         case .reportUser, .reportPost:
             return MAMenu.report.image
         case .pinPost:
-            return  UIImage(systemName: "pin", withConfiguration: symbolConfig)
+            return UIImage(systemName: "pin", withConfiguration: symbolConfig)
         default:
             return nil
         }
     }
-    
+
     func activeIcon(symbolConfig: UIImage.SymbolConfiguration?) -> UIImage? {
-        switch(self) {
+        switch self {
         case .like:
             return FontAwesome.image(fromChar: "\u{f004}", size: 16, weight: .bold)
         case .repost:
@@ -130,14 +130,14 @@ enum PostCardButtonType: Int {
         case .block:
             return MAMenu.unblock.image
         case .pinPost:
-            return  UIImage(systemName: "pin.slash", withConfiguration: symbolConfig)
+            return UIImage(systemName: "pin.slash", withConfiguration: symbolConfig)
         default:
             return nil
         }
     }
-    
+
     func tintColor(isActive: Bool) -> UIColor {
-        switch(self) {
+        switch self {
         case .like:
             if isActive {
                 return UIColor.systemPink

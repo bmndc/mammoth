@@ -9,25 +9,24 @@
 import Foundation
 
 class InstancesViewModel {
-            
     weak var delegate: RequestDelegate?
 
     private var state: ViewState {
         didSet {
-            self.delegate?.didUpdate(with: state)
+            delegate?.didUpdate(with: state)
         }
     }
-    
+
     private var listData: [InstanceCardModel] = []
-    
+
     init() {
-        self.state = .idle
+        state = .idle
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.allInstancesDidChange),
+                                               selector: #selector(allInstancesDidChange),
                                                name: didChangeAllInstancesNotification,
                                                object: nil)
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.pinnedInstancesDidChange),
+                                               selector: #selector(pinnedInstancesDidChange),
                                                name: didChangePinnedInstancesNotification,
                                                object: nil)
         Task {
@@ -38,24 +37,25 @@ class InstancesViewModel {
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     func preloadCards(atIndexPaths indexPaths: [IndexPath]) {
-        let cards = indexPaths.compactMap({ self.getInfo(forIndexPath: $0) })
+        let cards = indexPaths.compactMap { self.getInfo(forIndexPath: $0) }
         InstanceCardModel.preload(instanceCards: cards)
     }
 }
 
 // MARK: - DataSource
+
 extension InstancesViewModel {
-    func numberOfItems(forSection section: Int) -> Int {
-        return self.listData.count
+    func numberOfItems(forSection _: Int) -> Int {
+        return listData.count
     }
-    
+
     var numberOfSections: Int {
         return 1
     }
-    
-    func hasHeader(forSection sectionIndex: Int) -> Bool {
+
+    func hasHeader(forSection _: Int) -> Bool {
         return false
     }
 
@@ -63,30 +63,30 @@ extension InstancesViewModel {
         guard listData.count != 0 else {
             return nil
         }
-        return self.listData[indexPath.row]
+        return listData[indexPath.row]
     }
-    
 }
 
 // MARK: - Service
+
 extension InstancesViewModel {
     func loadRecommendations() async {
-        self.listData = []
-        self.state = .loading
+        listData = []
+        state = .loading
     }
-    
+
     func search(query: String, fullSearch: Bool = false) {
         if fullSearch {
-            self.searchAll(query: query)
+            searchAll(query: query)
         }
     }
-    
+
     // Actually do the searching/filtering here
     func searchAll(query: String) {
-        self.listData = []
-        self.state = .loading
+        listData = []
+        state = .loading
         Task {
-            let searchResults = await InstanceService.searchForInstances(query: query).map({ InstanceCardModel(instance:$0) })
+            let searchResults = await InstanceService.searchForInstances(query: query).map { InstanceCardModel(instance: $0) }
             DispatchQueue.main.async {
                 self.listData = searchResults
                 self.state = .success
@@ -94,38 +94,35 @@ extension InstancesViewModel {
         }
     }
 
-    
-    func cancelSearch() {
-    }
-
+    func cancelSearch() {}
 }
 
 // MARK: - Notification handlers
+
 private extension InstancesViewModel {
-        
-    @objc func allInstancesDidChange(notification: Notification) {
+    @objc func allInstancesDidChange(notification _: Notification) {
         Task {
             await self.loadRecommendations()
         }
     }
-    
+
     @objc func pinnedInstancesDidChange(notification: Notification) {
         if let instanceName = notification.userInfo?["InstanceName"] as? String, let index = updatePinnedInstanceNamed(instanceName) {
-            self.delegate?.didUpdateCard(at: IndexPath(row: index, section: 0))
+            delegate?.didUpdateCard(at: IndexPath(row: index, section: 0))
         }
     }
-    
+
     func updatePinnedInstanceNamed(_ instanceName: String) -> Int? {
         // Update both allInstances and listData
         var updatedInstance: InstanceCardModel
-        if let allInstancesIndex = self.listData.firstIndex(where: { tagInstance in
+        if let allInstancesIndex = listData.firstIndex(where: { tagInstance in
             tagInstance.name == instanceName
         }) {
-            updatedInstance = self.listData[allInstancesIndex]
+            updatedInstance = listData[allInstancesIndex]
             updatedInstance.isPinned = InstanceManager.shared.pinnedStatusForInstance(instanceName) == .pinned
-            self.listData[allInstancesIndex] = updatedInstance
+            listData[allInstancesIndex] = updatedInstance
         }
-        
+
         let listDataIndex = listData.firstIndex(where: { tagInstance in
             tagInstance.name == instanceName
         })
@@ -138,5 +135,4 @@ private extension InstancesViewModel {
         // Return index of listData
         return listDataIndex
     }
-    
 }

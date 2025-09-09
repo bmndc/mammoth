@@ -23,9 +23,9 @@ public class Poll: Codable {
     public var voted: Bool?
     /// Options.
     public var options: [PollOptions]
-    
+
     public var ownVotes: [Int]?
-    
+
     private enum CodingKeys: String, CodingKey {
         case id
         case expired
@@ -36,7 +36,7 @@ public class Poll: Codable {
         case options
         case ownVotes = "own_votes"
     }
-    
+
     public init(id: String,
                 expired: Bool,
                 expiresAt: String? = nil,
@@ -44,7 +44,8 @@ public class Poll: Codable {
                 votesCount: Int,
                 voted: Bool? = nil,
                 options: [PollOptions],
-                ownVotes: [Int]? = nil) {
+                ownVotes: [Int]? = nil)
+    {
         self.id = id
         self.expired = expired
         self.expiresAt = expiresAt
@@ -61,14 +62,15 @@ public class PollOptions: Codable {
     public var title: String
     /// Poll votes count.
     public var votesCount: Int?
-    
+
     private enum CodingKeys: String, CodingKey {
         case title
         case votesCount = "votes_count"
     }
-    
+
     public init(title: String,
-                votesCount: Int? = nil) {
+                votesCount: Int? = nil)
+    {
         self.title = title
         self.votesCount = votesCount
     }
@@ -79,7 +81,7 @@ public class PollPost: Codable {
     public let expiresIn: Int
     public let multiple: Bool?
     public let hideTotals: Bool?
-    
+
     private enum CodingKeys: String, CodingKey {
         case options
         case expiresIn = "expires_in"
@@ -90,9 +92,9 @@ public class PollPost: Codable {
 
 extension Poll: Equatable {}
 
-public func ==(lhs: Poll, rhs: Poll) -> Bool {
+public func == (lhs: Poll, rhs: Poll) -> Bool {
     let areEqual = lhs.id == rhs.id &&
         lhs.id == rhs.id
-    
+
     return areEqual
 }

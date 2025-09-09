@@ -11,21 +11,18 @@ import UIKit
 public let didChangeListsNotification = Notification.Name("didChangeListsNotification")
 
 class ListManager {
-    
     static let shared = ListManager()
     // This matches what is on the server
     // (Top Friends is titled "Top Friends on Mammoth"
     private var lists: [List] = []
-    
-    
-    public init() {
+
+    init() {
         // Listen to account switch, and update the list of hashtags accordingly
-        NotificationCenter.default.addObserver(self, selector: #selector(self.didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
-        
-        self.initializeList(forceNetworkUpdate: true)
+        NotificationCenter.default.addObserver(self, selector: #selector(didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
+
+        initializeList(forceNetworkUpdate: true)
     }
-    
-    
+
     // This will either load from storage, or kick off a network
     // request as approprate.
     private func initializeList(forceNetworkUpdate: Bool = false) {
@@ -45,12 +42,11 @@ class ListManager {
 
         // If the list was empty from disk, or a new account, or at launch, make a network request
         if lists.isEmpty || forceNetworkUpdate {
-            self.fetchLists()
+            fetchLists()
         }
     }
 
-        
-    public func clearCache() {
+    func clearCache() {
         let currentUserFullAcct: String = AccountsManager.shared.currentUser()?.fullAcct ?? ""
         if !currentUserFullAcct.isEmpty {
             do {
@@ -62,30 +58,29 @@ class ListManager {
         initializeList()
     }
 
-    
     @objc func didSwitchAccount() {
-        self.setLists(newLists: [])
-        self.initializeList()
-    }
-    
-    // For EXTERNAL use only
-    public func isTitleEditable(_ list: List) -> Bool {
-        return (list.title != "Top Friends")
+        setLists(newLists: [])
+        initializeList()
     }
 
-    public func topFriendsExists() -> Bool {
+    // For EXTERNAL use only
+    func isTitleEditable(_ list: List) -> Bool {
+        return list.title != "Top Friends"
+    }
+
+    func topFriendsExists() -> Bool {
         return topFriendsID() != nil
     }
-    
-    public func topFriendsID() -> String? {
+
+    func topFriendsID() -> String? {
         if let topFriendsList = lists.first(where: { list in list.title == "Top Friends on Mammoth" }) {
             return topFriendsList.id
         } else {
             return nil
         }
     }
-    
-    public func allLists(includeTopFriends: Bool = true) -> [List] {
+
+    func allLists(includeTopFriends: Bool = true) -> [List] {
         if includeTopFriends {
             // Convert TFOM to TF
             return lists.map { list in
@@ -103,9 +98,9 @@ class ListManager {
         }
     }
 
-    public func addList(_ list: String, completion: @escaping ((_ newList: List?) -> Void)) {
+    func addList(_ list: String, completion: @escaping ((_ newList: List?) -> Void)) {
         let request = Lists.create(title: list)
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("error trying to create a list: \(list) : \(error)")
             }
@@ -123,9 +118,9 @@ class ListManager {
         }
     }
 
-    public func deleteList(_ listID : String, completion: @escaping ((_ success: Bool) -> Void)) {
+    func deleteList(_ listID: String, completion: @escaping ((_ success: Bool) -> Void)) {
         let request = Lists.delete(id: listID)
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("error trying to delete list: \(listID) : \(error)")
             }
@@ -142,24 +137,24 @@ class ListManager {
             }
         }
     }
-    
-    public func addToTopFriends(accountID: String, completion: @escaping ((_ success: Bool) -> Void)) {
-        if let topFriendsID = self.topFriendsID() {
-            self.addToList(accountID: accountID, listID: topFriendsID, completion: completion)
+
+    func addToTopFriends(accountID: String, completion: @escaping ((_ success: Bool) -> Void)) {
+        if let topFriendsID = topFriendsID() {
+            addToList(accountID: accountID, listID: topFriendsID, completion: completion)
         } else {
             completion(false)
         }
     }
-    
-    public func addToList(account: Account, listId: String) async throws {
+
+    func addToList(account: Account, listId: String) async throws {
         try await AccountService.runTaskWithLocalRetry(forAccount: account) { id in
             try await ListService.add(accountID: id, listID: listId)
             self.fetchLists()
         }
     }
-    
+
     @available(*, deprecated)
-    public func addToList(accountID: String, listID: String, completion: @escaping ((_ success: Bool) -> Void)) {
+    func addToList(accountID: String, listID: String, completion: @escaping ((_ success: Bool) -> Void)) {
         Task {
             do {
                 try await ListService.add(accountID: accountID, listID: listID)
@@ -168,9 +163,9 @@ class ListManager {
                     completion(true)
                     self.fetchLists()
                 }
-            } catch let error {
+            } catch {
                 switch error as? ClientError {
-                case .mastodonError(let message):
+                case let .mastodonError(message):
                     if message == "Validation failed: Account has already been taken" {
                         await MainActor.run {
                             let alert = UIAlertController(title: "You have already added this account to this list", message: nil, preferredStyle: .alert)
@@ -178,9 +173,7 @@ class ListManager {
                             getTopMostViewController()?.present(alert, animated: true)
                         }
                     } else if message == "Record not found" {
-                        await MainActor.run {
-                            
-                        }
+                        await MainActor.run {}
                     } else {
                         fallthrough
                     }
@@ -196,13 +189,13 @@ class ListManager {
             }
         }
     }
-    
+
     @available(*, deprecated)
-    public func removeFromAllLists(accountID: String, completion: @escaping ((_ success: Bool) -> Void)) {
+    func removeFromAllLists(accountID: String, completion: @escaping ((_ success: Bool) -> Void)) {
         // If at least one succes, count the overall operation as a success
         var overallSuccess = false
         for list in lists {
-            self.removeFromList(accountID: accountID, listID: list.id) { success in
+            removeFromList(accountID: accountID, listID: list.id) { success in
                 overallSuccess = overallSuccess || success
             }
         }
@@ -210,25 +203,25 @@ class ListManager {
             completion(overallSuccess)
         }
     }
-    
+
     @available(*, deprecated)
-    public func removeFromTopFriends(accountID: String, completion: @escaping ((_ success: Bool) -> Void)) {
-        if let topFriendsID = self.topFriendsID() {
-            self.removeFromList(accountID: accountID, listID: topFriendsID, completion: completion)
+    func removeFromTopFriends(accountID: String, completion: @escaping ((_ success: Bool) -> Void)) {
+        if let topFriendsID = topFriendsID() {
+            removeFromList(accountID: accountID, listID: topFriendsID, completion: completion)
         } else {
             completion(false)
         }
     }
-    
-    public func removeFromList(account: Account, listId: String) async throws {
+
+    func removeFromList(account: Account, listId: String) async throws {
         try await AccountService.runTaskLocally(forAccount: account) { id in
             try await ListService.remove(accountID: id, listID: listId)
             self.fetchLists()
         }
     }
-    
+
     @available(*, deprecated)
-    public func removeFromList(accountID: String, listID: String, completion: @escaping ((_ success: Bool) -> Void)) {
+    func removeFromList(accountID: String, listID: String, completion: @escaping ((_ success: Bool) -> Void)) {
         Task {
             do {
                 try await ListService.remove(accountID: accountID, listID: listID)
@@ -239,21 +232,20 @@ class ListManager {
                 }
             } catch {
                 switch error as? ClientError {
-                case .mastodonError(let message):
+                case let .mastodonError(message):
                     log.debug("error message: \(message)")
                 default:
                     log.error("error removing \(accountID) from list \(listID) - \(error)")
-                    break
                 }
-                
+
                 completion(false)
             }
         }
     }
-    
-    public func updateListTitle(_ listID: String, title: String, completion: @escaping ((_ success: Bool) -> Void)) {
+
+    func updateListTitle(_ listID: String, title: String, completion: @escaping ((_ success: Bool) -> Void)) {
         let request = Lists.update(id: listID, title: title)
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("error renaming list to \(title) - \(error)")
             }
@@ -270,12 +262,12 @@ class ListManager {
             }
         }
     }
-    
-    public func updateListExclusivePosts(_ listID: String, exclusive: Bool, completion: @escaping ((_ success: Bool) -> Void)) {
+
+    func updateListExclusivePosts(_ listID: String, exclusive: Bool, completion: @escaping ((_ success: Bool) -> Void)) {
         let request = Lists.update(id: listID, exclusive: exclusive)
-        AccountsManager.shared.currentAccountClient.run(request) { [weak self] (statuses) in
-            guard let self = self else {return}
-            
+        AccountsManager.shared.currentAccountClient.run(request) { [weak self] statuses in
+            guard let self = self else { return }
+
             if let error = statuses.error {
                 log.error("error trying to update list exclusive post setting: \(listID) : \(error)")
             }
@@ -291,12 +283,12 @@ class ListManager {
             }
         }
     }
-    
+
     // Update our list of all followed lists
-    public func fetchLists(retryCount: Int = 10) {
+    func fetchLists(retryCount: Int = 10) {
         guard retryCount > 0 else { return }
         let request = Lists.all()
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("error getting lists; will retry; error: \(error)")
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
@@ -310,9 +302,9 @@ class ListManager {
             }
         }
     }
-    
+
     private func setLists(newLists: [List]) {
-        self.lists = newLists
+        lists = newLists
         let currentUserFullAcct: String = AccountsManager.shared.currentUser()?.fullAcct ?? ""
         if !currentUserFullAcct.isEmpty {
             do {
@@ -323,7 +315,4 @@ class ListManager {
         }
         NotificationCenter.default.post(name: didChangeListsNotification, object: self, userInfo: nil)
     }
-
 }
-
-

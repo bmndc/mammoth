@@ -9,7 +9,6 @@
 import UIKit
 
 class SetupMammothViewController: UIViewController {
-
     private lazy var navHeader: UIView = {
         let navHeader = UIView()
         navHeader.translatesAutoresizingMaskIntoConstraints = false
@@ -28,11 +27,11 @@ class SetupMammothViewController: UIViewController {
         tableView.layoutMargins = .zero
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.keyboardDismissMode = .onDrag
-        
+
         if #available(iOS 15.0, *) {
             tableView.sectionHeaderTopPadding = 0.0
         }
-        
+
         return tableView
     }()
 
@@ -41,7 +40,7 @@ class SetupMammothViewController: UIViewController {
         loader.startAnimating()
         loader.hidesWhenStopped = true
         loader.translatesAutoresizingMaskIntoConstraints = false
-        return loader;
+        return loader
     }()
 
     private lazy var noThanksButton: UIButton = {
@@ -62,7 +61,7 @@ class SetupMammothViewController: UIViewController {
         doneButton.layer.cornerRadius = 8
         return doneButton
     }()
-    
+
     private lazy var doneButtonBackground: UIView = {
         let doneButtonBackground = UIView()
         doneButtonBackground.translatesAutoresizingMaskIntoConstraints = false
@@ -71,35 +70,36 @@ class SetupMammothViewController: UIViewController {
     }()
 
     private var viewModel = SetupMammothViewModel.shared
-    
+
     required init() {
         super.init(nibName: nil, bundle: nil)
-        self.isModalInPresentation = true
-        self.viewModel.delegate = self
+        isModalInPresentation = true
+        viewModel.delegate = self
     }
 
-    required init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onThemeChange),
+                                               selector: #selector(onThemeChange),
                                                name: NSNotification.Name(rawValue: "reloadAll"),
                                                object: nil)
     }
-    
-    override func didMove(toParent parent: UIViewController?) {
+
+    override func didMove(toParent _: UIViewController?) {
         if let windowSafeAreaInsets = UIApplication.shared.keyWindow?.safeAreaInsets {
             let windowSafeAreaOrigin = CGPoint(x: 0, y: windowSafeAreaInsets.top)
-            let safeAreaOrigin = self.view.convert(windowSafeAreaOrigin, from: UIApplication.shared.keyWindow)
+            let safeAreaOrigin = view.convert(windowSafeAreaOrigin, from: UIApplication.shared.keyWindow)
             navHeader.heightAnchor.constraint(equalToConstant: safeAreaOrigin.y).isActive = true
         }
     }
@@ -115,41 +115,42 @@ class SetupMammothViewController: UIViewController {
     }
 
     @objc private func onThemeChange() {
-        self.tableView.reloadData()
+        tableView.reloadData()
     }
 }
 
 // MARK: UI Setup
+
 private extension SetupMammothViewController {
     func setupUI() {
         if UIDevice.current.userInterfaceIdiom == .phone {
-            self.view.layoutMargins = .init(top: 0, left: 0, bottom: 0, right: 0)
+            view.layoutMargins = .init(top: 0, left: 0, bottom: 0, right: 0)
         } else {
-            self.view.layoutMargins = .init(top: 0, left: 0, bottom: 14, right: 0)
+            view.layoutMargins = .init(top: 0, left: 0, bottom: 14, right: 0)
         }
-        
+
         view.addSubview(navHeader)
         NSLayoutConstraint.activate([
-            navHeader.topAnchor.constraint(equalTo: self.view.topAnchor),
-            navHeader.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            navHeader.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            navHeader.topAnchor.constraint(equalTo: view.topAnchor),
+            navHeader.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            navHeader.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
 
-        doneButton.addTarget(self, action: #selector(self.followMammothTapped), for: .touchUpInside)
+        doneButton.addTarget(self, action: #selector(followMammothTapped), for: .touchUpInside)
         doneButtonBackground.addSubview(doneButton)
-        
-        noThanksButton.addTarget(self, action: #selector(self.noThanksTapped), for: .touchUpInside)
+
+        noThanksButton.addTarget(self, action: #selector(noThanksTapped), for: .touchUpInside)
         doneButtonBackground.addSubview(noThanksButton)
 
         view.addSubview(doneButtonBackground)
         NSLayoutConstraint.activate([
-            doneButtonBackground.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            doneButtonBackground.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            doneButtonBackground.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            doneButtonBackground.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            doneButtonBackground.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            doneButtonBackground.trailingAnchor.constraint(equalTo: view.trailingAnchor),
 
             doneButton.leadingAnchor.constraint(equalTo: doneButtonBackground.leadingAnchor, constant: 13),
             doneButton.trailingAnchor.constraint(equalTo: doneButtonBackground.trailingAnchor, constant: -13),
-            doneButton.bottomAnchor.constraint(equalTo: self.view.layoutMarginsGuide.bottomAnchor),
+            doneButton.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor),
             doneButton.heightAnchor.constraint(equalToConstant: 50),
 
             noThanksButton.leadingAnchor.constraint(equalTo: doneButtonBackground.leadingAnchor, constant: 13),
@@ -159,36 +160,37 @@ private extension SetupMammothViewController {
 
             noThanksButton.topAnchor.constraint(equalTo: doneButtonBackground.topAnchor, constant: 13),
         ])
-                
+
         view.addSubview(tableView)
         view.addSubview(loader)
-        
+
         NSLayoutConstraint.activate([
-            self.tableView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            self.tableView.bottomAnchor.constraint(equalTo: self.doneButtonBackground.topAnchor),
-            self.tableView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            self.tableView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
-            
-            self.loader.centerXAnchor.constraint(equalTo: self.view.centerXAnchor),
-            self.loader.centerYAnchor.constraint(equalTo: self.view.centerYAnchor)
+            tableView.topAnchor.constraint(equalTo: view.topAnchor),
+            tableView.bottomAnchor.constraint(equalTo: doneButtonBackground.topAnchor),
+            tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+
+            loader.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loader.centerYAnchor.constraint(equalTo: view.centerYAnchor),
         ])
-        
-        self.view.bringSubviewToFront(navHeader)
-        self.view.bringSubviewToFront(doneButtonBackground)
+
+        view.bringSubviewToFront(navHeader)
+        view.bringSubviewToFront(doneButtonBackground)
     }
 }
 
 // MARK: UITableViewDataSource & UITableViewDelegate
+
 extension SetupMammothViewController: UITableViewDataSource, UITableViewDelegate {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         return viewModel.numberOfItems(forSection: section)
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    func numberOfSections(in _: UITableView) -> Int {
         return viewModel.numberOfSections
     }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         if viewModel.hasHeader(forSection: section) {
             return 29
         } else {
@@ -196,16 +198,16 @@ extension SetupMammothViewController: UITableViewDataSource, UITableViewDelegate
         }
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
-            let cell = self.tableView.dequeueReusableCell(withIdentifier: SetupInstructionsCell.reuseIdentifier) as! SetupInstructionsCell
+            let cell = tableView.dequeueReusableCell(withIdentifier: SetupInstructionsCell.reuseIdentifier) as! SetupInstructionsCell
             cell.configure(title: NSLocalizedString("onboarding.mammoth.title", comment: ""), instructions: NSLocalizedString("onboarding.mammoth.description", comment: ""))
             return cell
         } else {
             if let userCard = viewModel.getInfo(forIndexPath: indexPath) {
                 userCard.forceFollowButtonDisplay = true
-                let cell = self.tableView.dequeueReusableCell(withIdentifier: UserCardCell.reuseIdentifier, for: indexPath) as! UserCardCell
-                cell.configure(info: userCard, actionButtonType: .none) { [weak self] (type, isActive, data) in
+                let cell = tableView.dequeueReusableCell(withIdentifier: UserCardCell.reuseIdentifier, for: indexPath) as! UserCardCell
+                cell.configure(info: userCard, actionButtonType: .none) { [weak self] type, isActive, data in
                     guard let self else { return }
                     if type == .profile {
                         displayUserProfile(user: userCard)
@@ -216,11 +218,11 @@ extension SetupMammothViewController: UITableViewDataSource, UITableViewDelegate
                 return cell
             }
         }
-        
+
         return UITableViewCell()
     }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+
+    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if viewModel.hasHeader(forSection: section) {
             let header = SectionHeader(buttonTitle: nil)
             header.configure(labelText: viewModel.getSectionTitle(for: section))
@@ -229,25 +231,25 @@ extension SetupMammothViewController: UITableViewDataSource, UITableViewDelegate
             return nil
         }
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
         if indexPath.section > 0 {
             if let userCard = viewModel.getInfo(forIndexPath: indexPath) {
                 displayUserProfile(user: userCard)
             }
         }
     }
-    
+
     func displayUserProfile(user: UserCardModel) {
         let vc = ProfileViewController(user: user, screenType: user.isSelf ? .own : .others)
         if vc.isBeingPresented {} else {
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
-        
 }
 
 // MARK: RequestDelegate
+
 extension SetupMammothViewController: RequestDelegate {
     func didUpdate(with state: ViewState) {
         DispatchQueue.main.async { [weak self] in
@@ -260,41 +262,37 @@ extension SetupMammothViewController: RequestDelegate {
                     self.loader.isHidden = false
                     self.loader.startAnimating()
                 }
-                break
             case .success:
                 self.loader.stopAnimating()
                 self.loader.isHidden = true
                 self.tableView.reloadData()
-                break
-            case .error(let error):
+            case let .error(error):
                 self.loader.stopAnimating()
                 self.loader.isHidden = true
                 log.error("Error on SetupMammothViewController didUpdate: \(state) - \(error)")
-                break
             }
         }
     }
-    
+
     func didUpdateCard(at indexPath: IndexPath) {
-        self.tableView.reloadRows(at: [indexPath], with: .none)
+        tableView.reloadRows(at: [indexPath], with: .none)
     }
-    
+
     func didDeleteCard(at indexPath: IndexPath) {
-        self.tableView.deleteRows(at: [indexPath], with: .bottom)
+        tableView.deleteRows(at: [indexPath], with: .bottom)
     }
 }
 
 extension SetupMammothViewController {
-    
     @objc func noThanksTapped() {
         goToNextPane()
     }
-    
+
     @objc func followMammothTapped() {
-        self.viewModel.followMammothAccount()
+        viewModel.followMammothAccount()
         goToNextPane()
     }
-    
+
     private func goToNextPane() {
         // Clear out the onboarding flag
         AccountsManager.shared.didShowOnboardingForCurrentAccount()

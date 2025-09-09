@@ -8,42 +8,41 @@
 
 import UIKit
 
-class MentionsViewController : UIViewController {
-    
-    public let headerView: CarouselNavigationHeader = {
+class MentionsViewController: UIViewController {
+    let headerView: CarouselNavigationHeader = {
         let headerView = CarouselNavigationHeader(title: NSLocalizedString("title.mentions", comment: ""))
         headerView.translatesAutoresizingMaskIntoConstraints = false
         return headerView
     }()
-    
+
     private let blurEffectView: BlurredBackground = {
         let blurredEffectView = BlurredBackground(dimmed: true)
         blurredEffectView.translatesAutoresizingMaskIntoConstraints = false
         return blurredEffectView
     }()
-    
+
     private let pageViewController: UIPageViewController
     private let pages = [NewsFeedViewController(type: .mentionsIn), NewsFeedViewController(type: .mentionsOut)]
-    
+
     required init() {
         pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
         super.init(nibName: nil, bundle: nil)
-        
-        self.pages.forEach({$0.delegate = self})
+
+        pages.forEach { $0.delegate = self }
         pageViewController.setViewControllers([pages.first!], direction: .forward, animated: false)
-        
+
         setupUI()
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationItem.title = NSLocalizedString("title.mentions", comment: "")
+        navigationItem.title = NSLocalizedString("title.mentions", comment: "")
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
@@ -51,106 +50,105 @@ class MentionsViewController : UIViewController {
         // time they switch to this view.
         EnablePushNotificationSetting(checkOnlyOnceFlag: true)
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.setNavigationBarHidden(true, animated: animated)
+        navigationController?.setNavigationBarHidden(true, animated: animated)
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
-        self.navigationController?.setNavigationBarHidden(false, animated: animated)
+        navigationController?.setNavigationBarHidden(false, animated: animated)
         super.viewWillDisappear(animated)
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        self.pages.forEach({$0.additionalSafeAreaInsets.top = self.headerView.frame.size.height + 2}) // add 2 to make top border visible
+        pages.forEach { $0.additionalSafeAreaInsets.top = self.headerView.frame.size.height + 2 } // add 2 to make top border visible
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func setupUI() {
-        
         pageViewController.dataSource = self
         pageViewController.delegate = self
-        
+
         if let scrollView = pageViewController.view.subviews.first(where: { $0 is UIScrollView }) as? UIScrollView {
             scrollView.delegate = self
         }
-        
-        self.addChild(pageViewController)
-        self.view.addSubview(pageViewController.view)
+
+        addChild(pageViewController)
+        view.addSubview(pageViewController.view)
         pageViewController.didMove(toParent: self)
-        
-        self.view.bringSubviewToFront(blurEffectView)
-        self.view.bringSubviewToFront(headerView)
-        
-        self.headerView.carousel.delegate = self
-    
-        self.view.addSubview(blurEffectView)
+
+        view.bringSubviewToFront(blurEffectView)
+        view.bringSubviewToFront(headerView)
+
+        headerView.carousel.delegate = self
+
+        view.addSubview(blurEffectView)
         NSLayoutConstraint.activate([
-            blurEffectView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            blurEffectView.trailingAnchor.constraint(equalTo:self.view.trailingAnchor),
-            blurEffectView.topAnchor.constraint(equalTo: self.view.topAnchor)
+            blurEffectView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            blurEffectView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            blurEffectView.topAnchor.constraint(equalTo: view.topAnchor),
         ])
-        
-        self.view.addSubview(headerView)
+
+        view.addSubview(headerView)
         NSLayoutConstraint.activate([
             headerView.leadingAnchor.constraint(equalTo: blurEffectView.leadingAnchor),
             headerView.trailingAnchor.constraint(equalTo: blurEffectView.trailingAnchor),
-            headerView.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 2),
-            headerView.bottomAnchor.constraint(equalTo: blurEffectView.bottomAnchor)
+            headerView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 2),
+            headerView.bottomAnchor.constraint(equalTo: blurEffectView.bottomAnchor),
         ])
-        
-        self.headerView.carousel.content = [NSLocalizedString("title.received", comment: ""), NSLocalizedString("title.sent", comment: "")]
+
+        headerView.carousel.content = [NSLocalizedString("title.received", comment: ""), NSLocalizedString("title.sent", comment: "")]
     }
 }
 
 // MARK: - UIPageViewController delegate methods and helper methods
+
 extension MentionsViewController: UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIScrollViewDelegate {
-    
     func currentPageIndex() -> Int? {
         if let currentPageViewController = pageViewController.viewControllers?.first {
-            return self.pages.firstIndex(of: currentPageViewController as! NewsFeedViewController)
+            return pages.firstIndex(of: currentPageViewController as! NewsFeedViewController)
         }
-        
+
         return nil
     }
-    
+
     func currentPage() -> NewsFeedViewController? {
-        if let currentIndex = self.currentPageIndex() {
-            return self.pages[currentIndex]
+        if let currentIndex = currentPageIndex() {
+            return pages[currentIndex]
         }
         return nil
     }
 
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        if let currentIndex = self.pages.firstIndex(of: viewController as! NewsFeedViewController) {
+    func pageViewController(_: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
+        if let currentIndex = pages.firstIndex(of: viewController as! NewsFeedViewController) {
             if currentIndex > 0 {
-                return self.pages[currentIndex - 1]
+                return pages[currentIndex - 1]
             }
         }
 
         return nil
     }
-      
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        if let currentIndex = self.pages.firstIndex(of: viewController as! NewsFeedViewController) {
-            if currentIndex < self.pages.count - 1 {
-                return self.pages[currentIndex + 1]
+
+    func pageViewController(_: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
+        if let currentIndex = pages.firstIndex(of: viewController as! NewsFeedViewController) {
+            if currentIndex < pages.count - 1 {
+                return pages[currentIndex + 1]
             }
         }
 
         return nil
     }
-    
-    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        
-        if let currentIndex = self.currentPageIndex() {
-            self.headerView.carousel.selectItem(atIndex: currentIndex)
-            
+
+    func pageViewController(_: UIPageViewController, didFinishAnimating _: Bool, previousViewControllers: [UIViewController], transitionCompleted _: Bool) {
+        if let currentIndex = currentPageIndex() {
+            headerView.carousel.selectItem(atIndex: currentIndex)
+
             // Pause all videos when switching feeds
             if let previousPageViewController = previousViewControllers.first as? NewsFeedViewController {
                 DispatchQueue.main.async {
@@ -159,20 +157,20 @@ extension MentionsViewController: UIPageViewControllerDataSource, UIPageViewCont
             }
         }
     }
-    
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView.isDragging {
             let width = scrollView.frame.size.width
             let offset = scrollView.contentOffset.x
             let offsetPercentage = (offset - width) / width
-            self.headerView.carousel.adjustScrollOffset(withPercentageToNextItem: offsetPercentage)
+            headerView.carousel.adjustScrollOffset(withPercentageToNextItem: offsetPercentage)
         }
     }
 }
 
 // MARK: Carousel delegate and helpers
+
 extension MentionsViewController: CarouselDelegate {
-    
     func carouselItemPressed(withIndex carouselIndex: Int) {
         DispatchQueue.main.async {
             var direction = UIPageViewController.NavigationDirection.reverse
@@ -188,33 +186,33 @@ extension MentionsViewController: CarouselDelegate {
             self.pageViewController.setViewControllers([vc], direction: direction, animated: true)
         }
     }
-    
+
     func carouselActiveItemDoublePressed() {
-        self.jumpToNewest()
+        jumpToNewest()
     }
-    
-    func contextMenuForItem(withIndex index: Int) -> UIMenu? {
+
+    func contextMenuForItem(withIndex _: Int) -> UIMenu? {
         return nil
     }
 }
 
 extension MentionsViewController: NewsFeedViewControllerDelegate {
-    func willChangeFeed(_ type: NewsFeedTypes) {}
-    
-    func didChangeFeed(_ type: NewsFeedTypes) {}
-    
+    func willChangeFeed(_: NewsFeedTypes) {}
+
+    func didChangeFeed(_: NewsFeedTypes) {}
+
     func userActivityStorageIdentifier() -> String {
         return "MentionsViewController"
     }
-    
+
     func didScrollToTop() {
-        if self.currentPageIndex() == 0 {
+        if currentPageIndex() == 0 {
             // Hide the tab bar activity indicator (dot)
             NotificationCenter.default.post(name: Notification.Name(rawValue: "hideIndActivity2"), object: nil)
         }
     }
-    
-    func isActiveFeed(_ type: NewsFeedTypes) -> Bool {
+
+    func isActiveFeed(_: NewsFeedTypes) -> Bool {
         return true
     }
 }
@@ -222,6 +220,6 @@ extension MentionsViewController: NewsFeedViewControllerDelegate {
 // Jump to newest
 extension MentionsViewController: JumpToNewest {
     @objc func jumpToNewest() {
-        self.currentPage()?.jumpToNewest()
+        currentPage()?.jumpToNewest()
     }
 }

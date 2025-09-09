@@ -8,12 +8,12 @@
 
 import Foundation
 
-struct DeviceHelpers {
+enum DeviceHelpers {
     static func isiOSAppOnMac() -> Bool {
         if #available(iOS 14.0, *) {
             return ProcessInfo.processInfo.isiOSAppOnMac
         }
-        
+
         return false
     }
 }

@@ -15,17 +15,17 @@ public class Tag: Codable {
     public let url: String
     /// The history of the hashtag.
     public let history: [TagHistory]?
-    
+
     init() {
-        self.name = ""
-        self.url = ""
-        self.history = nil
+        name = ""
+        url = ""
+        history = nil
     }
-    
+
     init(name: String, url: String) {
         self.name = name
         self.url = url
-        self.history = nil
+        history = nil
     }
 }
 
@@ -39,10 +39,8 @@ public class TagHistory: Codable {
 }
 
 extension Tag: Equatable {
-    
-    static public func ==(lhs: Tag, rhs: Tag) -> Bool {
+    public static func == (lhs: Tag, rhs: Tag) -> Bool {
         let areEqual = lhs.url == rhs.url
         return areEqual
     }
-    
 }

@@ -25,11 +25,11 @@ public class Instance: Codable {
     public let usage: Usage
     /// The instance thumbnail.
 //    public let thumbnail: String?
-    
+
     public let domain: String
-    
+
     public let configuration: PostConfiguration?
-    
+
     public let rules: [Rules]?
 }
 
@@ -45,7 +45,7 @@ public class PostConfiguration: Codable {
 
 public class PostConfigurationStatuses: Codable {
     public let maxCharacters: Int
-    
+
     private enum CodingKeys: String, CodingKey {
         case maxCharacters = "max_characters"
     }
@@ -70,7 +70,7 @@ public class Usage: Codable {
 public class UsersStats: Codable {
     /// User count
     public let activeMonth: Int
-    
+
     private enum CodingKeys: String, CodingKey {
         case activeMonth = "active_month"
     }
@@ -86,7 +86,7 @@ public class tagInstance: Codable {
     public let activeUsers: Int?
     public let info: tagInstanceInfo?
     public let thumbnail: String?
-    
+
     private enum CodingKeys: String, CodingKey {
         case name
         case users
@@ -102,7 +102,7 @@ public class tagInstanceInfo: Codable {
     public let categories: [String]?
     public let prohibitedContent: [String]?
     public let languages: [String]?
-    
+
     private enum CodingKeys: String, CodingKey {
         case shortDescription = "short_description"
         case fullDescription = "full_description"

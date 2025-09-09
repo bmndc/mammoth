@@ -26,12 +26,12 @@ public enum MediaAttachment {
 extension MediaAttachment {
     var data: Data? {
         switch self {
-        case .jpeg(let data): return data
-        case .gif(let data): return data
-        case .video(let data): return data
-        case .png(let data): return data
-        case .mp3(let data): return data
-        case .other(let data, _, _): return data
+        case let .jpeg(data): return data
+        case let .gif(data): return data
+        case let .video(data): return data
+        case let .png(data): return data
+        case let .mp3(data): return data
+        case let .other(data, _, _): return data
         }
     }
 
@@ -43,7 +43,7 @@ extension MediaAttachment {
             case .video: return "file.mp4"
             case .png: return "file.png"
             case .mp3: return "file.mp3"
-            case .other(_, let fileExtension, _): return "file.\(fileExtension)"
+            case let .other(_, fileExtension, _): return "file.\(fileExtension)"
             }
         } else if OtherStruct.medType == 1 {
             switch self {
@@ -52,7 +52,7 @@ extension MediaAttachment {
             case .video: return "avatar.mp4"
             case .png: return "avatar.png"
             case .mp3: return "avatar.mp3"
-            case .other(_, let fileExtension, _): return "avatar.\(fileExtension)"
+            case let .other(_, fileExtension, _): return "avatar.\(fileExtension)"
             }
         } else {
             switch self {
@@ -61,7 +61,7 @@ extension MediaAttachment {
             case .video: return "header.mp4"
             case .png: return "header.png"
             case .mp3: return "header.mp3"
-            case .other(_, let fileExtension, _): return "header.\(fileExtension)"
+            case let .other(_, fileExtension, _): return "header.\(fileExtension)"
             }
         }
     }
@@ -73,7 +73,7 @@ extension MediaAttachment {
         case .video: return "video/mp4"
         case .png: return "image/png"
         case .mp3: return "audio/mpeg"
-        case .other(_, _, let mimeType): return mimeType
+        case let .other(_, _, mimeType): return mimeType
         }
     }
 

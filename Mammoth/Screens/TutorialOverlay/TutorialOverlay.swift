@@ -9,13 +9,12 @@
 import UIKit
 
 class TutorialOverlay: UIViewController {
-    
-    public enum TutorialOverlayTypes: String, CaseIterable {
+    enum TutorialOverlayTypes: String, CaseIterable {
         case forYou
         case smartList
         case quickFeedSwitcher
         case quickAccountSwitcher
-        
+
         var description: String {
             switch self {
             case .forYou:
@@ -28,7 +27,7 @@ class TutorialOverlay: UIViewController {
                 return NSLocalizedString("tutorial.accountSwitch", comment: "")
             }
         }
-        
+
         var header: UIView? {
             switch self {
             case .quickAccountSwitcher:
@@ -38,19 +37,19 @@ class TutorialOverlay: UIViewController {
                     view.spacing = 6
                     view.isLayoutMarginsRelativeArrangement = true
                     view.layoutMargins = .init(top: 3, left: 0, bottom: 0, right: 0)
-                    ["\u{f2bd}", "\u{f356}", "\u{f2bd}"].map({
+                    ["\u{f2bd}", "\u{f356}", "\u{f2bd}"].map {
                         UIImageView(image: FontAwesome.image(fromChar: $0, size: 16, weight: .bold).withRenderingMode(.alwaysTemplate))
-                    })
-                    .forEach({
+                    }
+                    .forEach {
                         view.addArrangedSubview($0)
-                    })
+                    }
                     return view
                 }()
             default:
                 return nil
             }
         }
-        
+
         var width: CGFloat {
             switch self {
             case .forYou:
@@ -63,7 +62,7 @@ class TutorialOverlay: UIViewController {
                 return 157
             }
         }
-        
+
         var arrowAlignment: ArrowAlignment {
             switch self {
             case .forYou:
@@ -77,18 +76,18 @@ class TutorialOverlay: UIViewController {
             }
         }
     }
-    
+
     private let type: TutorialOverlayTypes
     private let ref: UIView
     private var mask: CALayer?
-    
+
     private let spacing = 10.0
     private var leadingConstraint: NSLayoutConstraint?
-    
+
     private let bubble: TextBubbleView!
     private var refSnapshot: UIView?
     private let onComplete: (() -> Void)?
-    
+
     private let bubbleStack = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -97,7 +96,7 @@ class TutorialOverlay: UIViewController {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     private let bubbleText: UILabel = {
         let label = UILabel()
         label.numberOfLines = 0
@@ -106,33 +105,34 @@ class TutorialOverlay: UIViewController {
         label.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize + 1, weight: .regular)
         return label
     }()
-    
+
     init(type: TutorialOverlayTypes, ref: UIView, onComplete: (() -> Void)? = nil) {
         self.type = type
         self.ref = ref
-        self.bubble = TextBubbleView(alignment: type.arrowAlignment)
+        bubble = TextBubbleView(alignment: type.arrowAlignment)
         self.onComplete = onComplete
         super.init(nibName: nil, bundle: nil)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func loadView() {
-        self.view = TouchDelegatingView()
+        view = TouchDelegatingView()
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.setupUI()
-        
+        setupUI()
+
         if let delegatingView = view as? TouchDelegatingView {
             delegatingView.touchDelegate = presentingViewController?.view
-            delegatingView.ref = self.refSnapshot
+            delegatingView.ref = refSnapshot
             delegatingView.dismissCallback = { [weak self] animated in
                 guard let self else { return }
-                
+
                 if !animated {
                     self.dismiss(animated: false)
                 } else {
@@ -142,7 +142,7 @@ class TutorialOverlay: UIViewController {
                         self.bubble.alpha = 0
                         self.view.backgroundColor = .clear
                     })
-                    
+
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                         self.dismiss(animated: false) { [weak self] in
                             guard let self else { return }
@@ -153,13 +153,13 @@ class TutorialOverlay: UIViewController {
             }
         }
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             let refOrigin = self.ref.convert(CGPoint.zero, to: self.view)
-            
+
             // Update arrow location on orientation change and window resize
             switch self.type.arrowAlignment {
             case .topLeft:
@@ -171,70 +171,67 @@ class TutorialOverlay: UIViewController {
             default:
                 break
             }
-            
+
             // Update ref snapshot location on orientation change and window resize
             self.refSnapshot?.frame = .init(x: refOrigin.x, y: refOrigin.y, width: self.ref.frame.size.width, height: self.ref.frame.size.height)
         }
     }
-    
+
     func setupUI() {
-        self.bubble.translatesAutoresizingMaskIntoConstraints = false
-        self.bubble.alpha = 0
-        self.bubble.transform = .init(translationX: 0, y: 20)
-        
-        let refOrigin = ref.convert(CGPoint.zero, to: self.view)
-        
-        self.bubble.layoutMargins = .init(top: 22, left: 16, bottom: 23, right: 16)
-        self.view.addSubview(self.bubble)
-        
-        if let header = self.type.header {
-            self.bubbleStack.addArrangedSubview(header)
+        bubble.translatesAutoresizingMaskIntoConstraints = false
+        bubble.alpha = 0
+        bubble.transform = .init(translationX: 0, y: 20)
+
+        let refOrigin = ref.convert(CGPoint.zero, to: view)
+
+        bubble.layoutMargins = .init(top: 22, left: 16, bottom: 23, right: 16)
+        view.addSubview(bubble)
+
+        if let header = type.header {
+            bubbleStack.addArrangedSubview(header)
         }
-        
-        self.bubbleText.text = self.type.description
-        self.bubbleStack.addArrangedSubview(self.bubbleText)
-        self.bubble.addSubview(self.bubbleStack)
-        
-        switch self.type.arrowAlignment {
+
+        bubbleText.text = type.description
+        bubbleStack.addArrangedSubview(bubbleText)
+        bubble.addSubview(bubbleStack)
+
+        switch type.arrowAlignment {
         case .topLeft, .bottomLeft:
-            self.leadingConstraint = bubble.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: refOrigin.x - self.bubble.rightArrowOffset - (self.bubble.arrowWidth / 2) + (ref.frame.width / 2))
+            leadingConstraint = bubble.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: refOrigin.x - bubble.rightArrowOffset - (bubble.arrowWidth / 2) + (ref.frame.width / 2))
         case .topCenter, .bottomCenter:
-            self.leadingConstraint = bubble.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: refOrigin.x + (ref.frame.width / 2) - (self.type.width / 2))
+            leadingConstraint = bubble.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: refOrigin.x + (ref.frame.width / 2) - (type.width / 2))
         case .topRight, .bottomRight:
-            self.leadingConstraint = bubble.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: refOrigin.x - self.type.width + 30 + self.bubble.rightArrowOffset)
+            leadingConstraint = bubble.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: refOrigin.x - type.width + 30 + bubble.rightArrowOffset)
         }
-        
-        switch self.type.arrowAlignment {
+
+        switch type.arrowAlignment {
         case .topLeft, .topCenter, .topRight:
-            bubble.topAnchor.constraint(equalTo: self.view.topAnchor, constant: refOrigin.y + ref.frame.size.height - 8).isActive = true
-            break
+            bubble.topAnchor.constraint(equalTo: view.topAnchor, constant: refOrigin.y + ref.frame.size.height - 8).isActive = true
         case .bottomLeft, .bottomCenter, .bottomRight:
-            bubble.bottomAnchor.constraint(equalTo: self.view.topAnchor, constant: refOrigin.y).isActive = true
-            break
+            bubble.bottomAnchor.constraint(equalTo: view.topAnchor, constant: refOrigin.y).isActive = true
         }
-        
-        
+
         NSLayoutConstraint.activate([
             bubble.widthAnchor.constraint(lessThanOrEqualToConstant: 218),
             leadingConstraint!,
-            
+
             bubbleStack.topAnchor.constraint(equalTo: bubble.layoutMarginsGuide.topAnchor),
             bubbleStack.bottomAnchor.constraint(equalTo: bubble.layoutMarginsGuide.bottomAnchor),
             bubbleStack.leadingAnchor.constraint(equalTo: bubble.layoutMarginsGuide.leadingAnchor),
-            bubbleStack.trailingAnchor.constraint(equalTo: bubble.layoutMarginsGuide.trailingAnchor)
+            bubbleStack.trailingAnchor.constraint(equalTo: bubble.layoutMarginsGuide.trailingAnchor),
         ])
-        
-        if let refSnapshot = self.ref.snapshotView(afterScreenUpdates: true) {
-            refSnapshot.frame = .init(x: refOrigin.x, y: refOrigin.y, width: self.ref.frame.size.width, height: self.ref.frame.size.height)
+
+        if let refSnapshot = ref.snapshotView(afterScreenUpdates: true) {
+            refSnapshot.frame = .init(x: refOrigin.x, y: refOrigin.y, width: ref.frame.size.width, height: ref.frame.size.height)
             self.refSnapshot = refSnapshot
-            self.view.addSubview(refSnapshot)
-            
+            view.addSubview(refSnapshot)
+
             UIView.animate(withDuration: 1, delay: 0.0) { [weak self] in
                 guard let self else { return }
                 self.view.backgroundColor = UIColor.custom.background.withAlphaComponent(0.75)
             }
         }
-        
+
         if #available(iOS 17.0, *) {
             UIView.animate(springDuration: 0.5, bounce: 0.4, initialSpringVelocity: 0.9, delay: 0.3, animations: { [weak self] in
                 guard let self else { return }
@@ -259,55 +256,55 @@ class TutorialOverlay: UIViewController {
 }
 
 class TouchDelegatingView: UIView {
-    weak var touchDelegate: UIView? = nil
-    weak var ref: UIView? = nil
+    weak var touchDelegate: UIView?
+    weak var ref: UIView?
     var isAnimating: Bool = true
-    var dismissCallback: (_ animated: Bool) -> Void = {animated in }
+    var dismissCallback: (_ animated: Bool) -> Void = { _ in }
 
     override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        guard ![.hover].contains(event?.type) else { return nil}
+        guard ![.hover].contains(event?.type) else { return nil }
         guard !isAnimating else { return nil }
-        
+
         guard let view = super.hitTest(point, with: event) else {
             return touchDelegate?.hitTest(point, with: event)
         }
-        
+
         guard view === self, let point = touchDelegate?.convert(point, from: self) else {
             if view === ref {
                 dismissCallback(false)
                 return touchDelegate?.hitTest(point, with: event)
             }
-            
+
             dismissCallback(true)
             return view
         }
-        
+
         dismissCallback(true)
-        
+
         return touchDelegate?.hitTest(point, with: event)
     }
 }
 
 extension TutorialOverlay {
-    static public func shouldShowOverlay(forType type: TutorialOverlayTypes) -> Bool {
+    static func shouldShowOverlay(forType type: TutorialOverlayTypes) -> Bool {
         return !(UserDefaults.standard.value(forKey: type.rawValue) as? Bool ?? false)
     }
-    
-    static private func didSeeOverlay(forType type: TutorialOverlayTypes) {
+
+    private static func didSeeOverlay(forType type: TutorialOverlayTypes) {
         UserDefaults.standard.setValue(true, forKey: type.rawValue)
     }
-    
-    static public func resetTutorials() {
-        TutorialOverlayTypes.allCases.forEach({
-            UserDefaults.standard.removeObject(forKey: $0.rawValue)
-        })
+
+    static func resetTutorials() {
+        for item in TutorialOverlayTypes.allCases {
+            UserDefaults.standard.removeObject(forKey: item.rawValue)
+        }
     }
-    
-    public override var isBeingPresented: Bool {
+
+    override var isBeingPresented: Bool {
         return (getTopMostViewController() as? TutorialOverlay) != nil
     }
-    
-    static public func showOverlay(type: TutorialOverlayTypes, onRef ref: UIView, onComplete: (() -> Void)? = nil) {
+
+    static func showOverlay(type: TutorialOverlayTypes, onRef ref: UIView, onComplete: (() -> Void)? = nil) {
         if let topVC = getTopMostViewController() {
             let overlay = TutorialOverlay(type: type, ref: ref, onComplete: onComplete)
             if !overlay.isBeingPresented {
@@ -317,8 +314,8 @@ extension TutorialOverlay {
                         triggerHapticImpact(style: .heavy)
                     }
                 }
-                
-                self.didSeeOverlay(forType: type)
+
+                didSeeOverlay(forType: type)
             }
         }
     }

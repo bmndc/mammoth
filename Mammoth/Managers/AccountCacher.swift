@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-struct AccountCacher {
+enum AccountCacher {
     static func clearCache(forAccount account: Account) {
         // Documents folder
         [
@@ -17,27 +17,26 @@ struct AccountCacher {
             "allInstances.json",
             "votedOnPolls.json",
             "blockedUsers.json",
-            "drafts/\(account.id)"
+            "drafts/\(account.id)",
         ].forEach { path in
             do {
                 try Disk.remove(path, from: .documents)
-            } catch let error {
+            } catch {
                 log.error("error clearing cache in Documents at path \(path) - \(error)")
             }
         }
-        
+
         // Cache folder
         [
-            account.fullAcct
+            account.fullAcct,
         ].forEach { path in
             do {
                 try Disk.remove(path, from: .caches)
-            } catch let error {
+            } catch {
                 log.error("error clearing cache in Library/Caches at path \(path) - \(error)")
             }
         }
-        
+
         GlobalStruct.drafts = []
     }
-    
 }

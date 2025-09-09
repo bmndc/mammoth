@@ -11,8 +11,7 @@ import UIKit
 
 // Hosts a QuotePostView that shows either a muted or fully formed quote post.
 class ComposeQuotePostCell: UITableViewCell {
-    
-    var quotePostURL: URL? = nil
+    var quotePostURL: URL?
     let quotePostHostView = QuotePostHostView()
     let quoteBackgroundView = {
         let view = UIView()
@@ -26,42 +25,42 @@ class ComposeQuotePostCell: UITableViewCell {
         view.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner, .layerMinXMinYCorner, .layerMaxXMinYCorner]
         return view
     }()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
 
         // background is inset a bit from self
-        self.contentView.addSubview(quoteBackgroundView)
-        
+        contentView.addSubview(quoteBackgroundView)
+
         // quotePostHostView is lined up with the background
-        self.quotePostHostView.translatesAutoresizingMaskIntoConstraints = false
-        self.quoteBackgroundView.addSubview(quotePostHostView)
-        
+        quotePostHostView.translatesAutoresizingMaskIntoConstraints = false
+        quoteBackgroundView.addSubview(quotePostHostView)
+
         NSLayoutConstraint.activate([
-            self.quoteBackgroundView.leadingAnchor.constraint(equalTo: self.contentView.leadingAnchor, constant: 85),
-            self.quoteBackgroundView.trailingAnchor.constraint(equalTo: self.contentView.trailingAnchor, constant: -15),
-            self.quoteBackgroundView.topAnchor.constraint(equalTo: self.contentView.topAnchor, constant: 10),
-            self.quoteBackgroundView.bottomAnchor.constraint(equalTo: self.contentView.bottomAnchor),
-            
-            self.quotePostHostView.leadingAnchor.constraint(equalTo: self.quoteBackgroundView.leadingAnchor, constant: 12),
-            self.quotePostHostView.trailingAnchor.constraint(equalTo: self.quoteBackgroundView.trailingAnchor, constant: -12),
-            self.quotePostHostView.topAnchor.constraint(equalTo: self.quoteBackgroundView.topAnchor, constant: 8),
-            self.quotePostHostView.bottomAnchor.constraint(equalTo: self.quoteBackgroundView.bottomAnchor, constant: -10),
+            quoteBackgroundView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 85),
+            quoteBackgroundView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -15),
+            quoteBackgroundView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 10),
+            quoteBackgroundView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor),
+
+            quotePostHostView.leadingAnchor.constraint(equalTo: quoteBackgroundView.leadingAnchor, constant: 12),
+            quotePostHostView.trailingAnchor.constraint(equalTo: quoteBackgroundView.trailingAnchor, constant: -12),
+            quotePostHostView.topAnchor.constraint(equalTo: quoteBackgroundView.topAnchor, constant: 8),
+            quotePostHostView.bottomAnchor.constraint(equalTo: quoteBackgroundView.bottomAnchor, constant: -10),
         ])
 
-        self.isUserInteractionEnabled = false
-        self.backgroundColor = UIColor.clear
+        isUserInteractionEnabled = false
+        backgroundColor = UIColor.clear
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-        
-    public func updateForQuotePost(_ qpURL: URL?) {
+
+    func updateForQuotePost(_ qpURL: URL?) {
         if qpURL != quotePostURL {
             quotePostURL = qpURL
-            self.quotePostHostView.updateForQuotePost(qpURL)
+            quotePostHostView.updateForQuotePost(qpURL)
         }
     }
-    
 }

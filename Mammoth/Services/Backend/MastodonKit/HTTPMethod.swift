@@ -29,27 +29,27 @@ extension HTTPMethod {
 
     var queryItems: [URLQueryItem]? {
         switch self {
-        case .get(let payload): return payload.items
+        case let .get(payload): return payload.items
         default: return nil
         }
     }
 
     var httpBody: Data? {
         switch self {
-        case .post(let payload): return payload.data
-        case .put(let payload): return payload.data
-        case .patch(let payload): return payload.data
-        case .delete(let payload): return payload.data
+        case let .post(payload): return payload.data
+        case let .put(payload): return payload.data
+        case let .patch(payload): return payload.data
+        case let .delete(payload): return payload.data
         default: return nil
         }
     }
 
     var contentType: String? {
         switch self {
-        case .post(let payload): return payload.type
-        case .put(let payload): return payload.type
-        case .patch(let payload): return payload.type
-        case .delete(let payload): return payload.type
+        case let .post(payload): return payload.type
+        case let .put(payload): return payload.type
+        case let .patch(payload): return payload.type
+        case let .delete(payload): return payload.type
         default: return nil
         }
     }

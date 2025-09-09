@@ -13,7 +13,6 @@ protocol SearchHostDelegate: AnyObject {
 }
 
 class SearchHostViewModel {
-    
     enum ViewTypes: Int, CaseIterable {
         case suggestions
         case users
@@ -26,13 +25,13 @@ class SearchHostViewModel {
     weak var delegate: SearchHostDelegate?
     private var viewType: ViewTypes = .suggestions {
         didSet {
-            self.delegate?.didUpdateViewType(with: viewType)
+            delegate?.didUpdateViewType(with: viewType)
         }
     }
 
     init() {
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.didSwitchAccount),
+                                               selector: #selector(didSwitchAccount),
                                                name: didSwitchCurrentAccountNotification,
                                                object: nil)
     }
@@ -43,6 +42,7 @@ class SearchHostViewModel {
 }
 
 // MARK: - Notification handlers
+
 private extension SearchHostViewModel {
     @objc func didSwitchAccount() {
         Task {
@@ -53,31 +53,30 @@ private extension SearchHostViewModel {
 }
 
 extension SearchHostViewModel {
-    
-    public func userInitiatedSearch() {
+    func userInitiatedSearch() {
         // If showing suggestions, and the user taps 'search',
         // switch to showing Users
-        if self.viewType == .suggestions {
-            self.viewType = .users
+        if viewType == .suggestions {
+            viewType = .users
         }
     }
-    
-    public func userClearedTextField() {
+
+    func userClearedTextField() {
         // Switch to showing Suggestions when the user clears the
         // search field / taps 'X'
-        self.viewType = .suggestions
+        viewType = .suggestions
     }
 
-    public func userCancelledSearch() {
+    func userCancelledSearch() {
         // Switch to showing Suggestions when the user taps 'cancel'
-        self.viewType = .suggestions
+        viewType = .suggestions
     }
-    
-    public func switchToViewAtIndex(_ index: Int) {
-        self.viewType = ViewTypes.allCases[index]
+
+    func switchToViewAtIndex(_ index: Int) {
+        viewType = ViewTypes.allCases[index]
     }
-    
-    public func shouldShowCarousel() -> Bool {
-        return self.viewType != .suggestions
+
+    func shouldShowCarousel() -> Bool {
+        return viewType != .suggestions
     }
 }

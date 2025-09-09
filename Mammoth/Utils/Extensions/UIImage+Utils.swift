@@ -1,5 +1,5 @@
 //
-//  UIImage+ColorTile.swift
+//  UIImage+Utils.swift
 //  Mammoth
 //
 //  Created by Riley Howard on 5/25/23.
@@ -13,13 +13,13 @@ extension UIImage {
     static func render(size: CGSize, _ draw: () -> Void) -> UIImage? {
         UIGraphicsBeginImageContext(size)
         defer { UIGraphicsEndImageContext() }
-        
+
         draw()
-        
+
         return UIGraphicsGetImageFromCurrentImageContext()?
             .withRenderingMode(.alwaysTemplate)
     }
-    
+
     static func makeColorTile(size: CGSize, color: UIColor = .white) -> UIImage? {
         return render(size: size) {
             color.setFill()
@@ -32,22 +32,24 @@ extension UIImage {
 extension UIImage {
     func imageWithInsets(_ insets: UIEdgeInsets) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(
-            CGSize(width: self.size.width + insets.left + insets.right,
-                   height: self.size.height + insets.top + insets.bottom), false, self.scale)
-        let _ = UIGraphicsGetCurrentContext()
+            CGSize(width: size.width + insets.left + insets.right,
+                   height: size.height + insets.top + insets.bottom), false, scale
+        )
+        _ = UIGraphicsGetCurrentContext()
         let origin = CGPoint(x: insets.left, y: insets.top)
-        self.draw(at: origin)
+        draw(at: origin)
         let imageWithInsets = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return imageWithInsets
     }
-    
+
     func imageWithOffset(_ offset: CGPoint) -> UIImage? {
         UIGraphicsBeginImageContextWithOptions(
-            CGSize(width: self.size.width ,
-                   height: self.size.height), false, self.scale)
-        let _ = UIGraphicsGetCurrentContext()
-        self.draw(at: offset)
+            CGSize(width: size.width,
+                   height: size.height), false, scale
+        )
+        _ = UIGraphicsGetCurrentContext()
+        draw(at: offset)
         let imageWithOffset = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
         return imageWithOffset
@@ -66,15 +68,14 @@ extension UIImage {
                                     byRoundingCorners: .allCorners,
                                     cornerRadii: CGSize(width: radius, height: radius))
             path.close()
-            
 
             let cgContext = rendererContext.cgContext
             cgContext.saveGState()
             path.addClip()
-            
+
             cgContext.setFillColor(UIColor.custom.background.cgColor)
             cgContext.fill(rect)
-            
+
             draw(in: rect)
             cgContext.restoreGState()
         }

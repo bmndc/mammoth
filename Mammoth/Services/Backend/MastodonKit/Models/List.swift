@@ -17,21 +17,20 @@ public class List: Codable {
     public let repliesPolicy: ListRepliesPolicy?
     /// Whether members of this list need to get removed from the “Home” feed
     public let exclusive: Bool?
-    
+
     public init(id: String, title: String, repliesPolicy: ListRepliesPolicy = .none, exclusive: Bool = false) {
         self.id = id
         self.title = title
         self.repliesPolicy = repliesPolicy
         self.exclusive = exclusive
     }
-    
-    public init() {
-        self.id = ""
-        self.title = ""
-        self.repliesPolicy = .none
-        self.exclusive = false
-    }
 
+    public init() {
+        id = ""
+        title = ""
+        repliesPolicy = .none
+        exclusive = false
+    }
 }
 
 public enum ListRepliesPolicy: Codable {

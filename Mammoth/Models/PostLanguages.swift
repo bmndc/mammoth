@@ -9,25 +9,25 @@
 import Foundation
 
 class PostLanguages {
-    
     static var shared = PostLanguages()
-    
-    private (set) var postLanguage: String {
+
+    private(set) var postLanguage: String {
         didSet {
             UserDefaults.standard.setValue(postLanguage, forKey: "postLanguage")
         }
     }
-    private (set) var postLanguages: [String] {
+
+    private(set) var postLanguages: [String] {
         didSet {
             UserDefaults.standard.setValue(postLanguages, forKey: "postLanguages")
         }
     }
-    
+
     init() {
         postLanguage = UserDefaults.standard.value(forKey: "postLanguage") as? String ??
-                       (AccountsManager.shared.currentAccount as? MastodonAcctData)?.defaultPostingLanguage ??
-                       Locale.current.languageCode ??
-                       "en"
+            (AccountsManager.shared.currentAccount as? MastodonAcctData)?.defaultPostingLanguage ??
+            Locale.current.languageCode ??
+            "en"
         postLanguages = UserDefaults.standard.value(forKey: "postLanguages") as? [String] ?? []
         if postLanguages.count == 0 {
             postLanguages = [postLanguage]
@@ -36,9 +36,9 @@ class PostLanguages {
             postLanguages.append(postLanguage)
         }
     }
-        
+
     // Will add if needed, and also move the language to the start of the array
-    public func selectPostLanguage(_ language: String) {
+    func selectPostLanguage(_ language: String) {
         // First, add to the list if necessary
         if !postLanguages.contains(language) {
             postLanguages.append(language)
@@ -47,13 +47,13 @@ class PostLanguages {
                 postLanguages.removeFirst()
             }
         }
-        
+
         // Then select it
         postLanguage = language
     }
-    
+
     // Will remove the language, unless it is the last one
-    public func removePostLanguage(_ language: String) {
+    func removePostLanguage(_ language: String) {
         if postLanguages.count > 1 {
             if let index = postLanguages.firstIndex(of: language) {
                 postLanguages.remove(at: index)
@@ -63,6 +63,4 @@ class PostLanguages {
             postLanguage = postLanguages[0]
         }
     }
-    
 }
-

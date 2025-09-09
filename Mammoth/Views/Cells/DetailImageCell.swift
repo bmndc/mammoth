@@ -10,35 +10,35 @@ import Foundation
 import UIKit
 
 class DetailImageCell: UITableViewCell {
-    
     var d = DetailImageView()
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.d.prepareForReuse()
+        d.prepareForReuse()
     }
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.initialSetup()
+        initialSetup()
     }
-    
+
     func initialSetup() {
-        self.contentView.addSubview(self.d)
-        self.d.addFillConstraints(with: self.contentView)
-        
-        self.separatorInset = .zero
+        contentView.addSubview(d)
+        d.addFillConstraints(with: contentView)
+
+        separatorInset = .zero
         let bgColorView = UIView()
         bgColorView.backgroundColor = .clear
-        self.selectedBackgroundView = bgColorView
-        self.backgroundColor = .custom.quoteTint
+        selectedBackgroundView = bgColorView
+        backgroundColor = .custom.quoteTint
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
-    public static func willDisplayContentForStat(_ stat: Status?) -> Bool {
+
+    static func willDisplayContentForStat(_ stat: Status?) -> Bool {
         return DetailImageView.willDisplayContentForStat(stat)
     }
 }

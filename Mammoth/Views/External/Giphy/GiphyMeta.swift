@@ -9,18 +9,13 @@
 import Foundation
 
 public struct GiphyMeta: Mappable {
-    
     public fileprivate(set) var status: Int = 200
     public fileprivate(set) var message: String?
-    
-    public init?(map: Map)
-    {
-        
-    }
-    
-    mutating public func mapping(map: Map) {
-        
-        status   <- map["status"]
-        message  <- map["msg"]
+
+    public init?(map _: Map) {}
+
+    public mutating func mapping(map: Map) {
+        status <- map["status"]
+        message <- map["msg"]
     }
 }

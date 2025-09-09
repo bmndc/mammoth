@@ -16,16 +16,16 @@ extension Decodable {
             return try decoder.decode(Self.self, from: data)
         } catch let error as DecodingError {
             switch error {
-            case .dataCorrupted(let context):
+            case let .dataCorrupted(context):
                 log.error("Decoding JSON - corrupted")
                 log.error("context: \(context.debugDescription)")
-            case .keyNotFound(let key, let context):
+            case let .keyNotFound(key, context):
                 log.error("Decoding JSON - key not found: '\(key)'")
                 log.error("context: \(context.debugDescription)")
-            case .valueNotFound(let value, let context):
+            case let .valueNotFound(value, context):
                 log.error("Decoding JSON - value not found: '\(value)'")
                 log.error("context: \(context.debugDescription)")
-            case .typeMismatch(let type, let context):
+            case let .typeMismatch(type, context):
                 log.error("Decoding JSON - type mismatch: '\(type)'")
                 log.error("context: \(context.debugDescription)")
             @unknown default:

@@ -10,34 +10,32 @@ import Foundation
 import UIKit
 
 class ComposerSettingsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIColorPickerViewControllerDelegate {
-    
     var tableView = UITableView()
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        self.tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
-        
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -46,7 +44,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
                 UIColor.custom.mainTextColor = .secondaryLabel
             }
             self.tableView.reloadData()
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -66,17 +64,17 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
             }
         }
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         NotificationCenter.default.post(name: Notification.Name(rawValue: "updateTabBar"), object: nil)
     }
-    
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         NotificationCenter.default.post(name: Notification.Name(rawValue: "updateTabBar"), object: nil)
     }
-    
+
     @objc func reloadBars() {
         DispatchQueue.main.async {
             if GlobalStruct.hideNavBars2 {
@@ -86,62 +84,62 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
             }
         }
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .custom.backgroundTint
-        self.navigationItem.title = NSLocalizedString("settings.composer", comment: "")
-        
+        view.backgroundColor = .custom.backgroundTint
+        navigationItem.title = NSLocalizedString("settings.composer", comment: "")
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
-        
+
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
+
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
         if #available(iOS 15.0, *) {
             self.tableView.allowsFocus = true
         }
-        self.tableView = UITableView(frame: .zero, style: .insetGrouped)
-        self.tableView.register(SelectionCell.self, forCellReuseIdentifier: "SelectionCell2")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell2")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell3")
-        self.tableView.register(SelectionCell.self, forCellReuseIdentifier: "SelectionCell3")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCellS")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCellU")
-        self.tableView.alpha = 1
-        self.tableView.delegate = self
-        self.tableView.dataSource = self
-        self.tableView.backgroundColor = UIColor.clear
-        self.tableView.layer.masksToBounds = true
-        self.tableView.estimatedRowHeight = 89
-        self.tableView.rowHeight = UITableView.automaticDimension
-        self.view.addSubview(self.tableView)
+        tableView = UITableView(frame: .zero, style: .insetGrouped)
+        tableView.register(SelectionCell.self, forCellReuseIdentifier: "SelectionCell2")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell2")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell3")
+        tableView.register(SelectionCell.self, forCellReuseIdentifier: "SelectionCell3")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCellS")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCellU")
+        tableView.alpha = 1
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.backgroundColor = UIColor.clear
+        tableView.layer.masksToBounds = true
+        tableView.estimatedRowHeight = 89
+        tableView.rowHeight = UITableView.automaticDimension
+        view.addSubview(tableView)
     }
-    
+
     @objc func dismissTap() {
         triggerHapticImpact(style: .light)
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    func numberOfSections(in _: UITableView) -> Int {
         2
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0 {
             return 1
         } else if section == 1 {
@@ -149,7 +147,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
         }
         return 0
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell2", for: indexPath)
@@ -169,7 +167,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
             switchView.onTintColor = .custom.gold
             switchView.tintColor = .custom.baseTint
             switchView.tag = indexPath.row
-            switchView.addTarget(self, action: #selector(self.switchAltText(_:)), for: .valueChanged)
+            switchView.addTarget(self, action: #selector(switchAltText(_:)), for: .valueChanged)
             cell.accessoryView = switchView
             cell.selectionStyle = .none
             let bgColorView = UIView()
@@ -199,7 +197,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
                 switchView.onTintColor = .custom.gold
                 switchView.tintColor = .custom.baseTint
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchThreaderMode(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchThreaderMode(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 let bgColorView = UIView()
@@ -231,7 +229,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
                     cell.imageView?.image = settingsSystemImage("5.circle")
                 }
                 var gestureActions: [UIAction] = []
-                let op1 = UIAction(title: "None", image: settingsSystemImage("1.circle"), identifier: nil) { action in
+                let op1 = UIAction(title: "None", image: settingsSystemImage("1.circle"), identifier: nil) { _ in
                     GlobalStruct.threaderStyle = 0
                     UserDefaults.standard.set(GlobalStruct.threaderStyle, forKey: "threaderStyle")
                     self.tableView.reloadData()
@@ -240,7 +238,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
                     op1.state = .on
                 }
                 gestureActions.append(op1)
-                let op2 = UIAction(title: "...", image: settingsSystemImage("2.circle"), identifier: nil) { action in
+                let op2 = UIAction(title: "...", image: settingsSystemImage("2.circle"), identifier: nil) { _ in
                     GlobalStruct.threaderStyle = 1
                     UserDefaults.standard.set(GlobalStruct.threaderStyle, forKey: "threaderStyle")
                     self.tableView.reloadData()
@@ -249,7 +247,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
                     op2.state = .on
                 }
                 gestureActions.append(op2)
-                let op3 = UIAction(title: "(x/n)", image: settingsSystemImage("3.circle"), identifier: nil) { action in
+                let op3 = UIAction(title: "(x/n)", image: settingsSystemImage("3.circle"), identifier: nil) { _ in
                     GlobalStruct.threaderStyle = 2
                     UserDefaults.standard.set(GlobalStruct.threaderStyle, forKey: "threaderStyle")
                     self.tableView.reloadData()
@@ -258,7 +256,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
                     op3.state = .on
                 }
                 gestureActions.append(op3)
-                let op4 = UIAction(title: "🧵", image: settingsSystemImage("4.circle"), identifier: nil) { action in
+                let op4 = UIAction(title: "🧵", image: settingsSystemImage("4.circle"), identifier: nil) { _ in
                     GlobalStruct.threaderStyle = 3
                     UserDefaults.standard.set(GlobalStruct.threaderStyle, forKey: "threaderStyle")
                     self.tableView.reloadData()
@@ -267,7 +265,7 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
                     op4.state = .on
                 }
                 gestureActions.append(op4)
-                let op5 = UIAction(title: "🪡", image: settingsSystemImage("5.circle"), identifier: nil) { action in
+                let op5 = UIAction(title: "🪡", image: settingsSystemImage("5.circle"), identifier: nil) { _ in
                     GlobalStruct.threaderStyle = 4
                     UserDefaults.standard.set(GlobalStruct.threaderStyle, forKey: "threaderStyle")
                     self.tableView.reloadData()
@@ -297,47 +295,44 @@ class ComposerSettingsViewController: UIViewController, UITableViewDataSource, U
         }
         return UITableViewCell()
     }
-    
+
     @objc func switchAltText(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.altText = true
             UserDefaults.standard.set(true, forKey: "altText")
-            self.tableView.reloadData()
+            tableView.reloadData()
         } else {
             GlobalStruct.altText = false
             UserDefaults.standard.set(false, forKey: "altText")
-            self.tableView.reloadData()
+            tableView.reloadData()
         }
     }
-    
+
     @objc func switchThreaderMode(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.threaderMode = true
             UserDefaults.standard.set(true, forKey: "threaderMode")
-            self.tableView.reloadData()
+            tableView.reloadData()
         } else {
             GlobalStruct.threaderMode = false
             UserDefaults.standard.set(false, forKey: "threaderMode")
-            self.tableView.reloadData()
+            tableView.reloadData()
         }
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
     }
-    
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+
+    func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 {
             return NSLocalizedString("settings.composer.requireDescriptions.footer", comment: "")
         } else {
             return nil
         }
     }
-    
-    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
         return UITableView.automaticDimension
     }
-    
 }
-
-

@@ -11,36 +11,37 @@ import UIKit
 public let shouldChangeRootViewController = Notification.Name("shouldChangeRootViewController")
 
 class AppCoordinator {
-
     // MARK: - Properties
+
     /// Remember to change the UIViewController instance to your Splash Screen
-    private(set) var rootViewController: UIViewController = UIViewController() {
+    private(set) var rootViewController: UIViewController = .init() {
         didSet {
-            self.window.rootViewController = self.rootViewController
+            window.rootViewController = rootViewController
         }
     }
-    
+
     /// Window to manage
     let window: UIWindow
-    
+
     // MARK: - Init
-    public init(window: UIWindow) {
+
+    init(window: UIWindow) {
         self.window = window
         self.window.rootViewController = rootViewController
         self.window.makeKeyAndVisible()
 
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.start),
+                                               selector: #selector(start),
                                                name: shouldChangeRootViewController,
                                                object: nil)
     }
 
     // MARK: - Functions
-        
+
     private func setCurrentViewController(_ viewController: UIViewController) {
         rootViewController = viewController
     }
-    
+
     /// Starts the coordinator
     @objc func start() {
         log.debug(#function)
@@ -51,7 +52,7 @@ class AppCoordinator {
             // Check if we need to show onboarding (for 1.x accounts)
             let showOnboarding = AccountsManager.shared.shouldShowOnboardingForCurrentAccount()
             log.debug("showOnboarding: \(showOnboarding)")
-            if self.window.traitCollection.horizontalSizeClass == .compact || UIDevice.current.userInterfaceIdiom == .phone {
+            if window.traitCollection.horizontalSizeClass == .compact || UIDevice.current.userInterfaceIdiom == .phone {
                 // iPhone
                 GlobalStruct.isCompact = true
                 if showOnboarding {
@@ -66,7 +67,7 @@ class AppCoordinator {
                     let rootController = ColumnViewController()
                     ColumnViewController.shared = rootController
                     setCurrentViewController(rootController)
-                    
+
                     showOnboardingScreens(isOverlay: true)
                 } else {
                     let rootController = ColumnViewController()
@@ -76,7 +77,7 @@ class AppCoordinator {
             }
         }
     }
-    
+
     private func showOnboardingScreens(isOverlay: Bool = false) {
         log.debug("showOnboardingScreens")
         // Give these a chance to preload

@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Clients {
+public enum Clients {
     /// Registers an application.
     ///
     /// - Parameters:
@@ -20,12 +20,13 @@ public struct Clients {
     public static func register(clientName: String,
                                 redirectURI: String = "urn:ietf:wg:oauth:2.0:oob",
                                 scopes: [AccessScope],
-                                website: String? = nil) -> Request<ClientApplication> {
+                                website: String? = nil) -> Request<ClientApplication>
+    {
         let parameters = [
             Parameter(name: "client_name", value: clientName),
             Parameter(name: "redirect_uris", value: redirectURI),
             Parameter(name: "website", value: website),
-            Parameter(name: "scopes", value: scopes.map(toString).joined(separator: " "))
+            Parameter(name: "scopes", value: scopes.map(toString).joined(separator: " ")),
         ]
 
         let method = HTTPMethod.post(.parameters(parameters))

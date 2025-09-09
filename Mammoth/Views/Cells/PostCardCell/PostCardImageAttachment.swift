@@ -6,21 +6,21 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import UIKit
 import AVFoundation
 import AVKit
+import Foundation
+import UIKit
 
 class PostCardImageAttachment: UIView, AVPlayerViewControllerDelegate {
-    
     static let largeImageHeight = 220.0
     // largeImageWidth determined by self.view.bounds.width
     static let gapBetweenLargeImages = 20.0
 
     // Keep a cache of the current image index
-    static var URLToCurrentIndexCache: [String:Int] = [:]
-    
+    static var URLToCurrentIndexCache: [String: Int] = [:]
+
     // MARK: - Properties
+
     private var cellHeightConstraint: NSLayoutConstraint?
     private var standardLayout: UICollectionViewFlowLayout = {
         let layout = UICollectionViewFlowLayout()
@@ -30,13 +30,14 @@ class PostCardImageAttachment: UIView, AVPlayerViewControllerDelegate {
         layout.itemSize = CGSize(width: 1.0, height: largeImageHeight)
         return layout
     }()
+
     private var imageCollectionView: UICollectionView = {
         var imageCollectionView: UICollectionView
         var placeholderLayout = UICollectionViewLayout()
         if UIApplication.shared.preferredApplicationWindow?.traitCollection.horizontalSizeClass != .compact {
             imageCollectionView = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(GlobalStruct.padColWidth), height: largeImageHeight), collectionViewLayout: placeholderLayout)
         } else {
-            imageCollectionView = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: 50.0 /*CGFloat(UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) */, height: largeImageHeight), collectionViewLayout: placeholderLayout)
+            imageCollectionView = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: 50.0 /* CGFloat(UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) */, height: largeImageHeight), collectionViewLayout: placeholderLayout)
         }
         imageCollectionView.translatesAutoresizingMaskIntoConstraints = false
         imageCollectionView.showsHorizontalScrollIndicator = false
@@ -49,7 +50,7 @@ class PostCardImageAttachment: UIView, AVPlayerViewControllerDelegate {
         imageCollectionView.layer.masksToBounds = false
         return imageCollectionView
     }()
-    
+
     private var countButton: UIButton = {
         let countButton = UIButton()
         countButton.titleLabel?.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize + GlobalStruct.customTextSize, weight: .bold)
@@ -61,16 +62,16 @@ class PostCardImageAttachment: UIView, AVPlayerViewControllerDelegate {
         countButton.layer.cornerCurve = .continuous
         countButton.layer.cornerRadius = 7
         countButton.clipsToBounds = true
-        
+
         let bg = BlurredBackground(dimmed: false)
         countButton.insertSubview(bg, belowSubview: countButton.titleLabel!)
         bg.pinEdges()
-        
+
         countButton.clipsToBounds = true
-        
+
         return countButton
     }()
-    
+
     // Data from the postCard
     var mediaAttachments: [Attachment] = []
     var isSensitive = false
@@ -78,15 +79,16 @@ class PostCardImageAttachment: UIView, AVPlayerViewControllerDelegate {
     var statusURI: String = ""
     var currentImageIndex: Int = 0
     var configuringCell = false
-    
+
     var hasRoundedCorners = true
-    
+
     override init(frame: CGRect) {
-       super.init(frame: frame)
-       self.setupUI()
-   }
-    
-    required init?(coder: NSCoder) {
+        super.init(frame: frame)
+        setupUI()
+    }
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 
@@ -98,21 +100,21 @@ class PostCardImageAttachment: UIView, AVPlayerViewControllerDelegate {
         standardLayout.itemSize = CGSize(width: imageCollectionView.bounds.width, height: PostCardImageAttachment.largeImageHeight)
         imageCollectionView.collectionViewLayout = standardLayout
     }
-    
 }
 
 // MARK: - Setup UI
+
 private extension PostCardImageAttachment {
     func setupUI() {
-        self.isOpaque = true
-        self.backgroundColor = .custom.background
-        self.addSubview(imageCollectionView)
+        isOpaque = true
+        backgroundColor = .custom.background
+        addSubview(imageCollectionView)
         imageCollectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            imageCollectionView.topAnchor.constraint(equalTo: self.topAnchor, constant: 4),
-            imageCollectionView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            imageCollectionView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: -PostCardImageAttachment.gapBetweenLargeImages),
-            imageCollectionView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            imageCollectionView.topAnchor.constraint(equalTo: topAnchor, constant: 4),
+            imageCollectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            imageCollectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: -PostCardImageAttachment.gapBetweenLargeImages),
+            imageCollectionView.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
 
         let height = PostCardImageAttachment.largeImageHeight
@@ -121,40 +123,40 @@ private extension PostCardImageAttachment {
         cellHeightConstraint?.isActive = true
         imageCollectionView.delegate = self
         imageCollectionView.dataSource = self
-        
-        self.addSubview(countButton)
+
+        addSubview(countButton)
         countButton.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            countButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 8),
-            countButton.topAnchor.constraint(equalTo: self.topAnchor, constant: 10)
+            countButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 8),
+            countButton.topAnchor.constraint(equalTo: topAnchor, constant: 10),
         ])
     }
-    
 }
 
 // MARK: - Configuration
+
 extension PostCardImageAttachment {
     func configure(postCard: PostCardModel, withRoundedCorners: Bool = true) {
-        self.hasRoundedCorners = withRoundedCorners
-        
+        hasRoundedCorners = withRoundedCorners
+
         let status: Status?
-        if case .mastodon(let s) = postCard.data {
+        if case let .mastodon(s) = postCard.data {
             status = s
         } else {
             status = nil
         }
-        
+
         configuringCell = true
         // Collect relevant info from the postCard
         isSensitive = status?.reblog?.sensitive ?? status?.sensitive ?? false
         mediaAttachments = postCard.mediaAttachments
-        
+
         collectionCellModels = []
         for attachment in mediaAttachments {
             if attachment.previewURL != nil || attachment.type == .audio {
                 let usesMediaPlayer = attachment.type == .video ||
-                                      attachment.type == .gifv ||
-                                      attachment.type == .audio
+                    attachment.type == .gifv ||
+                    attachment.type == .audio
                 // For every image, assure some alt text, even if a placeholder
                 let desc = attachment.description ?? ""
                 let model = PostCardImageCollectionCellModel(altText: desc, mediaAttachment: attachment, isSensitive: isSensitive, usesMediaPlayer: usesMediaPlayer, postCard: postCard)
@@ -174,7 +176,7 @@ extension PostCardImageAttachment {
         }
         setNeedsLayout()
         imageCollectionView.reloadData()
-        
+
         // Scroll to the relevant image
         imageCollectionView.scrollToItem(at: IndexPath(row: currentImageIndex, section: 0), at: .left, animated: false)
 
@@ -183,27 +185,27 @@ extension PostCardImageAttachment {
 }
 
 extension PostCardImageAttachment: UICollectionViewDataSource {
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+    func collectionView(_: UICollectionView, numberOfItemsInSection _: Int) -> Int {
         return mediaAttachments.count
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "PostCardImageCollectionCell", for: indexPath) as! PostCardImageCollectionCell
-        if !self.collectionCellModels.isEmpty {
-            cell.configure(model: collectionCellModels[indexPath.item], withRoundedCorners: self.hasRoundedCorners)
+        if !collectionCellModels.isEmpty {
+            cell.configure(model: collectionCellModels[indexPath.item], withRoundedCorners: hasRoundedCorners)
             cell.altButton.tag = indexPath.item
-            cell.altButton.addTarget(self, action: #selector(self.altTextTap), for: .touchUpInside)
+            cell.altButton.addTarget(self, action: #selector(altTextTap), for: .touchUpInside)
         }
         return cell
     }
-    
+
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         let model = collectionCellModels[indexPath.item]
-        
+
         if model.usesMediaPlayer {
             // Open fullscreen video player
             let mediaURLString = model.mediaAttachment.url ?? model.mediaAttachment.previewURL!
-            
+
             if let mediaURL = URL(string: mediaURLString) {
                 let player = AVPlayer(url: mediaURL)
                 let vc = CustomVideoPlayer()
@@ -217,18 +219,18 @@ extension PostCardImageAttachment: UICollectionViewDataSource {
             }
         } else {
             // Open fullscreen image preview
-            let images = self.mediaAttachments.map { attachment in
+            let images = mediaAttachments.map { attachment in
                 let photo = SKPhoto.photoWithImageURL(attachment.url ?? attachment.previewURL!)
                 photo.shouldCachePhotoURLImage = true
                 return photo
             }
-            
-            let descriptions = self.mediaAttachments.map { $0.description }
-            
+
+            let descriptions = mediaAttachments.map { $0.description }
+
             if let cell = collectionView.cellForItem(at: indexPath) as? PostCardImageCollectionCell ??
                 collectionView.cellForItem(at: indexPath) as? PostCardImageCollectionCellSmall,
-                let originImage = cell.imageView.image {
-                
+                let originImage = cell.imageView.image
+            {
                 let browser = SKPhotoBrowser(originImage: originImage,
                                              photos: images,
                                              animatedFromView: cell.imageView,
@@ -247,31 +249,26 @@ extension PostCardImageAttachment: UICollectionViewDataSource {
             }
         }
     }
-    
+
     @objc func altTextTap(_ sender: UIButton) {
         triggerHapticImpact(style: .light)
-        let altTextPopup = self.collectionCellModels[sender.tag].altText
+        let altTextPopup = collectionCellModels[sender.tag].altText
         let alert = UIAlertController(title: nil, message: altTextPopup, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.copy", comment: ""), style: .default , handler:{ (UIAlertAction) in
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.copy", comment: ""), style: .default, handler: { _ in
             let pasteboard = UIPasteboard.general
             pasteboard.string = altTextPopup
         }))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
         }))
         if let presenter = alert.popoverPresentationController {
             presenter.sourceView = self
-            presenter.sourceRect = self.bounds
+            presenter.sourceRect = bounds
         }
         getTopMostViewController()?.present(alert, animated: true, completion: nil)
     }
-    
 }
 
-
 extension PostCardImageAttachment: UICollectionViewDelegate {
-    
-    
 //    func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
 //        return false
 //    }
@@ -423,14 +420,13 @@ extension PostCardImageAttachment: UICollectionViewDelegate {
 //    }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let center = CGPoint(x: scrollView.contentOffset.x + (scrollView.frame.width / 2), y: (scrollView.frame.height / 2))
-        if let ip = self.imageCollectionView.indexPathForItem(at: center) {
+        let center = CGPoint(x: scrollView.contentOffset.x + (scrollView.frame.width / 2), y: scrollView.frame.height / 2)
+        if let ip = imageCollectionView.indexPathForItem(at: center) {
             currentImageIndex = ip.row
             countButton.setTitle("\(currentImageIndex + 1)/\(collectionCellModels.count)", for: .normal)
-            if !statusURI.isEmpty && !configuringCell {
+            if !statusURI.isEmpty, !configuringCell {
                 PostCardImageAttachment.URLToCurrentIndexCache[statusURI] = currentImageIndex
             }
         }
     }
-
 }

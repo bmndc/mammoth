@@ -1,28 +1,29 @@
 //
-//  API+Actor.swift
+//  BlueskyAPI+Actor.swift
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
 import Foundation
 
 extension BlueskyAPI {
-    
     struct SearchActorsResponse: Codable {
         var actors: [Model.Actor.ProfileView]
         var cursor: String?
     }
-    
+
     struct SearchActorsTypeaheadResponse: Codable {
         var actors: [Model.Actor.ProfileViewBasic]
     }
-    
+
     func getUserProfile(id: String)
-    async throws -> Model.Actor.ProfileViewDetailed {
+        async throws -> Model.Actor.ProfileViewDetailed
+    {
         try await get(
             "app.bsky.actor.getProfile",
-            queryItems: ["actor": id])
+            queryItems: ["actor": id]
+        )
     }
-    
+
     func searchUsers(
         term: String,
         limit: Int = 50,
@@ -34,9 +35,10 @@ extension BlueskyAPI {
                 "term": term,
                 "limit": limit,
                 "cursor": cursor,
-            ])
+            ]
+        )
     }
-    
+
     func searchUsersTypeahead(
         term: String,
         limit: Int = 50
@@ -46,7 +48,7 @@ extension BlueskyAPI {
             queryItems: [
                 "term": term,
                 "limit": limit,
-            ])
+            ]
+        )
     }
-    
 }

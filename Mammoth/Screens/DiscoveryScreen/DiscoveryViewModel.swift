@@ -9,28 +9,27 @@
 import Foundation
 
 class DiscoveryViewModel {
-    
     enum ScreenPosition {
         case main
         case aux
     }
-    
+
     private enum ViewTypes: Int, CaseIterable {
         case regular
         case typing
         case searchResult
     }
-    
+
     weak var delegate: RequestDelegate?
     let position: ScreenPosition
-    
+
     private var type: ViewTypes = .regular
     private var state: ViewState {
         didSet {
             delegate?.didUpdate(with: state)
         }
     }
-    
+
     private var searchDebouncer: Timer?
     private var searchTask: Task<Void, Never>?
     private var searchQuery: String = "" {
@@ -39,7 +38,7 @@ class DiscoveryViewModel {
                 if let task = searchTask, !task.isCancelled {
                     task.cancel()
                 }
-                self.searchTask = Task { [weak self] in
+                searchTask = Task { [weak self] in
                     guard let self else { return }
                     await self.searchAll(query: self.searchQuery)
                 }
@@ -51,26 +50,26 @@ class DiscoveryViewModel {
     private var suggested: [UserCardModel] = []
 
     init(screenPosition: ScreenPosition = .main) {
-        self.state = .idle
-        self.position = screenPosition
-                
+        state = .idle
+        position = screenPosition
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.didSwitchAccount),
+                                               selector: #selector(didSwitchAccount),
                                                name: didSwitchCurrentAccountNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onUpdateClient),
+                                               selector: #selector(onUpdateClient),
                                                name: NSNotification.Name(rawValue: "updateClient"),
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onStatusUpdate),
+                                               selector: #selector(onStatusUpdate),
                                                name: didChangeFollowStatusNotification,
                                                object: nil)
-                
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.appDidBecomeActive),
+                                               selector: #selector(appDidBecomeActive),
                                                name: appDidBecomeActiveNotification,
                                                object: nil)
         Task { [weak self] in
@@ -85,17 +84,18 @@ class DiscoveryViewModel {
 }
 
 // MARK: - DataSource
+
 extension DiscoveryViewModel {
-    func numberOfItems(forSection section: Int) -> Int {
-        return self.listData.count
+    func numberOfItems(forSection _: Int) -> Int {
+        return listData.count
     }
-    
+
     var numberOfSections: Int {
         return 1
     }
-    
-    func hasHeader(forSection sectionIndex: Int) -> Bool {
-        switch(self.type) {
+
+    func hasHeader(forSection _: Int) -> Bool {
+        switch type {
         case .regular:
             return true
         case .typing:
@@ -104,9 +104,9 @@ extension DiscoveryViewModel {
             return false
         }
     }
-    
+
     func shouldSyncFollowStatus() -> Bool {
-        switch self.type {
+        switch type {
         case .typing:
             return false
         default:
@@ -115,18 +115,18 @@ extension DiscoveryViewModel {
     }
 
     func getInfo(forIndexPath indexPath: IndexPath) -> UserCardModel {
-        switch(self.type) {
+        switch type {
         case .regular:
-            return self.listData[indexPath.row]
+            return listData[indexPath.row]
         case .typing:
-            return self.listData[indexPath.row]
+            return listData[indexPath.row]
         case .searchResult:
-            return self.listData[indexPath.row]
+            return listData[indexPath.row]
         }
     }
-    
-    func getSectionTitle(for sectionIndex: Int) -> String {
-        switch(self.type) {
+
+    func getSectionTitle(for _: Int) -> String {
+        switch type {
         case .regular:
             return NSLocalizedString("discover.recommendedFollows", comment: "")
         case .typing:
@@ -135,25 +135,25 @@ extension DiscoveryViewModel {
             return ""
         }
     }
-    
+
     func updateFollowStatus(atIndexPath indexPath: IndexPath, forceUpdate: Bool = false) {
         // Only update follow state on search results
-        if self.type != .regular || forceUpdate {
+        if type != .regular || forceUpdate {
             // Update the raw data for this account
             if indexPath.section == 0 {
-                if indexPath.row < self.listData.count {
-                    let card = self.listData[indexPath.row]
+                if indexPath.row < listData.count {
+                    let card = listData[indexPath.row]
                     card.syncFollowStatus()
-                    self.listData[indexPath.row] = card
+                    listData[indexPath.row] = card
                 } else {
-                    log.error("Unexpected index \(indexPath.row) beyond card count (\(self.listData.count ))")
+                    log.error("Unexpected index \(indexPath.row) beyond card count (\(listData.count))")
                 }
             }
         }
     }
 
     func updateFollowStatusForAccountName(_ accountName: String!, followStatus: FollowManager.FollowStatus) -> Int? {
-        let accounts = self.listData
+        let accounts = listData
 
         // Find the index of this account
         let cardIndex = accounts.firstIndex(where: { card in
@@ -161,9 +161,9 @@ extension DiscoveryViewModel {
         })
         if let cardIndex {
             // Force the new status upon the card
-            let card = self.listData[cardIndex]
+            let card = listData[cardIndex]
             card.setFollowStatus(followStatus)
-            self.listData[cardIndex] = card
+            listData[cardIndex] = card
             // Return the index to be updated
             return cardIndex
         } else {
@@ -173,105 +173,106 @@ extension DiscoveryViewModel {
 }
 
 // MARK: - Service
+
 extension DiscoveryViewModel {
     func loadRecommendations() async {
-        self.state = .loading
-        
+        state = .loading
+
         // No need to load default content on the iPhone
-        guard self.position == .aux else { return }
-        
+        guard position == .aux else { return }
+
         if let fullAcct = AccountsManager.shared.currentUser()?.fullAcct {
             do {
                 let accounts = try await AccountService.getFollowRecommentations(fullAcct: fullAcct)
 
-                let userCards = accounts.map({ account in
+                let userCards = accounts.map { account in
                     UserCardModel.fromAccount(account: account, instanceName: GlobalHostServer())
-                })
-                
+                }
+
                 UserCardModel.preload(userCards: userCards)
-                
+
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.suggested = userCards
                     self.listData = userCards
                     self.state = .success
                 }
-                
-            } catch let error {
+
+            } catch {
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.state = .error(error)
                 }
             }
         }
-
     }
-    
+
     func search(query: String, fullSearch: Bool = false) {
-        //Debounce search
-        self.searchDebouncer?.invalidate()
-        
+        // Debounce search
+        searchDebouncer?.invalidate()
+
         if fullSearch {
-            self.type = .searchResult
-            self.state = .success // force a table reload
+            type = .searchResult
+            state = .success // force a table reload
         } else {
-            self.type = .typing
-            self.state = .success // force a table reload
+            type = .typing
+            state = .success // force a table reload
         }
-        
+
         if query.isEmpty {
-            self.searchQuery = query
+            searchQuery = query
         } else {
-            searchDebouncer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false, block: { [weak self] (timer) in
+            searchDebouncer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: false, block: { [weak self] _ in
                 guard let self else { return }
                 self.searchQuery = query
             })
         }
     }
-    
+
     func searchAll(query: String) async {
-        self.state = .loading
+        state = .loading
         do {
             let result = try await SearchService.searchAccounts(query: query)
- 
+
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
-                let userCards = result.map({ account in
+                let userCards = result.map { account in
                     UserCardModel.fromAccount(account: account)
-                })
+                }
                 self.listData = userCards
                 self.state = .success
             }
-        } catch let error {
+        } catch {
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 self.state = .error(error)
             }
         }
     }
-    
+
     func cancelSearch() {
-        self.type = .regular
-        self.listData = self.suggested
-        self.searchQuery = ""
+        type = .regular
+        listData = suggested
+        searchQuery = ""
     }
-    
+
     func syncFollowStatus(forIndexPaths indexPaths: [IndexPath]) {
-        indexPaths.forEach({ [weak self] indexPath in
+        indexPaths.forEach { [weak self] indexPath in
             guard let self else { return }
             let userCard = self.getInfo(forIndexPath: indexPath)
             if let account = userCard.account {
                 let newStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: .whenUncertain)
-                if newStatus !=  self.listData[indexPath.row].followStatus {
+                if newStatus != self.listData[indexPath.row].followStatus {
                     self.listData[indexPath.row].followStatus = newStatus
                     self.delegate?.didUpdateCard(at: indexPath)
                 }
             }
-        })
+        }
     }
 }
 
 // MARK: - Notification handlers
+
 private extension DiscoveryViewModel {
     @objc func didSwitchAccount() {
         Task { [weak self] in
@@ -280,7 +281,7 @@ private extension DiscoveryViewModel {
             await self.loadRecommendations()
         }
     }
-    
+
     @objc func onUpdateClient() {
         Task { [weak self] in
             guard let self else { return }
@@ -288,15 +289,15 @@ private extension DiscoveryViewModel {
             await self.loadRecommendations()
         }
     }
-    
+
     @objc func appDidBecomeActive() {
         Task { [weak self] in
             guard let self else { return }
             // Load recommentations when app is active
             await self.loadRecommendations()
         }
-     }
-    
+    }
+
     @objc func onStatusUpdate(notification: Notification) {
         // Only observe the notification if it's tied to the current user.
         if (notification.userInfo!["currentUserFullAcct"] as! String) == AccountsManager.shared.currentUser()?.fullAcct {
@@ -312,5 +313,4 @@ private extension DiscoveryViewModel {
             }
         }
     }
-    
 }

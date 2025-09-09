@@ -1,5 +1,5 @@
 //
-//  FilterToots.swift
+//  FilterPosts.swift
 //  Mammoth
 //
 //  Created by Shihab Mehboob on 03/02/2019.
@@ -8,14 +8,14 @@
 
 import Foundation
 
-public struct FilterPosts {
+public enum FilterPosts {
     /// Fetches a user's filters.
     ///
     /// - Returns: Request for `[Filters]`.
-    public static func all(range: RequestRange = .default) -> Request<[Filters]> {
+    public static func all(range _: RequestRange = .default) -> Request<[Filters]> {
         return Request<[Filters]>(path: "/api/v2/filters", method: .get(.empty))
     }
-    
+
     /// Fetches a filter by id.
     ///
     /// - Parameters:
@@ -24,7 +24,7 @@ public struct FilterPosts {
     public static func singleFilter(id: String) -> Request<Filters> {
         return Request<Filters>(path: "/api/v2/filters/\(id)", method: .get(.empty))
     }
-    
+
     /// Posts a new filter.
     ///
     /// - Parameters:
@@ -41,7 +41,7 @@ public struct FilterPosts {
         let method = HTTPMethod.post(.parameters(parameters))
         return Request<Filters>(path: "/api/v2/filters", method: method)
     }
-    
+
     public static func update(id: String, title: String, context: [String], filterAction: String, expiresAt: Int64? = nil) -> Request<Empty> {
         let parameters = [
             Parameter(name: "title", value: title),
@@ -52,20 +52,20 @@ public struct FilterPosts {
         let method = HTTPMethod.put(.parameters(parameters))
         return Request<Empty>(path: "/api/v2/filters/\(id)", method: method)
     }
-    
+
     /// Delete a filter.
     ///
     /// - Parameter id: The filter id.
     public static func delete(id: String) -> Request<Empty> {
         return Request<Empty>(path: "/api/v2/filters/\(id)", method: .delete(.empty))
     }
-    
+
     public static func addKeyword(id: String, keyword: String) -> Request<FilterKeywords> {
         let parameter = [Parameter(name: "keyword", value: keyword)]
         let method = HTTPMethod.post(.parameters(parameter))
         return Request<FilterKeywords>(path: "/api/v2/filters/\(id)/keywords", method: method)
     }
-    
+
     public static func removeKeyword(id: String) -> Request<Empty> {
         return Request<Empty>(path: "/api/v2/filters/keywords/\(id)", method: .delete(.empty))
     }

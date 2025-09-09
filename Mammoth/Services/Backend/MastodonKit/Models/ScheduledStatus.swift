@@ -17,7 +17,7 @@ public class ScheduledStatus: Codable {
     public let params: StatusPara
     /// An array of attachments.
     public let mediaAttachments: [Attachment]
-    
+
     private enum CodingKeys: String, CodingKey {
         case id
         case scheduledAt = "scheduled_at"
@@ -28,10 +28,9 @@ public class ScheduledStatus: Codable {
 
 extension ScheduledStatus: Equatable {}
 
-public func ==(lhs: ScheduledStatus, rhs: ScheduledStatus) -> Bool {
+public func == (lhs: ScheduledStatus, rhs: ScheduledStatus) -> Bool {
     let areEqual = lhs.id == rhs.id &&
         lhs.id == rhs.id
-    
+
     return areEqual
 }
-

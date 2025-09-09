@@ -8,9 +8,7 @@
 
 import Foundation
 
-
-public struct Channels {
-   
+public enum Channels {
     /// Retrieves all available channels.
     ///
     /// - Returns: Request for `[Channel]`.
@@ -39,5 +37,4 @@ public struct Channels {
         let method = HTTPMethod.post(.parameters(parameters))
         return Request<ForYouAccount>(path: "/api/v3/channels/\(channelID)/unsubscribe", method: method)
     }
-
 }

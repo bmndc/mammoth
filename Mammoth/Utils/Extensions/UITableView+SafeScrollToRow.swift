@@ -11,11 +11,12 @@ import UIKit
 extension UITableView {
     // First verify index exists, then scroll to it.
     func safeScrollToRow(at indexPath: IndexPath, at scrollPosition: UITableView.ScrollPosition, animated: Bool) {
-        if indexPath.section < self.numberOfSections,
-           indexPath.row < self.numberOfRows(inSection: indexPath.section) {
-            self.scrollToRow(at: indexPath, at: scrollPosition, animated: animated)
+        if indexPath.section < numberOfSections,
+           indexPath.row < numberOfRows(inSection: indexPath.section)
+        {
+            scrollToRow(at: indexPath, at: scrollPosition, animated: animated)
         } else {
-            self.setContentOffset(.zero, animated: true)
+            setContentOffset(.zero, animated: true)
             log.error("Tried to scroll to a non-existant indexPath: \(indexPath)")
         }
     }

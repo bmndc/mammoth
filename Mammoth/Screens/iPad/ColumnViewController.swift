@@ -11,144 +11,142 @@ import UIKit
 
 // swiftlint:disable:next type_body_length
 class ColumnViewController: UIViewController {
-    
-    public static var shared = ColumnViewController()
-    
+    static var shared = ColumnViewController()
+
     var doneOnceLayout: Bool = false
     var hasRotated: Bool = false
-    
+
     let firstViewWidth = 87.0
     let auxColumnWidthRatio = (1.0 / 1.61803) // Use the golden ratio
     let verticalMargin = 25.0
     let horizontalGap = 20.0
-    
+
     let newPostButton = NewPostButton()
 
-    private var sidebarNavVC: UINavigationController? = nil
+    private var sidebarNavVC: UINavigationController?
     private var sidebarViewController = SidebarViewController.shared
 
     // The main (left) column
-    public var mainColumnNavVC: UINavigationController? = nil
+    var mainColumnNavVC: UINavigationController?
     private var mainColumnPlaceholderView = ExtendedTouchView()
     // The auxilary (right) column
-    private var auxColumnNavVC: UINavigationController? = nil
+    private var auxColumnNavVC: UINavigationController?
     private var auxColumnPlaceholderView = UIView()
 
     // Constraints to deal with rotation
-    private var auxColumnWidthConstraintGolden: NSLayoutConstraint? = nil
-    private var auxColumnWidthConstraintZero: NSLayoutConstraint? = nil
-    private var auxGapWidthConstraint: NSLayoutConstraint? = nil
+    private var auxColumnWidthConstraintGolden: NSLayoutConstraint?
+    private var auxColumnWidthConstraintZero: NSLayoutConstraint?
+    private var auxGapWidthConstraint: NSLayoutConstraint?
 
     private var mainVCList: [UINavigationController] = []
-    
+
     required init() {
         super.init(nibName: nil, bundle: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.goToActivityTab), name: NSNotification.Name(rawValue: "goToActivityTab"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.goToMessagesTab), name: NSNotification.Name(rawValue: "goToMessagesTab"), object: nil)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(goToActivityTab), name: NSNotification.Name(rawValue: "goToActivityTab"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(goToMessagesTab), name: NSNotification.Name(rawValue: "goToMessagesTab"), object: nil)
     }
-    
+
     private func setupUI() {
-        
         // List of UINavigationController that can populate the main column
         mainVCList.append(UINavigationController(rootViewController: HomeViewController()))
         mainVCList.append(UINavigationController(rootViewController: SearchHostViewController()))
         mainVCList.append(UINavigationController(rootViewController: ActivityViewController()))
         mainVCList.append(UINavigationController(rootViewController: MentionsViewController()))
         mainVCList.append(UINavigationController(rootViewController: ProfileViewController(acctData: AccountsManager.shared.currentAccount)))
-        
+
         // Lefthand view with buttons
         sidebarViewController.delegate = self
         sidebarNavVC = UINavigationController(rootViewController: sidebarViewController)
         sidebarNavVC!.view.translatesAutoresizingMaskIntoConstraints = false
-        self.addChild(sidebarNavVC!)
-        self.view.addSubview(sidebarNavVC!.view)
-        
+        addChild(sidebarNavVC!)
+        view.addSubview(sidebarNavVC!.view)
+
         // Since sidebarViewController is a singleton, make sure
         // it has the correct icon selected.
         sidebarViewController.reset()
-        
+
         // Main column view
         mainColumnPlaceholderView.translatesAutoresizingMaskIntoConstraints = false
-        self.view.addSubview(mainColumnPlaceholderView)
+        view.addSubview(mainColumnPlaceholderView)
 
         // Side column view
         auxColumnPlaceholderView.translatesAutoresizingMaskIntoConstraints = false
-        self.view.addSubview(auxColumnPlaceholderView)
-        
+        view.addSubview(auxColumnPlaceholderView)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     private func installInMainColumn(_ navController: UINavigationController) {
         if navController != mainColumnNavVC {
             let previousMainColumnVC = mainColumnNavVC
             mainColumnNavVC = navController
-            
+
             navController.view.translatesAutoresizingMaskIntoConstraints = false
             navController.view.layer.cornerRadius = 10
             navController.view.layer.borderWidth = 0.6
             navController.view.layer.borderColor = UIColor.custom.outlines.cgColor
-            self.addChild(navController)
-            self.mainColumnPlaceholderView.addSubview(navController.view)
-            self.mainColumnPlaceholderView.addConstraints( [
-                navController.view.leadingAnchor.constraint(equalTo: self.mainColumnPlaceholderView.leadingAnchor),
-                navController.view.trailingAnchor.constraint(equalTo: self.mainColumnPlaceholderView.trailingAnchor),
-                navController.view.topAnchor.constraint(equalTo: self.mainColumnPlaceholderView.topAnchor),
-                navController.view.bottomAnchor.constraint(equalTo: self.mainColumnPlaceholderView.bottomAnchor)
+            addChild(navController)
+            mainColumnPlaceholderView.addSubview(navController.view)
+            mainColumnPlaceholderView.addConstraints([
+                navController.view.leadingAnchor.constraint(equalTo: mainColumnPlaceholderView.leadingAnchor),
+                navController.view.trailingAnchor.constraint(equalTo: mainColumnPlaceholderView.trailingAnchor),
+                navController.view.topAnchor.constraint(equalTo: mainColumnPlaceholderView.topAnchor),
+                navController.view.bottomAnchor.constraint(equalTo: mainColumnPlaceholderView.bottomAnchor),
             ])
-            
+
             previousMainColumnVC?.willMove(toParent: nil)
             previousMainColumnVC?.view.removeFromSuperview()
             previousMainColumnVC?.removeFromParent()
         }
     }
-    
+
     private func installInAuxColumn(_ navController: UINavigationController) {
         if navController != auxColumnNavVC {
             let previousAuxColumnVC = auxColumnNavVC
             auxColumnNavVC = navController
-            
+
             navController.view.translatesAutoresizingMaskIntoConstraints = false
             navController.view.layer.cornerRadius = 10
             navController.view.layer.borderWidth = 0.6
             navController.view.layer.borderColor = UIColor.custom.outlines.cgColor
-            self.addChild(navController)
-            self.auxColumnPlaceholderView.addSubview(navController.view)
-            self.auxColumnPlaceholderView.addConstraints( [
-                navController.view.leadingAnchor.constraint(equalTo: self.auxColumnPlaceholderView.leadingAnchor),
-                navController.view.trailingAnchor.constraint(equalTo: self.auxColumnPlaceholderView.trailingAnchor),
-                navController.view.topAnchor.constraint(equalTo: self.auxColumnPlaceholderView.topAnchor),
-                navController.view.bottomAnchor.constraint(equalTo: self.auxColumnPlaceholderView.bottomAnchor)
+            addChild(navController)
+            auxColumnPlaceholderView.addSubview(navController.view)
+            auxColumnPlaceholderView.addConstraints([
+                navController.view.leadingAnchor.constraint(equalTo: auxColumnPlaceholderView.leadingAnchor),
+                navController.view.trailingAnchor.constraint(equalTo: auxColumnPlaceholderView.trailingAnchor),
+                navController.view.topAnchor.constraint(equalTo: auxColumnPlaceholderView.topAnchor),
+                navController.view.bottomAnchor.constraint(equalTo: auxColumnPlaceholderView.bottomAnchor),
             ])
-            
+
             previousAuxColumnVC?.willMove(toParent: nil)
             previousAuxColumnVC?.view.removeFromSuperview()
             previousAuxColumnVC?.removeFromParent()
         }
     }
-    
+
     @objc func goToActivityTab(notification: Notification) {
-        self.sidebarViewController.barSingleTap(didSelect: 2)
-        
-        if let activityVC = self.mainColumnNavVC?.children.first as? ActivityViewController {
+        sidebarViewController.barSingleTap(didSelect: 2)
+
+        if let activityVC = mainColumnNavVC?.children.first as? ActivityViewController {
             activityVC.carouselItemPressed(withIndex: 0)
             activityVC.headerView.carousel.scrollTo(index: 0)
-            
+
             // Delay required to finish the carousel animation smoothly first
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 activityVC.jumpToNewest()
             }
-            
-            if let navController = self.mainColumnNavVC {
+
+            if let navController = mainColumnNavVC {
                 navController.popToRootViewController(animated: true)
             }
-            
+
             // Navigate to the target post if there's one included in the notification
             if let postCard = notification.userInfo?["postCard"] as? PostCardModel {
-                if !postCard.isDeleted && !postCard.isMuted && !postCard.isBlocked {
+                if !postCard.isDeleted, !postCard.isMuted, !postCard.isBlocked {
                     let vc = DetailViewController(post: postCard)
                     if vc.isBeingPresented {} else {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -159,25 +157,25 @@ class ColumnViewController: UIViewController {
             }
         }
     }
-    
+
     @objc func goToMessagesTab(notification: Notification) {
-        self.sidebarViewController.barSingleTap(didSelect: 3)
-        
-        if let mentionsVC = self.mainColumnNavVC?.children.first as? MentionsViewController {
+        sidebarViewController.barSingleTap(didSelect: 3)
+
+        if let mentionsVC = mainColumnNavVC?.children.first as? MentionsViewController {
             mentionsVC.carouselItemPressed(withIndex: 0)
             mentionsVC.headerView.carousel.scrollTo(index: 0)
             // Delay required to finish the carousel animation smoothly first
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 mentionsVC.jumpToNewest()
             }
-            
-            if let navController = self.mainColumnNavVC {
+
+            if let navController = mainColumnNavVC {
                 navController.popToRootViewController(animated: true)
             }
-            
+
             // Navigate to the target post if there's one included in the notification
             if let postCard = notification.userInfo?["postCard"] as? PostCardModel {
-                if !postCard.isDeleted && !postCard.isMuted && !postCard.isBlocked {
+                if !postCard.isDeleted, !postCard.isMuted, !postCard.isBlocked {
                     let vc = DetailViewController(post: postCard)
                     if vc.isBeingPresented {} else {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
@@ -189,128 +187,127 @@ class ColumnViewController: UIViewController {
         }
     }
 
-    
     @objc func switchSidebar1() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "gotoItem1"), object: self)
     }
-    
+
     @objc func switchSidebar2() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "gotoItem2"), object: self)
     }
-    
+
     @objc func switchSidebar3() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "gotoM"), object: self)
     }
-    
+
     @objc func switchSidebar4() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "gotoP"), object: self)
     }
-    
+
     @objc func switchSidebar5() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "goto1B"), object: self)
     }
-    
+
     @objc func switchSidebar6() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "goto1M"), object: self)
     }
-    
+
     @objc func switchSidebar66() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "goto1MS"), object: self)
     }
-    
+
     @objc func switchSidebar7() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "goto1E"), object: self)
     }
-    
+
     @objc func switchSidebar8() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "goto1U"), object: self)
     }
-    
+
     @objc func switchSidebar9() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "goto1L"), object: self)
     }
-    
+
     @objc func switchSidebar0() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "goto2M"), object: self)
     }
-    
+
     @objc func switchSidebarSea() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "gotoFil"), object: nil)
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         newPostButton.delegate = self
         newPostButton.allowsExtremeLeft = true
-        newPostButton.installInView(self.mainColumnPlaceholderView)
+        newPostButton.installInView(mainColumnPlaceholderView)
         newPostButton.addInteraction(UIPointerInteraction(delegate: nil))
-        
+
         // Show sign in view if appropriate
         if AccountsManager.shared.allAccounts.isEmpty {
             NotificationCenter.default.post(name: shouldChangeRootViewController, object: nil)
         }
     }
-    
+
     override func viewDidLayoutSubviews() {
-        if self.doneOnceLayout == false {
-            self.doneOnceLayout = true
-            
-            self.view.addConstraints( [
-                sidebarNavVC!.view.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-                sidebarNavVC!.view.topAnchor.constraint(equalTo: self.view.topAnchor, constant: verticalMargin),
-                sidebarNavVC!.view.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -verticalMargin),
-                sidebarNavVC!.view.widthAnchor.constraint(equalToConstant: firstViewWidth)
+        if doneOnceLayout == false {
+            doneOnceLayout = true
+
+            view.addConstraints([
+                sidebarNavVC!.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+                sidebarNavVC!.view.topAnchor.constraint(equalTo: view.topAnchor, constant: verticalMargin),
+                sidebarNavVC!.view.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -verticalMargin),
+                sidebarNavVC!.view.widthAnchor.constraint(equalToConstant: firstViewWidth),
             ])
             // Main column view
             auxGapWidthConstraint = mainColumnPlaceholderView.trailingAnchor.constraint(equalTo: auxColumnPlaceholderView.leadingAnchor, constant: -horizontalGap)
-            self.view.addConstraints( [
+            view.addConstraints([
                 mainColumnPlaceholderView.leadingAnchor.constraint(equalTo: sidebarNavVC!.view.trailingAnchor),
-                mainColumnPlaceholderView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: verticalMargin),
-                mainColumnPlaceholderView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -verticalMargin),
-                auxGapWidthConstraint!
+                mainColumnPlaceholderView.topAnchor.constraint(equalTo: view.topAnchor, constant: verticalMargin),
+                mainColumnPlaceholderView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -verticalMargin),
+                auxGapWidthConstraint!,
             ])
             // Side column view
             auxColumnWidthConstraintGolden = auxColumnPlaceholderView.widthAnchor.constraint(equalTo: mainColumnPlaceholderView.widthAnchor, multiplier: auxColumnWidthRatio)
             auxColumnWidthConstraintZero = auxColumnPlaceholderView.widthAnchor.constraint(equalToConstant: 0)
 
-            self.view.addConstraints( [
-                auxColumnPlaceholderView.topAnchor.constraint(equalTo: self.view.topAnchor, constant: verticalMargin),
-                auxColumnPlaceholderView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -verticalMargin),
-                auxColumnPlaceholderView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -horizontalGap),
+            view.addConstraints([
+                auxColumnPlaceholderView.topAnchor.constraint(equalTo: view.topAnchor, constant: verticalMargin),
+                auxColumnPlaceholderView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -verticalMargin),
+                auxColumnPlaceholderView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -horizontalGap),
             ])
         }
 
         // Adjust widths based on landscape/portrait
-        let isPortrait = self.view.bounds.height > self.view.bounds.width
+        let isPortrait = view.bounds.height > view.bounds.width
         // Use one of the aux column width constraints
         auxColumnWidthConstraintGolden?.isActive = !isPortrait
         auxColumnWidthConstraintZero?.isActive = isPortrait
         auxGapWidthConstraint?.constant = isPortrait ? 0.0 : -horizontalGap
 
         super.viewDidLayoutSubviews()
-        
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
         super.viewWillTransition(to: size, with: coordinator)
-        self.hasRotated = true
+        hasRotated = true
     }
-    
+
     override var keyCommands: [UIKeyCommand]? {
         let newPost = UIKeyCommand(input: "n", modifierFlags: [.command], action: #selector(newPost))
         newPost.discoverabilityTitle = "New Post"
@@ -374,79 +371,79 @@ class ColumnViewController: UIViewController {
         }
         return [newPost, newMessage, goTo1, goTo2, goTo3, goTo4, goTo5, goTo6, goTo7, search, settings]
     }
-    
+
     @objc func newPost() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "newPost"), object: nil)
     }
-    
+
     @objc func newMessage() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "newMessage"), object: nil)
     }
-    
+
     @objc func scrollTo1() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 0
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo2() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 1
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo3() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 2
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo4() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 3
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo5() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 4
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo6() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 5
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo7() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 6
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo8() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 7
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func scrollTo9() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "scrollTo"), object: nil)
         GlobalStruct.sidebarItem = 8
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func searchTap() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "searchTap"), object: nil)
         GlobalStruct.sidebarItem = 9
         NotificationCenter.default.post(name: Notification.Name(rawValue: "selectItem"), object: nil)
     }
-    
+
     @objc func settingsTap() {
         NotificationCenter.default.post(name: Notification.Name(rawValue: "settingsTap"), object: nil)
     }
-        
+
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -454,10 +451,10 @@ class ColumnViewController: UIViewController {
         installInMainColumn(mainVCList[0])
         installInAuxColumn(UINavigationController(rootViewController: AuxColumnViewController()))
 
-        self.view.backgroundColor = .custom.backgroundTint
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+        view.backgroundColor = .custom.backgroundTint
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
     }
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             self.view.backgroundColor = .custom.backgroundTint
@@ -485,26 +482,26 @@ class ColumnViewController: UIViewController {
 }
 
 // MARK: Appearance changes
-internal extension ColumnViewController {
-     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+
+extension ColumnViewController {
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
-         if #available(iOS 13.0, *) {
-             if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-                 self.reloadAll()
-             }
-         }
+
+        if #available(iOS 13.0, *) {
+            if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                self.reloadAll()
+            }
+        }
     }
 }
 
 extension ColumnViewController: SidebarViewControllerDelegate {
-
     func didSelect(_ index: Int) {
         installInMainColumn(mainVCList[index])
         newPostButton.updateNewPostButtonImage()
         newPostButton.superview?.bringSubviewToFront(newPostButton)
     }
-    
+
     func viewControllerAtIndex(_ index: Int) -> UIViewController? {
         guard index < mainVCList.count else {
             log.error("unexpected double-tap index")
@@ -512,16 +509,14 @@ extension ColumnViewController: SidebarViewControllerDelegate {
         }
         return mainVCList[index].viewControllers.first
     }
-
 }
 
 extension ColumnViewController: AppStateRestoration {
-    
-    public func storeUserActivity(in activity: NSUserActivity) {
+    func storeUserActivity(in activity: NSUserActivity) {
         log.debug("ColumnViewController:" + #function)
         // Allow subviews to store their data, if any
         sidebarViewController.storeUserActivity(in: activity)
-        
+
         if let mainColumnVC = mainColumnNavVC?.topViewController as? AppStateRestoration {
             mainColumnVC.storeUserActivity(in: activity)
         }
@@ -529,8 +524,8 @@ extension ColumnViewController: AppStateRestoration {
             auxColumnVC.storeUserActivity(in: activity)
         }
     }
-    
-    public func restoreUserActivity(from activity: NSUserActivity) {
+
+    func restoreUserActivity(from activity: NSUserActivity) {
         log.debug("ColumnViewController:" + #function)
         // Allow subviews to restore their data, if any
         sidebarViewController.restoreUserActivity(from: activity)
@@ -541,11 +536,9 @@ extension ColumnViewController: AppStateRestoration {
             auxColumnVC.restoreUserActivity(from: activity)
         }
     }
-        
 }
 
 extension ColumnViewController: NewPostButtonDelegate {
-
     private func isOnTab(vcType: AnyClass) -> Bool {
         var containsSpecificView = false
         if let vcStack = mainColumnNavVC?.viewControllers {
@@ -565,15 +558,14 @@ extension ColumnViewController: NewPostButtonDelegate {
     }
 
     func newPostTypeForCurrentViewController() -> NewPostType {
-        if self.isOnMessagesTab() {
+        if isOnMessagesTab() {
             return .newMessage
         } else {
             return .newPost
         }
     }
-    
+
     func shouldShowNewPostButton() -> Bool {
-        return !self.isOnDiscoverTab()
+        return !isOnDiscoverTab()
     }
-    
 }

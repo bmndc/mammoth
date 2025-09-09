@@ -41,7 +41,7 @@ public class Account: Codable, Hashable {
     public let statusesCount: Int
     /// An array of Emoji.
     public let emojis: [Emoji]
-    
+
     public let fields: [HashType]
 
     /// A 3-5 word description of the account
@@ -51,7 +51,7 @@ public class Account: Codable, Hashable {
     public let bot: Bool
     public let lastStatusAt: String?
     public let discoverable: Bool?
-    
+
     public let source: AccountSource?
 
     private enum CodingKeys: String, CodingKey {
@@ -78,11 +78,11 @@ public class Account: Codable, Hashable {
         case discoverable
         case source
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
-    
+
     public init(id: String,
                 username: String,
                 acct: String,
@@ -104,7 +104,8 @@ public class Account: Codable, Hashable {
                 bot: Bool,
                 lastStatusAt: String? = nil,
                 discoverable: Bool? = nil,
-                source: AccountSource? = nil) {
+                source: AccountSource? = nil)
+    {
         self.id = id
         self.username = username
         self.acct = acct
@@ -130,12 +131,11 @@ public class Account: Codable, Hashable {
     }
 }
 
-
 public class AccountSource: Codable {
     public let privacy: String?
     public let sensitive: Bool
     public let language: String?
-    
+
     private enum CodingKeys: String, CodingKey {
         case privacy
         case sensitive
@@ -143,19 +143,17 @@ public class AccountSource: Codable {
     }
 }
 
-
 public extension Account {
-    
     /// The account server, regardless of whether it's on the user's same server.
     /// Example: "mammoth@moth.social" would return "moth.social"
     var server: String {
         var server = ""
-        if let otherUserURL = URL(string: self.url) {
+        if let otherUserURL = URL(string: url) {
             server = otherUserURL.host ?? ""
         }
         return server
     }
-    
+
     static func server(fromUrl url: String) -> String {
         var server = ""
         if let otherUserURL = URL(string: url) {
@@ -163,8 +161,7 @@ public extension Account {
         }
         return server
     }
-    
-    
+
     /// The fully formed acct regardless whether it's on the user's same server.
     /// Example: "mammoth" would return "mammoth@moth.social"
     var fullAcct: String {
@@ -172,7 +169,7 @@ public extension Account {
         // when comparing accounts from various sources
         return remoteFullOriginalAcct.lowercased()
     }
-    
+
     /// The fully formed acct with original letter casing.
     ///  "rileyhBat@moth.social" will return it as it is on the servers
     /// Example: username "Mammoth" would return "Mammoth@moth.social"
@@ -181,17 +178,15 @@ public extension Account {
         // account is on the same server as the user.
         var remoteFullOriginalAcct: String
         if username == acct {
-            remoteFullOriginalAcct = acct + "@" + self.server
+            remoteFullOriginalAcct = acct + "@" + server
         } else {
-            remoteFullOriginalAcct = self.acct
+            remoteFullOriginalAcct = acct
         }
         return remoteFullOriginalAcct
     }
-
 }
 
 extension Account {
-    
     convenience init(_ user: Model.Actor.ProfileViewBasic) {
         self.init(
             id: user.did,
@@ -211,7 +206,7 @@ extension Account {
             statusesCount: 0,
             fields: [],
             emojis: [],
-            bot: false)
+            bot: false
+        )
     }
-    
 }

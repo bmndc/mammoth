@@ -36,8 +36,8 @@ extension PaginationItem {
             let referenceValue = rel?.last,
             let type = PaginationItemType(rawValue: referenceValue),
             let queryItems = URLComponents(string: validURL)?.queryItems
-            else {
-                return nil
+        else {
+            return nil
         }
 
         let sinceID = queryItems.first { $0.name == "since_id" }?.value
@@ -47,7 +47,7 @@ extension PaginationItem {
 
         self.type = type
         self.id = id
-        self.limit = queryItems
+        limit = queryItems
             .first { $0.name == "limit" }
             .flatMap(toInteger)
     }

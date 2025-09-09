@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct OtherStruct {
+public enum OtherStruct {
     static var isImageUploading: Bool = false
     static var imagePercentage: Float = 0
     static var medType = 0

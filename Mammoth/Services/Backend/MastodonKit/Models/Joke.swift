@@ -18,4 +18,3 @@ public class Joke: Codable {
     /// The joke punchline.
     public let punchline: String
 }
-

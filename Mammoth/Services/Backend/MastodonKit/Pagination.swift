@@ -31,8 +31,8 @@ extension Pagination {
             }
         }
 
-        self.next = nextLink
-        self.previous = previousLink
+        next = nextLink
+        previous = previousLink
     }
 }
 

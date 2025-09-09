@@ -35,7 +35,7 @@ public class Card: Codable {
     public let height: Int?
     /// Blur hash
     public let blurhash: String?
-    
+
     private enum CodingKeys: String, CodingKey {
         case url
         case title
@@ -68,5 +68,3 @@ public class Card: Codable {
         self.blurhash = blurhash
     }
 }
-
-

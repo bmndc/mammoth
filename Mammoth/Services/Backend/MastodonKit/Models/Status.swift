@@ -63,28 +63,28 @@ public class Status: Codable, Hashable {
     public var pinned: Bool?
     /// The status poll.
     public let poll: Poll?
-    
+
     public let editedAt: String?
     public let muted: Bool?
     public let filtered: [FilterResult]?
-    
+
     public var uniqueId: String? {
-        return self.reblog?.uri ?? self.uri
+        return reblog?.uri ?? uri
     }
-    
+
     public var originalId: String? {
-        if let uri = self.reblog?.uri ?? self.uri, let url = URL(string: uri) {
+        if let uri = reblog?.uri ?? uri, let url = URL(string: uri) {
             return url.lastPathComponent
         }
-        
+
         return nil
     }
-    
+
     public var serverName: String? {
-        if let url = self.reblog?.url ?? self.url, let url = URL(string: url) {
+        if let url = reblog?.url ?? url, let url = URL(string: url) {
             return url.host
         }
-        
+
         return nil
     }
 
@@ -120,7 +120,7 @@ public class Status: Codable, Hashable {
         case muted
         case filtered
     }
-    
+
     public init(id: String,
                 uri: String,
                 url: String? = nil,
@@ -150,7 +150,8 @@ public class Status: Codable, Hashable {
                 poll: Poll? = nil,
                 editedAt: String? = nil,
                 muted: Bool? = nil,
-                filtered: [FilterResult]? = nil) {
+                filtered: [FilterResult]? = nil)
+    {
         self.id = id
         self.uri = uri
         self.url = url
@@ -182,71 +183,67 @@ public class Status: Codable, Hashable {
         self.muted = muted
         self.filtered = filtered
     }
-    
+
     @discardableResult
     public func likeTap() -> Int {
         favouritesCount += 1
         favourited = true
         return getLikesCount()
     }
-    
+
     @discardableResult
     public func unlikeTap() -> Int {
         favouritesCount -= 1
         favourited = false
         return getLikesCount()
     }
-    
+
     @discardableResult
     private func getLikesCount() -> Int {
         return favouritesCount
     }
-    
+
     @discardableResult
     public func repostTap() -> Int {
         reblogsCount += 1
         reblogged = true
         return getRepostsCount()
     }
-    
+
     @discardableResult
     public func unrepostTap() -> Int {
         reblogsCount -= 1
         reblogged = false
         return getRepostsCount()
     }
-    
+
     private func getRepostsCount() -> Int {
         return reblogsCount
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
 }
 
 extension Status: Equatable {
-    
-   static public func ==(lhs: Status, rhs: Status) -> Bool {
+    public static func == (lhs: Status, rhs: Status) -> Bool {
         return lhs.id == rhs.id
     }
-    
 }
 
 extension Status {
-    
     public func quotePostCard() -> Card? {
         var quotePostCard: Card? = nil
-        
-        let text = self.content
-        
+
+        let text = content
+
         // Based on multiple case studies, our best algo is:
         //      1. Find the position of the last "RE:" or "From:"
         //      2. Get the first URL after that
         //      3. Assume the URL is a fediverse-compatible post
-        
-        if let quoteStart = text.range(of:"RE: ", options:.backwards) ?? text.range(of: "From: ") {
 
+        if let quoteStart = text.range(of: "RE: ", options: .backwards) ?? text.range(of: "From: ") {
             // Make a link card from the content
             //
             // Typical content:
@@ -264,13 +261,13 @@ extension Status {
 
             // Find the list of URLs, starting from the "RE:"
             let urls = URLsFromHTML(String(text.suffix(from: quoteStart.lowerBound)))
-            
+
             // Use the first valid URL
             if let firstURL = urls.first {
                 // Create a card from this URL
                 quotePostCard = Card(url: firstURL.absoluteString, title: "", description: "", type: .link, authorName: "", authorUrl: "", providerName: "", html: "", width: 0, height: 0)
             }
-        } else if let hrefStart = text.range(of:"href=\"", options:.backwards) {
+        } else if let hrefStart = text.range(of: "href=\"", options: .backwards) {
             // old behaviour as a fallback, since ivory doesn't include a "RE: "
             let urls = URLsFromHTML(String(text.suffix(from: hrefStart.lowerBound)))
             if let firstURL = urls.first {
@@ -280,11 +277,11 @@ extension Status {
                 }
             }
         }
-        
+
         return quotePostCard
     }
-    
-    static var urlDetector: NSDataDetector? = nil
+
+    static var urlDetector: NSDataDetector?
     func URLsFromHTML(_ html: String) -> [URL] {
         var urlsInHTML: [URL] = []
         let types: NSTextCheckingResult.CheckingType = .link
@@ -301,6 +298,4 @@ extension Status {
         urlsInHTML = matches?.compactMap { $0.url } ?? []
         return urlsInHTML
     }
-
 }
-

@@ -6,72 +6,71 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import SDWebImage
-import Kingfisher
-import AVFoundation
-import Meta
-import MastodonMeta
-import MetaTextKit
-import UnifiedBlurHash
 import ArkanaKeys
+import AVFoundation
+import Foundation
+import Kingfisher
+import MastodonMeta
+import Meta
+import MetaTextKit
+import SDWebImage
+import UnifiedBlurHash
 
 // swiftlint:disable:next type_body_length
 final class PostCardModel {
-    
-    public static let imageDecodeQueue = DispatchQueue(label: "Decode images queue", qos: .default)
-    
+    static let imageDecodeQueue = DispatchQueue(label: "Decode images queue", qos: .default)
+
     enum Data {
-       case mastodon(Status)
-       case bluesky(BlueskyPostViewModel)
+        case mastodon(Status)
+        case bluesky(BlueskyPostViewModel)
     }
-    
+
     var data: Data
     var remoteData: Data?
-    
+
     /// staticMetrics should be true when posts are coming from a pre-defined
     /// server, e.g. the For You feed. For these posts metrics will not update
     /// when the user likes, reblogs or bookmarks. We keep a local tally in those cases.
     let staticMetrics: Bool
-    
+
     /// if the post is coming from another instance as the current
     /// user's instance, an instanceName is set
     var instanceName: String?
-    
+
     let id: String?
     var cursorId: String?
     let uniqueId: String?
-    
+
     let originalId: String?
     let originalInstanceName: String?
-    
+
     let url: String?
     let uri: String?
     let createdAt: Date
     let emojis: [Emoji]?
-    
+
     var isSyncedWithOriginal: Bool = false
-    
+
     // Debug properties
     var batchId: String?
     var batchItemIndex: Int?
-    
+
     // When a post card has been deleted by the server
     var isDeleted: Bool = false
-    
+
     // Formatted properties
-    
+
     let username: String
     var richUsername: NSAttributedString?
-    
+
     let rebloggerUsername: String
     var richRebloggerUsername: NSAttributedString?
-    
+
     let visibility: String?
-    
+
     var account: Account?
     var user: UserCardModel?
-    
+
     let userTag: String
     let fullUserTag: String
     // this should look exactly like how the usertag would in a local request. MAM-3683
@@ -81,7 +80,7 @@ final class PostCardModel {
     var postText: String
     var richPostText: NSAttributedString?
     let metaPostText: MastodonMetaContent?
-    
+
     var profileURL: URL?
     let isLockedAccount: Bool
     let containsPoll: Bool
@@ -93,7 +92,7 @@ final class PostCardModel {
     let isPinned: Bool
     let isPrivateMention: Bool
     let isOwn: Bool
-    
+
     var isBlocked: Bool
     var isMuted: Bool
 
@@ -103,30 +102,30 @@ final class PostCardModel {
     let mediaDisplayType: MediaDisplayType
     var linkCard: Card?
     var hasLink: Bool
-    
+
     struct Webview {
         let url: URL
         let blurhash: String?
         let width: Int
         let height: Int
     }
-    
+
     var webview: Webview?
     var hasWebview: Bool
     let hideLinkImage: Bool
     let formattedCardUrlStr: String?
     var statusSource: [StatusSource]?
-    
+
     var imagePrefetchToken: SDWebImagePrefetchToken?
     var decodedImages: [String: UIImage?] = [:]
     var decodedBlurhashes: [String: UIImage] = [:]
     var cellHeight: CGFloat?
-    
+
     enum FilterType {
         case warn(String)
         case hide(String)
         case none
-        
+
         var isHide: Bool {
             switch self {
             case .warn: false
@@ -135,16 +134,16 @@ final class PostCardModel {
             }
         }
     }
-    
+
     var filterType: FilterType
-    
+
     enum MediaDisplayType {
         case singleImage
         case singleVideo
         case singleGIF
         case carousel
         case none
-        
+
         var displayName: String? {
             switch self {
             case .singleImage: return NSLocalizedString("composer.media.image", comment: "").lowercased()
@@ -154,7 +153,7 @@ final class PostCardModel {
             default: return nil
             }
         }
-        
+
         var captializedDisplayName: String? {
             switch self {
             case .singleImage: return NSLocalizedString("composer.media.image", comment: "")
@@ -165,15 +164,15 @@ final class PostCardModel {
             }
         }
     }
-    
+
     enum QuotePostStatus: Int, CaseIterable, Equatable {
         case disabled
         case loading
         case fetched
         case notFound
-        
+
         static func == (lhs: QuotePostStatus, rhs: QuotePostStatus) -> Bool {
-            switch(lhs, rhs) {
+            switch (lhs, rhs) {
             case (.disabled, .disabled):
                 return true
             case (.loading, .loading):
@@ -187,101 +186,99 @@ final class PostCardModel {
             }
         }
     }
-    
+
     var videoPlayer: AVPlayer?
-    
+
     var hasQuotePost: Bool
     let quotePostCard: Card?
     var quotePostData: PostCardModel?
     var quotePostStatus: QuotePostStatus = .disabled
     var quotePreloadTask: Task<Void, Error>?
-    
 
     // Computed / dynamic properties
-    
+
     var likeCount: String {
         switch remoteData ?? data {
-        case .mastodon(let status):
-            return PostCardModel.formattedLikeCount(status: status, withStaticMetrics: self.staticMetrics)
-            
-        case .bluesky(let postVM):
+        case let .mastodon(status):
+            return PostCardModel.formattedLikeCount(status: status, withStaticMetrics: staticMetrics)
+
+        case let .bluesky(postVM):
             return (postVM.post.likeCount ?? 0).formatUsingAbbrevation()
         }
     }
-    
+
     var isLiked: Bool {
         if let value = StatusCache.shared.hasLocalMetric(metricType: .like, forStatusId: uniqueId) {
             return value
         }
-        
+
         switch data {
-        case .mastodon(let status):
+        case let .mastodon(status):
             return status.reblog?.favourited ?? status.favourited ?? false
-            
-        case .bluesky(let postVM):
+
+        case let .bluesky(postVM):
             return postVM.post.viewer?.like != nil
-            
         }
     }
-    
+
     var replyCount: String {
         switch remoteData ?? data {
-        case .mastodon(let status):
+        case let .mastodon(status):
             return max((status.reblog?.repliesCount ?? status.repliesCount), 0).formatUsingAbbrevation()
-            
-        case .bluesky(let postVM):
+
+        case let .bluesky(postVM):
             return (postVM.post.replyCount ?? 0).formatUsingAbbrevation()
         }
     }
-    
+
     var hasReplies: Bool {
         switch data {
-        case .mastodon(let status):
+        case let .mastodon(status):
             return (status.reblog?.repliesCount ?? status.repliesCount) > 0
-            
-        case .bluesky(let postVM):
+
+        case let .bluesky(postVM):
             return (postVM.post.replyCount ?? 0) > 0
         }
     }
-    
+
     var repostCount: String {
         switch remoteData ?? data {
-        case .mastodon(let status):
-            return PostCardModel.formattedRepostCount(status: status, withStaticMetrics: self.staticMetrics)
-            
-        case .bluesky(let postVM):
+        case let .mastodon(status):
+            return PostCardModel.formattedRepostCount(status: status, withStaticMetrics: staticMetrics)
+
+        case let .bluesky(postVM):
             return (postVM.post.repostCount ?? 0).formatUsingAbbrevation()
         }
     }
-    
+
     var isReposted: Bool {
-        if let value = StatusCache.shared.hasLocalMetric(metricType: .repost, forStatusId: self.uniqueId) {
+        if let value = StatusCache.shared.hasLocalMetric(metricType: .repost, forStatusId: uniqueId) {
             return value
         }
-        
+
         switch data {
-        case .mastodon(let status):
+        case let .mastodon(status):
             return status.reblog?.reblogged ?? status.reblogged ?? false
-            
-        case .bluesky(let postVM):
+
+        case let .bluesky(postVM):
             return postVM.post.viewer?.repost != nil
         }
     }
-    
+
     var isBookmarked: Bool {
-        if let value = StatusCache.shared.hasLocalMetric(metricType: .bookmark, forStatusId: self.uniqueId) {
+        if let value = StatusCache.shared.hasLocalMetric(metricType: .bookmark, forStatusId: uniqueId) {
             return value
         }
-        
+
         switch data {
-        case .mastodon(let status):
+        case let .mastodon(status):
             return status.reblog?.bookmarked ?? status.bookmarked ?? false
-            
+
         case .bluesky:
             return false
         }
     }
-    
+
     var applicationName: String? {
         if let server = originalInstanceName {
             if server == "www.threads.net" {
@@ -291,17 +288,17 @@ final class PostCardModel {
                 return "sub.club"
             }
         }
-        
-        switch remoteData ?? data  {
-        case .mastodon(let status):
+
+        switch remoteData ?? data {
+        case let .mastodon(status):
             return status.application?.name
         case .bluesky:
             return nil
         }
     }
-    
+
     var time: String
-        
+
     var source: String {
         var sourceDescription = ""
         if let statusSource, statusSource.count > 0 {
@@ -321,14 +318,14 @@ final class PostCardModel {
                     sourceName = "Other"
                 }
                 sourceDescription += sourceName
-                if statusSource.count > index+1 {
+                if statusSource.count > index + 1 {
                     sourceDescription += ", "
                 }
             }
         }
         return sourceDescription
     }
-    
+
     // check if the post is from a tip account.
     var isTipAccount: Bool {
         if let server = originalInstanceName {
@@ -337,197 +334,199 @@ final class PostCardModel {
             return false
         }
     }
-    
+
     init(status: Status, withStaticMetrics staticMetrics: Bool = false, instanceName: String? = nil) {
-        self.data = .mastodon(status)
+        data = .mastodon(status)
         self.staticMetrics = staticMetrics
         self.instanceName = instanceName
 
-        self.id = status.reblog?.id ?? status.id
-        self.cursorId = status.id
-        self.uniqueId = status.uniqueId
+        id = status.reblog?.id ?? status.id
+        cursorId = status.id
+        uniqueId = status.uniqueId
 
-        self.originalId = (status.reblog ?? status).originalId
-        self.originalInstanceName = (status.reblog ?? status).serverName
+        originalId = (status.reblog ?? status).originalId
+        originalInstanceName = (status.reblog ?? status).serverName
 
-        self.url = status.reblog?.url ?? status.url
-        self.uri = status.reblog?.uri ?? status.uri
-        self.createdAt = (status.reblog?.createdAt ?? status.createdAt).toDate()
-        self.time = PostCardModel.formattedTime(status: status, formatter: GlobalStruct.dateFormatter)
-            
-        self.emojis = status.reblog?.emojis ?? status.emojis
-        
+        url = status.reblog?.url ?? status.url
+        uri = status.reblog?.uri ?? status.uri
+        createdAt = (status.reblog?.createdAt ?? status.createdAt).toDate()
+        time = PostCardModel.formattedTime(status: status, formatter: GlobalStruct.dateFormatter)
+
+        emojis = status.reblog?.emojis ?? status.emojis
+
         // Username formatting
-        self.username = PostCardModel.formattedUsername(status: status)
-        self.richUsername = NSAttributedString(string: self.username)
-        
-        self.rebloggerUsername = PostCardModel.formattedUsername(status: status, reblogger: true)
-        self.richRebloggerUsername = NSAttributedString(string: self.rebloggerUsername)
-        
-        self.account = status.reblog?.account ?? status.account
-        self.user = self.account != nil ? UserCardModel(account: self.account!, instanceName: instanceName) : nil
+        username = PostCardModel.formattedUsername(status: status)
+        richUsername = NSAttributedString(string: username)
+
+        rebloggerUsername = PostCardModel.formattedUsername(status: status, reblogger: true)
+        richRebloggerUsername = NSAttributedString(string: rebloggerUsername)
+
+        account = status.reblog?.account ?? status.account
+        user = account != nil ? UserCardModel(account: account!, instanceName: instanceName) : nil
 
         // User tag formatting
-        self.userTag = (status.reblog?.account?.acct ?? status.account?.acct ?? "")
-        self.fullUserTag = (status.reblog?.account?.fullAcct ?? status.account?.fullAcct ?? "")
-        
+        userTag = (status.reblog?.account?.acct ?? status.account?.acct ?? "")
+        fullUserTag = (status.reblog?.account?.fullAcct ?? status.account?.fullAcct ?? "")
+
         // Profile url formatting
-        self.profileURL = PostCardModel.formattedProfileURL(status: status)
-        
+        profileURL = PostCardModel.formattedProfileURL(status: status)
+
         // Is account locked?
-        self.isLockedAccount = status.reblog?.account?.locked ?? status.account?.locked ?? false
-        
+        isLockedAccount = status.reblog?.account?.locked ?? status.account?.locked ?? false
+
         // Post text formatting
-        self.postText = PostCardModel.formattedPostText(status: status)
-        
+        postText = PostCardModel.formattedPostText(status: status)
+
         var emojisDic: MastodonContent.Emojis = [:]
-        self.emojis?.forEach({ emojisDic[$0.shortcode] = $0.url.absoluteString })
-        let content = MastodonContent(content: self.postText, emojis: emojisDic)
+        emojis?.forEach { emojisDic[$0.shortcode] = $0.url.absoluteString }
+        let content = MastodonContent(content: postText, emojis: emojisDic)
         do {
-            self.metaPostText = try MastodonMetaContent.convert(document: content)
+            metaPostText = try MastodonMetaContent.convert(document: content)
         } catch {
-            self.metaPostText = MastodonMetaContent.convert(text: content)
+            metaPostText = MastodonMetaContent.convert(text: content)
         }
-        
-        self.richPostText = NSMutableAttributedString(string: self.metaPostText?.string ?? self.postText)
-        
+
+        richPostText = NSMutableAttributedString(string: metaPostText?.string ?? postText)
+
         // Content warning (applies to entire post)
-        self.contentWarning = (status.reblog?.spoilerText ?? status.spoilerText).stripHTML()
-        
+        contentWarning = (status.reblog?.spoilerText ?? status.spoilerText).stripHTML()
+
         // Sensitive content
-        self.isSensitive = status.reblog?.sensitive ?? status.sensitive ?? false
+        isSensitive = status.reblog?.sensitive ?? status.sensitive ?? false
 
         // The poll to display
-        self.poll = status.reblog?.poll ?? status.poll
-        
+        poll = status.reblog?.poll ?? status.poll
+
         // Contains poll?
-        self.containsPoll = poll != nil
-        
+        containsPoll = poll != nil
+
         // Should show reply indicator?
-        self.isAReply = PostCardModel.isAReply(status: status)
-        
+        isAReply = PostCardModel.isAReply(status: status)
+
         // Is a reblog
-        self.isReblogged = status.reblog != nil
-        self.rebloggerID = status.reblog?.account?.id
-        
+        isReblogged = status.reblog != nil
+        rebloggerID = status.reblog?.account?.id
+
         // Is hashtagged
-        self.isHashtagged = false
-        
-        self.isPinned = status.reblog?.pinned ?? status.pinned ?? false
-        
-        self.isPrivateMention = status.visibility == .direct
-        
+        isHashtagged = false
+
+        isPinned = status.reblog?.pinned ?? status.pinned ?? false
+
+        isPrivateMention = status.visibility == .direct
+
         // Is this post from the logged in user?
-        self.isOwn = AccountsManager.shared.currentUser()?.id != nil && (status.reblog?.account?.id ?? status.account?.id ?? "") == AccountsManager.shared.currentUser()!.id
+        isOwn = AccountsManager.shared.currentUser()?.id != nil && (status.reblog?.account?.id ?? status.account?.id ?? "") == AccountsManager.shared.currentUser()!.id
 
         // All image attachments
         if status.reblog?.mediaAttachments.count ?? status.mediaAttachments.count > 0 {
-            self.mediaAttachments = (status.reblog?.mediaAttachments ?? status.mediaAttachments).filter({$0.type != .unknown})
+            mediaAttachments = (status.reblog?.mediaAttachments ?? status.mediaAttachments).filter { $0.type != .unknown }
         } else {
-            self.mediaAttachments = []
+            mediaAttachments = []
         }
 
         // Has an image/video/audio to display
-        self.hasMediaAttachment = self.mediaAttachments.count > 0
-        
+        hasMediaAttachment = mediaAttachments.count > 0
+
         // The link to display
-        self.linkCard = status.reblog?.card ?? status.card
-        
+        linkCard = status.reblog?.card ?? status.card
+
         // Post has a link to display
-        self.hasLink = self.linkCard?.url != nil
-        
+        hasLink = linkCard?.url != nil
+
         // Hide the link image if there is a media attachment
-        self.hideLinkImage = self.hasMediaAttachment
-        
+        hideLinkImage = hasMediaAttachment
+
         // Quote post card
-        self.quotePostCard = status.reblog?.quotePostCard() ?? status.quotePostCard()
-        
+        quotePostCard = status.reblog?.quotePostCard() ?? status.quotePostCard()
+
         // Contains quote post?
-        self.hasQuotePost = self.quotePostCard != nil
+        hasQuotePost = quotePostCard != nil
 
         // Quote post status data
-        if self.hasQuotePost {
-            if let urlStr = self.quotePostCard?.url,
+        if hasQuotePost {
+            if let urlStr = quotePostCard?.url,
                let url = URL(string: urlStr),
                urlStr != self.url,
-               let cachedQuoteStatus = StatusCache.shared.cachedStatusForURL(url: url) {
+               let cachedQuoteStatus = StatusCache.shared.cachedStatusForURL(url: url)
+            {
                 // If local quote post status found, use it
-                self.quotePostData = PostCardModel(status: cachedQuoteStatus, withStaticMetrics: false)
-                self.quotePostStatus = .fetched
+                quotePostData = PostCardModel(status: cachedQuoteStatus, withStaticMetrics: false)
+                quotePostStatus = .fetched
             } else {
                 // If no local quote post status found, assume we'll prefetch it
-                self.quotePostStatus = .loading
+                quotePostStatus = .loading
             }
         }
-        
+
         // get iframe. requirements: link card with an url AND and image OR blurhash.
         // no media attachment, because then it looks ugly. no quote post, because mastodon posts have iframes and they conflict.
-        if let html = self.linkCard?.html, !(self.linkCard?.image == nil && self.linkCard?.blurhash == nil), !self.hasMediaAttachment, !self.hasQuotePost {
-            if let url = URL(string: html.slice(from: "src=\"", to: "\" ") ?? ""), let width = self.linkCard?.width ?? Int(html.slice(from: "width=\"", to: "\"") ?? ""), let height = self.linkCard?.height ?? Int(html.slice(from: "height=\"", to: "\"") ?? "")  {
-                self.webview = Webview.init(url: url, blurhash: self.linkCard?.blurhash, width: width, height: height)
+        if let html = linkCard?.html, !(self.linkCard?.image == nil && self.linkCard?.blurhash == nil), !self.hasMediaAttachment, !self.hasQuotePost {
+            if let url = URL(string: html.slice(from: "src=\"", to: "\" ") ?? ""), let width = linkCard?.width ?? Int(html.slice(from: "width=\"", to: "\"") ?? ""), let height = linkCard?.height ?? Int(html.slice(from: "height=\"", to: "\"") ?? "") {
+                webview = Webview(url: url, blurhash: linkCard?.blurhash, width: width, height: height)
             }
         }
-        
+
         // post has an iframe.
-        self.hasWebview = self.webview != nil
-        
-        if self.mediaAttachments.count > 1 {
-            self.mediaDisplayType = .carousel
-            let types = Set(self.mediaAttachments.map({$0.type}))
+        hasWebview = webview != nil
+
+        if mediaAttachments.count > 1 {
+            mediaDisplayType = .carousel
+            let types = Set(mediaAttachments.map { $0.type })
             if types.count == 1 {
                 let type = types.first
                 switch type {
                 case .image:
-                    self.mediaAttachmentDescription = "\(self.mediaAttachments.count) Images"
+                    mediaAttachmentDescription = "\(mediaAttachments.count) Images"
                 case .video:
-                    self.mediaAttachmentDescription = "\(self.mediaAttachments.count) Videos"
+                    mediaAttachmentDescription = "\(mediaAttachments.count) Videos"
                 case .audio:
-                    self.mediaAttachmentDescription = "\(self.mediaAttachments.count) Audio tracks"
+                    mediaAttachmentDescription = "\(mediaAttachments.count) Audio tracks"
                 case .gifv:
-                    self.mediaAttachmentDescription = "\(self.mediaAttachments.count) GIFs"
+                    mediaAttachmentDescription = "\(mediaAttachments.count) GIFs"
                 default:
-                    self.mediaAttachmentDescription = ""
+                    mediaAttachmentDescription = ""
                 }
             } else {
-                self.mediaAttachmentDescription = "\(self.mediaAttachments.count) Media Attachments"
+                mediaAttachmentDescription = "\(mediaAttachments.count) Media Attachments"
             }
-        } else if self.mediaAttachments.count == 1 {
-            switch self.mediaAttachments.first?.type {
+        } else if mediaAttachments.count == 1 {
+            switch mediaAttachments.first?.type {
             case .image:
-                self.mediaDisplayType = .singleImage
-                self.mediaAttachmentDescription = "1 Image"
+                mediaDisplayType = .singleImage
+                mediaAttachmentDescription = "1 Image"
             case .video:
-                self.mediaDisplayType = .singleVideo
-                self.mediaAttachmentDescription = "1 Video"
+                mediaDisplayType = .singleVideo
+                mediaAttachmentDescription = "1 Video"
             case .gifv:
-                self.mediaDisplayType = .singleGIF
-                self.mediaAttachmentDescription = "1 GIF"
+                mediaDisplayType = .singleGIF
+                mediaAttachmentDescription = "1 GIF"
             case .audio:
-                self.mediaDisplayType = .carousel
-                self.mediaAttachmentDescription = "1 Audio track"
+                mediaDisplayType = .carousel
+                mediaAttachmentDescription = "1 Audio track"
             default:
                 // TODO: enable single media view for all media types when implementation is done (video, gifs, images and audio)
-                self.mediaDisplayType = .carousel
-                self.mediaAttachmentDescription = ""
+                mediaDisplayType = .carousel
+                mediaAttachmentDescription = ""
             }
         } else {
             // When there's no media attachment, we create one attachment with
             // the link image (if there's a link image).
             // This is used in small-image variant cells
-            if (self.linkCard?.image) != nil && !self.hasQuotePost {
-                self.mediaDisplayType = .singleImage
-                self.mediaAttachments = [Attachment(card: self.linkCard!)]
-                self.hasMediaAttachment = true
-                self.mediaAttachmentDescription = "1 Image"
+            if (linkCard?.image) != nil, !hasQuotePost {
+                mediaDisplayType = .singleImage
+                mediaAttachments = [Attachment(card: linkCard!)]
+                hasMediaAttachment = true
+                mediaAttachmentDescription = "1 Image"
             } else {
-                self.mediaDisplayType = .none
-                self.mediaAttachmentDescription = ""
+                mediaDisplayType = .none
+                mediaAttachmentDescription = ""
             }
         }
 
         // Format card url to only domain
         if #available(iOS 16.0, *),
-            let urlString = self.linkCard?.url {
+           let urlString = linkCard?.url
+        {
             let urlFormatStyle = URL.FormatStyle()
                 .scheme(.omitIfHTTPFamily)
                 .user(.never)
@@ -537,139 +536,139 @@ final class PostCardModel {
                 .path(.never)
                 .query(.never)
                 .fragment(.never)
-            
+
             if let url = URL(string: urlString)?.formatted(urlFormatStyle) {
                 self.formattedCardUrlStr = url
             } else {
                 self.formattedCardUrlStr = nil
             }
         } else {
-            self.formattedCardUrlStr = nil
+            formattedCardUrlStr = nil
         }
-        
-        self.visibility = (status.reblog?.visibility ?? status.visibility).toLocalizedString().lowercased()
-        
+
+        visibility = (status.reblog?.visibility ?? status.visibility).toLocalizedString().lowercased()
+
         // Status
-        self.statusSource = nil
-        
+        statusSource = nil
+
         // Filters
-        self.filterType = status.filtered?.reduce(FilterType.none) { result, current in
-            if case .hide(_) = result { return result }
+        filterType = status.filtered?.reduce(FilterType.none) { result, current in
+            if case .hide = result { return result }
             if current.filter.filterAction == "hide" { return .hide(current.filter.title) }
             return .warn(current.filter.title)
         } ?? FilterType.none
-        
+
         let blockedIds = ModerationManager.shared.blockedUsers.map { $0.remoteFullOriginalAcct }
         let mutedIds = ModerationManager.shared.mutedUsers.map { $0.remoteFullOriginalAcct }
-        
-        if let acctID = self.account?.remoteFullOriginalAcct {
-            self.isBlocked = blockedIds.contains(acctID)
-            self.isMuted = mutedIds.contains(acctID)
+
+        if let acctID = account?.remoteFullOriginalAcct {
+            isBlocked = blockedIds.contains(acctID)
+            isMuted = mutedIds.contains(acctID)
         } else {
-            self.isBlocked = false
-            self.isMuted = false
+            isBlocked = false
+            isMuted = false
         }
-        
-        self.decodeBlurhashes()
+
+        decodeBlurhashes()
     }
-    
+
     convenience init(status: Status, withStaticMetrics staticMetrics: Bool = false, instanceName: String? = nil, batchId: String? = nil, batchItemIndex: Int? = nil) {
         self.init(status: status, withStaticMetrics: staticMetrics, instanceName: instanceName)
         self.batchId = batchId
         self.batchItemIndex = batchItemIndex
     }
-    
+
     init(blueskyPostVM postVM: BlueskyPostViewModel, uniqueID: String? = nil) {
-        self.data = .bluesky(postVM)
-        self.staticMetrics = false
-        self.instanceName = nil
-        
-        self.id = postVM.post.uri
-        self.cursorId = self.id
-        self.uniqueId = uniqueID ?? UUID().uuidString
-        self.originalId = self.id
-        self.originalInstanceName = nil
-        self.url = nil
-        self.uri = nil
-        self.createdAt = Date()
-        self.time = postVM.post.record.createdAt.toStringWithRelativeTime()
-        
-        self.emojis = nil
-        
+        data = .bluesky(postVM)
+        staticMetrics = false
+        instanceName = nil
+
+        id = postVM.post.uri
+        cursorId = id
+        uniqueId = uniqueID ?? UUID().uuidString
+        originalId = id
+        originalInstanceName = nil
+        url = nil
+        uri = nil
+        createdAt = Date()
+        time = postVM.post.record.createdAt.toStringWithRelativeTime()
+
+        emojis = nil
+
         // Username formatting
-        self.username = postVM.post.author.uiDisplayName
-        self.richUsername = nil
-        
-        self.rebloggerUsername = ""
-        self.richRebloggerUsername = nil
-        
-        self.account = Account(postVM.post.author)
-        self.user = account.map { UserCardModel(account: $0) }
-        
-        self.userTag = postVM.post.author.handle
-        self.fullUserTag = postVM.post.author.handle
-        
-        self.profileURL = postVM.post.author.avatar.flatMap {
+        username = postVM.post.author.uiDisplayName
+        richUsername = nil
+
+        rebloggerUsername = ""
+        richRebloggerUsername = nil
+
+        account = Account(postVM.post.author)
+        user = account.map { UserCardModel(account: $0) }
+
+        userTag = postVM.post.author.handle
+        fullUserTag = postVM.post.author.handle
+
+        profileURL = postVM.post.author.avatar.flatMap {
             URL(string: $0)
         }
-        
-        self.isLockedAccount = false
-        
-        self.postText = postVM.post.record.text
-        self.richPostText = nil
-        self.metaPostText = nil
-        
-        self.contentWarning = ""
-        self.isSensitive = false
 
-        self.containsPoll = false
-        self.poll = nil
-        
-        self.isAReply = false
-        
-        self.isReblogged = false
-        self.rebloggerID = nil
-        self.isHashtagged = false
-        
-        self.isPinned = false
-        self.isPrivateMention = false
-        
-        self.isOwn = postVM.isAuthorMe
+        isLockedAccount = false
 
-        self.mediaAttachments = postVM.images.map { Attachment(image: $0) }
-        self.hasMediaAttachment = !postVM.images.isEmpty
-        self.mediaDisplayType = .carousel
-        
-        self.hasLink = false
-        self.linkCard = nil
-        self.hideLinkImage = false
-        self.formattedCardUrlStr = nil
-        self.webview = nil
-        self.hasWebview = false
-        
-        self.visibility = ""
-        
-        self.hasQuotePost = postVM.quotedPost != nil
-        
-        self.quotePostStatus = {
+        postText = postVM.post.record.text
+        richPostText = nil
+        metaPostText = nil
+
+        contentWarning = ""
+        isSensitive = false
+
+        containsPoll = false
+        poll = nil
+
+        isAReply = false
+
+        isReblogged = false
+        rebloggerID = nil
+        isHashtagged = false
+
+        isPinned = false
+        isPrivateMention = false
+
+        isOwn = postVM.isAuthorMe
+
+        mediaAttachments = postVM.images.map { Attachment(image: $0) }
+        hasMediaAttachment = !postVM.images.isEmpty
+        mediaDisplayType = .carousel
+
+        hasLink = false
+        linkCard = nil
+        hideLinkImage = false
+        formattedCardUrlStr = nil
+        webview = nil
+        hasWebview = false
+
+        visibility = ""
+
+        hasQuotePost = postVM.quotedPost != nil
+
+        quotePostStatus = {
             guard let quotedPost = postVM.quotedPost
             else { return .disabled }
-            
+
             switch quotedPost {
             case .post: return .fetched
             case .notFound: return .notFound
             }
         }()
-        
-        self.quotePostData = { () -> PostCardModel? in
+
+        quotePostData = { () -> PostCardModel? in
             guard let quotedPost = postVM.quotedPost
             else { return nil }
-            
+
             switch quotedPost {
             case .notFound:
                 return nil
-                
-            case .post(let postValue):
+
+            case let .post(postValue):
                 let post = Model.Feed.PostView(
                     uri: postValue.viewRecord.uri,
                     cid: postValue.viewRecord.cid,
@@ -680,60 +679,63 @@ final class PostCardModel {
                     likeCount: nil,
                     replyCount: nil,
                     repostCount: nil,
-                    viewer: nil)
-                
+                    viewer: nil
+                )
+
                 let postVM = BlueskyPostViewModel(
                     post: post,
-                    myUserID: "")
-                
+                    myUserID: ""
+                )
+
                 return PostCardModel(blueskyPostVM: postVM)
             }
         }()
-        
-        self.quotePostCard = {
+
+        quotePostCard = {
             guard let quotedPost = postVM.quotedPost
             else { return nil }
-            
+
             switch quotedPost {
             case .post:
                 return Card(
                     url: nil,
                     title: "",
                     description: "",
-                    type: .link)
-                
+                    type: .link
+                )
+
             case .notFound:
                 return nil
             }
         }()
 
         // Status
-        self.statusSource = nil
-        self.filterType = .none
-        
-        self.isBlocked = false
-        self.isMuted = false
-        
-        self.mediaAttachmentDescription = ""
+        statusSource = nil
+        filterType = .none
+
+        isBlocked = false
+        isMuted = false
+
+        mediaAttachmentDescription = ""
     }
 
-    func copy(with zone: NSZone? = nil) -> PostCardModel {
+    func copy(with _: NSZone? = nil) -> PostCardModel {
         switch data {
-        case .mastodon(let status):
-            return PostCardModel(status: status, withStaticMetrics: staticMetrics, batchId: self.batchId, batchItemIndex: self.batchItemIndex)
-        case .bluesky(let postVM):
+        case let .mastodon(status):
+            return PostCardModel(status: status, withStaticMetrics: staticMetrics, batchId: batchId, batchItemIndex: batchItemIndex)
+        case let .bluesky(postVM):
             return PostCardModel(blueskyPostVM: postVM, uniqueID: uniqueId)
         }
     }
-    
+
     func withNewPoll(poll: Poll) -> PostCardModel {
-        let card = self.copy()
+        let card = copy()
         card.poll = poll
         return card
     }
-    
+
     func withNewQuotePost(status: Status?) -> PostCardModel {
-        let card = self.copy()
+        let card = copy()
         if let status = status {
             card.quotePostData = PostCardModel(status: status, withStaticMetrics: false)
             card.quotePostStatus = .fetched
@@ -741,96 +743,98 @@ final class PostCardModel {
             card.quotePostStatus = .notFound
             card.hasQuotePost = false
         }
-        
+
         return card
     }
-    
+
     func withNewUser(user: UserCardModel) -> PostCardModel {
-        let card = self.copy()
+        let card = copy()
         card.user = user
         card.account = user.account
         return card
     }
-    
+
     /// Only merge in parts of the original status we're interested in (metrics and applicationName)
     func mergeInOriginalData(status newStatus: Status) -> Self {
-        self.remoteData = .mastodon(newStatus)
+        remoteData = .mastodon(newStatus)
         return self
     }
 }
 
 // MARK: - Preload
+
 extension PostCardModel {
-    
     static func preload(postCards: [PostCardModel]) {
-        postCards.forEach({
-            $0.preloadQuotePost()
-        })
-        
+        for postCard in postCards {
+            postCard.preloadQuotePost()
+        }
+
         PostCardModel.imageDecodeQueue.async {
-            postCards.forEach({
-                $0.preloadImages()
-            })
+            for postCard in postCards {
+                postCard.preloadImages()
+            }
         }
     }
-    
+
     var preloadedImageURLs: [String] {
-        let firstImageAttached = self.mediaAttachments.compactMap({ attachment in
-            if [.image, .gifv, .video].contains(where: {$0 == attachment.type}),
-                let url = attachment.previewURL {
+        let firstImageAttached = mediaAttachments.compactMap { attachment in
+            if [.image, .gifv, .video].contains(where: { $0 == attachment.type }),
+               let url = attachment.previewURL
+            {
                 return url
             }
             return nil
-        }).first
-        
+        }.first
+
         return [
             // Prefetch the profile picture
-            self.user?.imageURL,
+            user?.imageURL,
             // Prefetch the first image attached
             firstImageAttached,
             // Prefetch the link card image
-            !self.hideLinkImage ? self.linkCard?.image?.absoluteString : nil
-        ].compactMap({$0})
+            !hideLinkImage ? linkCard?.image?.absoluteString : nil,
+        ].compactMap { $0 }
     }
 
     // Download, transform and cache post images
     func preloadPostImages() {
-        let firstImageAttached = self.mediaAttachments.compactMap({ attachment in
-            if [.image, .gifv, .video].contains(where: {$0 == attachment.type}),
-                let url = attachment.previewURL {
+        let firstImageAttached = mediaAttachments.compactMap { attachment in
+            if [.image, .gifv, .video].contains(where: { $0 == attachment.type }),
+               let url = attachment.previewURL
+            {
                 return url
             }
             return nil
-        }).first
-        
+        }.first
+
         if let firstImage = firstImageAttached,
            !SDImageCache.shared.diskImageDataExists(withKey: firstImage),
-           let imageURL = URL(string: firstImage) {
+           let imageURL = URL(string: firstImage)
+        {
+            let prefetcher = SDWebImagePrefetcher.shared
+            imagePrefetchToken = prefetcher.prefetchURLs([imageURL, !hideLinkImage ? linkCard?.image : nil].compactMap { $0 },
+                                                         options: .scaleDownLargeImages,
+                                                         context: [.imageTransformer: PostCardImage.transformer], progress: nil)
+        }
+    }
 
-            let prefetcher = SDWebImagePrefetcher.shared
-            self.imagePrefetchToken = prefetcher.prefetchURLs([imageURL, !self.hideLinkImage ? self.linkCard?.image : nil].compactMap({$0}),
-                                    options: .scaleDownLargeImages,
-                                    context: [.imageTransformer: PostCardImage.transformer], progress: nil)
-        }
-    }
-    
     func preloadEmojis() {
-        if let emojis = self.emojis, !emojis.isEmpty {
+        if let emojis = emojis, !emojis.isEmpty {
             let prefetcher = SDWebImagePrefetcher.shared
-            prefetcher.prefetchURLs(emojis.map({$0.url}), context: [.animatedImageClass: SDAnimatedImageView.self], progress: nil)
+            prefetcher.prefetchURLs(emojis.map { $0.url }, context: [.animatedImageClass: SDAnimatedImageView.self], progress: nil)
         }
     }
-    
+
     func preloadImages() {
-        self.user?.preloadImages()
-        self.preloadEmojis()
-        self.preloadPostImages()
+        user?.preloadImages()
+        preloadEmojis()
+        preloadPostImages()
     }
-    
+
     func preloadVideo() {
         if GlobalStruct.autoPlayVideos {
             // Don't attempt to preload videos that haven't finished processing. It would only have a previewURL that's just an image and won't be useful anyways
-            if self.videoPlayer == nil, let media = self.mediaAttachments.first, let mediaURLString = media.url, let videoURL = URL(string: mediaURLString) {
+            if videoPlayer == nil, let media = mediaAttachments.first, let mediaURLString = media.url, let videoURL = URL(string: mediaURLString) {
                 DispatchQueue.global(qos: .default).async {
                     let playerItem = AVPlayerItem(url: videoURL)
                     let player = AVPlayer(playerItem: playerItem)
@@ -842,101 +846,101 @@ extension PostCardModel {
             }
         }
     }
-    
+
     func preloadQuotePost() {
         guard case .mastodon = data,
-            self.hasQuotePost,
-            self.quotePostStatus != .fetched,
-            let quoteUrlStr = self.quotePostCard?.url,
-            let quoteUrl = URL(string: quoteUrlStr)
+              hasQuotePost,
+              quotePostStatus != .fetched,
+              let quoteUrlStr = quotePostCard?.url,
+              let quoteUrl = URL(string: quoteUrlStr)
         else { return }
-        
-        self.quotePreloadTask = Task {
-            StatusCache.shared.cacheStatusForURL(url: quoteUrl) { (url, status) in
+
+        quotePreloadTask = Task {
+            StatusCache.shared.cacheStatusForURL(url: quoteUrl) { _, status in
                 guard !Task.isCancelled else { return }
                 let newPostCard = self.withNewQuotePost(status: status)
-                    DispatchQueue.main.async {
-                        if newPostCard.quotePostStatus != self.quotePostStatus {
-                            if let _ = newPostCard.batchId {
-                                newPostCard.batchId! += " (EDITED)"
-                            }
-                            log.debug("preload quote post: \(newPostCard.uniqueId ?? "unknown")")
-                            
-                            self.quotePostStatus = newPostCard.quotePostStatus
-                            self.quotePostData = newPostCard.quotePostData
-                            
-                            // Consolidate list data with updated post card data and request a cell refresh
-                            NotificationCenter.default.post(name: PostActions.didUpdatePostCardNotification, object: nil, userInfo: ["postCard": newPostCard])
+                DispatchQueue.main.async {
+                    if newPostCard.quotePostStatus != self.quotePostStatus {
+                        if let _ = newPostCard.batchId {
+                            newPostCard.batchId! += " (EDITED)"
                         }
+                        log.debug("preload quote post: \(newPostCard.uniqueId ?? "unknown")")
+
+                        self.quotePostStatus = newPostCard.quotePostStatus
+                        self.quotePostData = newPostCard.quotePostData
+
+                        // Consolidate list data with updated post card data and request a cell refresh
+                        NotificationCenter.default.post(name: PostActions.didUpdatePostCardNotification, object: nil, userInfo: ["postCard": newPostCard])
+                    }
                 }
             }
         }
     }
-    
+
     func decodeBlurhashes() {
-        self.mediaAttachments.forEach({
-            if let blurhash = $0.blurhash {
+        for mediaAttachment in mediaAttachments {
+            if let blurhash = mediaAttachment.blurhash {
                 let blurImage = UnifiedImage(blurHash: blurhash, size: .init(width: 32, height: 32))
                 decodedBlurhashes[blurhash] = blurImage
             }
-        })
+        }
         // also blurhash link card image.
-        if let blurhash = self.linkCard?.blurhash {
+        if let blurhash = linkCard?.blurhash {
             let blurImage = UnifiedImage(blurHash: blurhash, size: .init(width: 32, height: 32))
             decodedBlurhashes[blurhash] = blurImage
         }
     }
-    
+
     func cancelAllPreloadTasks() {
-        self.videoPlayer?.pause()
-        self.videoPlayer = nil
-        self.imagePrefetchToken?.cancel()
-        self.user?.cancelAllPreloadTasks()
-        if let task = self.quotePreloadTask, !task.isCancelled {
+        videoPlayer?.pause()
+        videoPlayer = nil
+        imagePrefetchToken?.cancel()
+        user?.cancelAllPreloadTasks()
+        if let task = quotePreloadTask, !task.isCancelled {
             task.cancel()
         }
     }
-    
+
     func clearCache() {
-        self.cancelAllPreloadTasks()
-        self.preloadedImageURLs.forEach({
-            SDImageCache.shared.removeImageFromMemory(forKey: $0)
-        })
-        
-        self.decodedImages = [:]
-        self.user?.clearCache()
+        cancelAllPreloadTasks()
+        for preloadedImageURL in preloadedImageURLs {
+            SDImageCache.shared.removeImageFromMemory(forKey: preloadedImageURL)
+        }
+
+        decodedImages = [:]
+        user?.clearCache()
     }
 }
 
 // MARK: - Formatters
+
 extension PostCardModel {
-    
-    public func likeTap() -> Void {
-        guard case .mastodon(let status) = remoteData ?? data, (status.reblog?.favourited ?? status.favourited ?? false) == false else { return }
+    func likeTap() {
+        guard case let .mastodon(status) = remoteData ?? data, (status.reblog?.favourited ?? status.favourited ?? false) == false else { return }
         (status.reblog ?? status).likeTap()
     }
-    
-    public func unlikeTap() -> Void {
-        guard case .mastodon(let status) = remoteData ?? data, (status.reblog?.favourited ?? status.favourited ?? false) == true else { return }
+
+    func unlikeTap() {
+        guard case let .mastodon(status) = remoteData ?? data, (status.reblog?.favourited ?? status.favourited ?? false) == true else { return }
         (status.reblog ?? status).unlikeTap()
     }
-    
-    public func repostTap() -> Void {
-        guard case .mastodon(let status) = remoteData ?? data, (status.reblog?.reblogged ?? status.reblogged ?? false) == false else { return }
+
+    func repostTap() {
+        guard case let .mastodon(status) = remoteData ?? data, (status.reblog?.reblogged ?? status.reblogged ?? false) == false else { return }
         (status.reblog ?? status).repostTap()
     }
-    
-    public func unrepostTap() -> Void {
-        guard case .mastodon(let status) = remoteData ?? data, (status.reblog?.reblogged ?? status.reblogged ?? false) == true else { return }
+
+    func unrepostTap() {
+        guard case let .mastodon(status) = remoteData ?? data, (status.reblog?.reblogged ?? status.reblogged ?? false) == true else { return }
         (status.reblog ?? status).unrepostTap()
     }
-    
+
     static func formattedLikeCount(status: Status, withStaticMetrics staticMetrics: Bool = false) -> String {
         let hasLocal = StatusCache.shared.hasLocalMetric(metricType: .like, forStatusId: status.uniqueId)
         let localCount = hasLocal != nil ? hasLocal! ? 1 : 0 : 0
         let isFavorited = status.reblog?.favourited ?? status.favourited
         let onlineCount = status.reblog?.favouritesCount ?? status.favouritesCount
-        
+
         // Add 1 to the count:
         //  - when we know the post has static metrics (For You feed) and we know locally the post has been liked
         //  - when we know locally the post has been liked but it's not yet reflected online (optimistic updates)
@@ -951,10 +955,10 @@ extension PostCardModel {
         if (isFavorited ?? false) == true && onlineCount == 0 {
             return max(onlineCount + 1, 0).formatUsingAbbrevation()
         }
-        
+
         return max(onlineCount, 0).formatUsingAbbrevation()
     }
-    
+
     static func formattedRepostCount(status: Status, withStaticMetrics staticMetrics: Bool = false) -> String {
         let hasLocal = StatusCache.shared.hasLocalMetric(metricType: .repost, forStatusId: status.uniqueId)
         let localCount = hasLocal != nil ? hasLocal! ? 1 : 0 : 0
@@ -974,10 +978,10 @@ extension PostCardModel {
         if (isReblogged ?? false) == true && onlineCount == 0 {
             return max(onlineCount + 1, 0).formatUsingAbbrevation()
         }
-        
+
         return max(onlineCount, 0).formatUsingAbbrevation()
     }
-    
+
     static func formattedUsername(status: Status, reblogger: Bool = false) -> String {
         var username = ""
         if reblogger {
@@ -987,54 +991,54 @@ extension PostCardModel {
         } else {
             if let reblog = status.reblog, let account = reblog.account {
                 username = !account.displayName.isEmpty ? account.displayName : account.username
-            } else  if let account = status.account {
+            } else if let account = status.account {
                 username = !account.displayName.isEmpty ? account.displayName : account.username
             }
         }
-        
-        return self.formattedUsername(username: username)
+
+        return formattedUsername(username: username)
     }
-    
+
     static func formattedUsername(username: String) -> String {
         return username
     }
-    
+
     static func formattedTime(status: Status, formatter: DateFormatter) -> String {
         let createdAt = (status.reblog?.createdAt ?? status.createdAt)
         var timeStr = formatter.date(from: createdAt)?.toStringWithRelativeTime() ?? ""
 
         if GlobalStruct.originalPostTimeStamp == false {
-           let createdAt = status.createdAt
-           timeStr = formatter.date(from: createdAt)?.toStringWithRelativeTime() ?? ""
+            let createdAt = status.createdAt
+            timeStr = formatter.date(from: createdAt)?.toStringWithRelativeTime() ?? ""
         }
 
         if GlobalStruct.timeStampStyle == 1 {
-           let createdAt = (status.reblog?.createdAt ?? status.createdAt)
-           timeStr = formatter.date(from: createdAt)?.toString(dateStyle: .short, timeStyle: .short) ?? ""
-           if GlobalStruct.originalPostTimeStamp == false {
-               let createdAt = (status.createdAt)
-               timeStr = formatter.date(from: createdAt)?.toString(dateStyle: .short, timeStyle: .short) ?? ""
-           }
-           
+            let createdAt = (status.reblog?.createdAt ?? status.createdAt)
+            timeStr = formatter.date(from: createdAt)?.toString(dateStyle: .short, timeStyle: .short) ?? ""
+            if GlobalStruct.originalPostTimeStamp == false {
+                let createdAt = (status.createdAt)
+                timeStr = formatter.date(from: createdAt)?.toString(dateStyle: .short, timeStyle: .short) ?? ""
+            }
+
         } else if GlobalStruct.timeStampStyle == 2 {
-           timeStr = ""
+            timeStr = ""
         }
 
         return timeStr
     }
-    
+
     static func formattedProfileURL(status: Status) -> URL? {
-        return self.formattedProfileURL(urlString: status.reblog?.account?.avatarStatic ?? status.account?.avatarStatic ?? "")
+        return formattedProfileURL(urlString: status.reblog?.account?.avatarStatic ?? status.account?.avatarStatic ?? "")
     }
-    
+
     static func formattedProfileURL(urlString: String) -> URL? {
         if let profileURL = URL(string: urlString) {
             return profileURL
         }
-        
+
         return nil
     }
-    
+
     // Strips out HTML, including links, and returns the plain text of the post
     static func formattedPostText(status: Status) -> String {
         var text = (status.reblog?.content ?? status.content)
@@ -1045,27 +1049,27 @@ extension PostCardModel {
             let range = NSMakeRange(0, text.count)
             text = regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: "")
         }
-        
+
         if let url = status.reblog?.card?.url ?? status.card?.url {
             // Remove link card url from text
             do {
                 let regex = try NSRegularExpression(pattern: "<a[^>]*href=\"\(url)\"[^>]*>(?!.*<a[^>]*href=\"\(url)\"[^>]*>).*?</a>", options: .caseInsensitive)
                 let range = NSMakeRange(0, text.count)
                 text = regex.stringByReplacingMatches(in: text, options: [], range: range, withTemplate: "")
-            } catch let error {
+            } catch {
                 log.error("PostCardModel: Unable to remove link from post text: \(error)")
             }
         }
-        
+
         // If a quote post link is removed we end up with an empty <p> tag. Remove that tag.
         text = text.replacingOccurrences(of: "<p></p>", with: "", options: NSString.CompareOptions.regularExpression, range: nil)
-        
+
         // If a post text ends with a final line break, remove it
         text = text.replacingOccurrences(of: "<br></p>", with: "</p>", options: NSString.CompareOptions.regularExpression, range: nil)
-        
+
         return text
     }
-    
+
     static func isAReply(status: Status) -> Bool {
         if status.reblog?.inReplyToID ?? status.inReplyToID != nil {
             return true
@@ -1079,25 +1083,25 @@ extension PostCardModel {
     static func normalizeUsertag(_ postCard: PostCardModel) {
         let userInstance = AccountsManager.shared.currentAccountClient.baseHost
         // two occasions: we need the instance name and don't have it, and we don't need it and have it.
-        
+
         // separate the usertag from the instance.
         let separatedUsertag = postCard.userTag.split(separator: "@")
         // check if there's a domain name attached.
         let usertagHasInstance = separatedUsertag.count > 1
         // post is from our instance + post has domain name = remove it.
-        if let newUsertag = separatedUsertag.first, usertagHasInstance && postCard.account?.server == userInstance {
+        if let newUsertag = separatedUsertag.first, usertagHasInstance, postCard.account?.server == userInstance {
             postCard.normalizedUserTag = String(newUsertag)
         }
         // post is not from our instance + post is missing domain name = add it.
-        if let postInstance = postCard.account?.server, !usertagHasInstance && postInstance != userInstance {
+        if let postInstance = postCard.account?.server, !usertagHasInstance, postInstance != userInstance {
             postCard.normalizedUserTag = postCard.userTag + "@" + postInstance
         }
-        
+
         // when fetching the replies remotely, the mentions won't include the full address for users in that instance.
         // so when the user tries replying, the mention will go to a local user with the same handle.
         // the solution here is always adding the instance to a mention.
         switch postCard.data {
-        case .mastodon(let status):
+        case let .mastodon(status):
             for mention in status.mentions {
                 if mention.acct == mention.username {
                     if let instance = URL(string: mention.url)?.host {
@@ -1120,15 +1124,15 @@ extension PostCardModel: Hashable {
 extension PostCardModel: Equatable {
     static func == (lhs: PostCardModel, rhs: PostCardModel) -> Bool {
         return lhs.uniqueId == rhs.uniqueId &&
-        lhs.quotePostStatus == rhs.quotePostStatus &&
-        lhs.poll?.voted == rhs.poll?.voted &&
-        lhs.postText == rhs.postText &&
-        lhs.mediaAttachments.count == rhs.mediaAttachments.count &&
-        lhs.isLiked == rhs.isLiked &&
-        lhs.likeCount == rhs.likeCount &&
-        lhs.replyCount == rhs.replyCount &&
-        lhs.repostCount == rhs.repostCount &&
-        lhs.applicationName == rhs.applicationName &&
-        lhs.user?.followStatus == rhs.user?.followStatus
+            lhs.quotePostStatus == rhs.quotePostStatus &&
+            lhs.poll?.voted == rhs.poll?.voted &&
+            lhs.postText == rhs.postText &&
+            lhs.mediaAttachments.count == rhs.mediaAttachments.count &&
+            lhs.isLiked == rhs.isLiked &&
+            lhs.likeCount == rhs.likeCount &&
+            lhs.replyCount == rhs.replyCount &&
+            lhs.repostCount == rhs.repostCount &&
+            lhs.applicationName == rhs.applicationName &&
+            lhs.user?.followStatus == rhs.user?.followStatus
     }
 }

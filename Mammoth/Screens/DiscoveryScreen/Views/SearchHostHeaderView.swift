@@ -9,7 +9,6 @@
 import UIKit
 
 class SearchHostHeaderView: UIView {
-
     private let mainStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -20,30 +19,30 @@ class SearchHostHeaderView: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     lazy var carousel: Carousel = {
         let carousel = Carousel(withContextButton: false)
         return carousel
     }()
-    
-    lazy var searchBar: UISearchBar = {
-        return UISearchBar()
-    }()
+
+    lazy var searchBar: UISearchBar = .init()
 
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupUI()
+        setupUI()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
 // MARK: - Setup UI
+
 private extension SearchHostHeaderView {
     func setupUI() {
-        self.backgroundColor = .clear
+        backgroundColor = .clear
 
         searchBar.placeholder = NSLocalizedString("discover.search", comment: "")
         searchBar.searchBarStyle = .minimal
@@ -51,29 +50,27 @@ private extension SearchHostHeaderView {
         mainStackView.addArrangedSubview(searchBar)
         mainStackView.addArrangedSubview(carousel)
 
-        self.addSubview(mainStackView)
-        
+        addSubview(mainStackView)
+
         NSLayoutConstraint.activate([
-            mainStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            mainStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            mainStackView.topAnchor.constraint(equalTo: self.topAnchor),
-            mainStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            
+            mainStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mainStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            mainStackView.topAnchor.constraint(equalTo: topAnchor),
+            mainStackView.bottomAnchor.constraint(equalTo: bottomAnchor),
+
             searchBar.leadingAnchor.constraint(equalTo: mainStackView.leadingAnchor),
             searchBar.trailingAnchor.constraint(equalTo: mainStackView.trailingAnchor),
             searchBar.heightAnchor.constraint(equalToConstant: 50),
 
             carousel.leadingAnchor.constraint(equalTo: mainStackView.leadingAnchor, constant: 16),
-            carousel.trailingAnchor.constraint(equalTo: mainStackView.trailingAnchor, constant:  -16),
+            carousel.trailingAnchor.constraint(equalTo: mainStackView.trailingAnchor, constant: -16),
             carousel.heightAnchor.constraint(equalToConstant: 30),
         ])
     }
 }
 
 extension SearchHostHeaderView {
-    
     func hideCarousel(_ hideCarousel: Bool) {
         carousel.isHidden = hideCarousel
     }
-    
 }

@@ -9,12 +9,11 @@
 import Foundation
 
 class HashtagsViewModel {
-            
     weak var delegate: RequestDelegate?
 
     private var state: ViewState {
         didSet {
-            self.delegate?.didUpdate(with: state)
+            delegate?.didUpdate(with: state)
         }
     }
 
@@ -25,23 +24,22 @@ class HashtagsViewModel {
     // list data. Otherwise, expect to do searches on the
     // user's instance for matching hashtags.
     init(allHashtags: [Tag]? = nil) {
-
         if allHashtags != nil {
-            self.showingStaticList = true
-            self.listData = allHashtags!
-            self.state = .success
+            showingStaticList = true
+            listData = allHashtags!
+            state = .success
         } else {
-            self.showingStaticList = false
-            self.listData = []
-            self.state = .idle
+            showingStaticList = false
+            listData = []
+            state = .idle
         }
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.didSwitchAccount),
+                                               selector: #selector(didSwitchAccount),
                                                name: didSwitchCurrentAccountNotification,
                                                object: nil)
-                                
-        NotificationCenter.default.addObserver(self, selector: #selector(self.hashtagStatusDidChange), name: didChangeHashtagsNotification, object: nil)
+
+        NotificationCenter.default.addObserver(self, selector: #selector(hashtagStatusDidChange), name: didChangeHashtagsNotification, object: nil)
     }
 
     deinit {
@@ -50,16 +48,17 @@ class HashtagsViewModel {
 }
 
 // MARK: - DataSource
+
 extension HashtagsViewModel {
-    func numberOfItems(forSection section: Int) -> Int {
+    func numberOfItems(forSection _: Int) -> Int {
         return listData.count
     }
-    
+
     var numberOfSections: Int {
         return 1
     }
-    
-    func hasHeader(forSection sectionIndex: Int) -> Bool {
+
+    func hasHeader(forSection _: Int) -> Bool {
         return false
     }
 
@@ -67,32 +66,30 @@ extension HashtagsViewModel {
         guard listData.count != 0 else {
             return nil
         }
-        let hashtag = self.listData[indexPath.row]
+        let hashtag = listData[indexPath.row]
         let hashtagStatus = HashtagManager.shared.statusForHashtag(hashtag)
         let subscribed = (hashtagStatus == .following || hashtagStatus == .followRequested)
         return (hashtag, subscribed)
     }
-    
-    func getSectionTitle(for sectionIndex: Int) -> String {
+
+    func getSectionTitle(for _: Int) -> String {
         return ""
     }
-
-    
 }
 
 // MARK: - Search
+
 extension HashtagsViewModel {
-    
     func search(query: String, fullSearch: Bool = false) {
         if fullSearch {
-            self.searchAll(query: query)
+            searchAll(query: query)
         }
     }
-    
+
     // Actually do the searching/filtering here
     func searchAll(query: String) {
-        self.listData = []
-        self.state = .loading
+        listData = []
+        state = .loading
         Task {
             let searchResults = try await SearchService.searchTags(query: query)
             DispatchQueue.main.async {
@@ -102,21 +99,18 @@ extension HashtagsViewModel {
         }
     }
 
-    
-    func cancelSearch() {
-    }
-
+    func cancelSearch() {}
 }
 
 // MARK: - Notification handlers
+
 private extension HashtagsViewModel {
-    
-    @objc func hashtagStatusDidChange(notification: Notification) {
+    @objc func hashtagStatusDidChange(notification _: Notification) {
         DispatchQueue.main.async {
             self.delegate?.didUpdate(with: self.state)
         }
     }
-        
+
     @objc func didSwitchAccount() {
         DispatchQueue.main.async {
             if !self.showingStaticList {
@@ -125,5 +119,4 @@ private extension HashtagsViewModel {
             }
         }
     }
-    
 }

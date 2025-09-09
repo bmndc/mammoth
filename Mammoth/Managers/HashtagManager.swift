@@ -11,29 +11,26 @@ import Foundation
 public let didChangeHashtagsNotification = Notification.Name("didChangeHashtagsNotification")
 
 class HashtagManager {
-    
     static let shared = HashtagManager()
-    
+
     enum HashtagStatus: String {
-        case notFollowing           // default (not following)
-        case followRequested        // asked to follow
-        case following              // am following
-        case unfollowRequested      // asked to unfollow
+        case notFollowing // default (not following)
+        case followRequested // asked to follow
+        case following // am following
+        case unfollowRequested // asked to unfollow
     }
 
     private var hashtags: [Tag] = []
     private var requestedFollow: [String] = []
     private var requestedUnfollow: [String] = []
 
-    
-    public init() {
+    init() {
         // Listen to accout switch, and update the list of hashtags accordingly
-        NotificationCenter.default.addObserver(self, selector: #selector(self.didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
-        
-        self.initializeList(forceNetworkUpdate: true)
+        NotificationCenter.default.addObserver(self, selector: #selector(didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
+
+        initializeList(forceNetworkUpdate: true)
     }
-    
-    
+
     // This will either load from storage, or kick off a network
     // reqeust as approprate.
     private func initializeList(forceNetworkUpdate: Bool = false) {
@@ -49,12 +46,11 @@ class HashtagManager {
 
         // If the list was empty from disk, or a new account, or at launch, make a network request
         if hashtags.isEmpty || forceNetworkUpdate {
-            self.fetchFollowingTags()
+            fetchFollowingTags()
         }
     }
-    
-    
-    public func clearCache() {
+
+    func clearCache() {
         let currentUserFullAcct: String = AccountsManager.shared.currentUser()?.fullAcct ?? ""
         if !currentUserFullAcct.isEmpty {
             do {
@@ -66,15 +62,14 @@ class HashtagManager {
         initializeList()
     }
 
-    
     @objc func didSwitchAccount() {
-        self.setHashtags(newHashtags: [])
-        self.requestedFollow = []
-        self.requestedUnfollow = []
-        self.initializeList()
+        setHashtags(newHashtags: [])
+        requestedFollow = []
+        requestedUnfollow = []
+        initializeList()
     }
 
-    public func statusForHashtag(_ hashtag: Tag) -> HashtagStatus {
+    func statusForHashtag(_ hashtag: Tag) -> HashtagStatus {
         if requestedFollow.contains(hashtag.name) {
             return .followRequested
         }
@@ -86,18 +81,17 @@ class HashtagManager {
         }
         return .notFollowing
     }
-    
-    public func allHashtags() -> [Tag] {
+
+    func allHashtags() -> [Tag] {
         return hashtags
     }
 
-    
     // hashtag - without the preceeding #
-    public func followHashtag(_ hashtag: String, completion: @escaping ((_ success: Bool) -> Void)) {
+    func followHashtag(_ hashtag: String, completion: @escaping ((_ success: Bool) -> Void)) {
         requestedFollow.append(hashtag)
         NotificationCenter.default.post(name: didChangeHashtagsNotification, object: self, userInfo: nil)
         let request = TrendingTags.follow(id: "\(hashtag.lowercased())")
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let indexOfRequestedUpdate = self.requestedFollow.firstIndex(of: hashtag) {
                 self.requestedFollow.remove(at: indexOfRequestedUpdate)
             }
@@ -118,13 +112,12 @@ class HashtagManager {
         }
     }
 
-    
     // hashtag - without the preceeding #
-    public func unfollowHashtag(_ hashtag: String, completion: @escaping ((_ success: Bool) -> Void)) {
+    func unfollowHashtag(_ hashtag: String, completion: @escaping ((_ success: Bool) -> Void)) {
         requestedUnfollow.append(hashtag)
         NotificationCenter.default.post(name: didChangeHashtagsNotification, object: self, userInfo: nil)
         let request = TrendingTags.unfollow(id: "\(hashtag.lowercased())")
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let indexOfRequestedUpdate = self.requestedUnfollow.firstIndex(of: hashtag) {
                 self.requestedUnfollow.remove(at: indexOfRequestedUpdate)
             }
@@ -145,19 +138,18 @@ class HashtagManager {
         }
     }
 
-    
     // Update our list of all followed hashtags
-    public func fetchFollowingTags(retryCount: Int = 10) {
+    func fetchFollowingTags(retryCount: Int = 10) {
         guard AccountsManager.shared.currentAccount != nil else {
             return
         }
         let request = TrendingTags.followedTags()
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("error getting hashtags; will retry; error: \(error)")
                 if retryCount > 0 {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        self.fetchFollowingTags(retryCount: retryCount-1)
+                        self.fetchFollowingTags(retryCount: retryCount - 1)
                     }
                 }
             }
@@ -168,10 +160,9 @@ class HashtagManager {
             }
         }
     }
-    
-    
+
     private func setHashtags(newHashtags: [Tag]) {
-        self.hashtags = newHashtags
+        hashtags = newHashtags
         let currentUserFullAcct: String = AccountsManager.shared.currentUser()?.fullAcct ?? ""
         if !currentUserFullAcct.isEmpty {
             do {
@@ -182,5 +173,4 @@ class HashtagManager {
         }
         NotificationCenter.default.post(name: didChangeHashtagsNotification, object: self, userInfo: nil)
     }
-
 }

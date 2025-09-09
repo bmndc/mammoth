@@ -25,29 +25,27 @@ extension AcctHandler {
         let folderToDelete = acctData.diskFolderName()
         do {
             try Disk.remove(folderToDelete, from: .documents)
-        } catch let error {
+        } catch {
             log.error("error deleting folder from Documents: \(folderToDelete) - \(error)")
         }
         do {
             try Disk.remove(folderToDelete, from: .caches)
-        } catch let error {
+        } catch {
             log.error("error deleting folder from Caches: \(folderToDelete) - \(error)")
         }
     }
 }
 
 class MastodonAcctHandler: AcctHandler {
-
     // Do whatever is necessary to sign in to an existing account
     static func addExistingAccount(instanceData: InstanceData, client: Client, completion: @MainActor @escaping (_ error: Error?, _ acct: (any AcctDataType)?) -> Void) {
-
         // Log in to new instance
         var request = URLRequest(url: URL(string: "https://\(instanceData.returnedText)/oauth/token?grant_type=authorization_code&code=\(instanceData.authCode)&redirect_uri=\(instanceData.redirect)&client_id=\(instanceData.clientID)&client_secret=\(instanceData.clientSecret)&scope=read%20write%20follow%20push")!)
         request.httpMethod = "POST"
         request.addValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        
-        let task = URLSession.shared.dataTask(with: request as URLRequest, completionHandler: { data, response, error in
+
+        let task = URLSession.shared.dataTask(with: request as URLRequest, completionHandler: { data, _, error in
             guard error == nil, let data = data else {
                 log.error("Error logging into new instance: \(error!)")
                 DispatchQueue.main.async {
@@ -55,7 +53,7 @@ class MastodonAcctHandler: AcctHandler {
                 }
                 return
             }
-            
+
             do {
                 if let json = try JSONSerialization.jsonObject(with: data, options: .mutableContainers) as? [String: Any] {
                     if let accessToken = (json["access_token"] as? String) {
@@ -64,11 +62,11 @@ class MastodonAcctHandler: AcctHandler {
                         // Verify credentials
                         client.accessToken = accessToken
                         let request = Accounts.currentUser()
-                        client.run(request) { (statuses) in
+                        client.run(request) { statuses in
                             if let account = statuses.value {
                                 // Make sure this account isn't already logged into
                                 let newFullAcct = account.fullAcct
-                                if AccountsManager.shared.allAccounts.contains(where: { $0.fullAcct == newFullAcct} ) {
+                                if AccountsManager.shared.allAccounts.contains(where: { $0.fullAcct == newFullAcct }) {
                                     let error = NSError(domain: "Already logged into this account", code: 401)
                                     log.error("\(error)")
                                     DispatchQueue.main.async {
@@ -102,7 +100,7 @@ class MastodonAcctHandler: AcctHandler {
                         completion(error, nil)
                     }
                 }
-            } catch let error {
+            } catch {
                 log.error("catch - error logging into new instance: \(error)")
                 DispatchQueue.main.async {
                     completion(error, nil)
@@ -111,12 +109,12 @@ class MastodonAcctHandler: AcctHandler {
         })
         task.resume()
     }
-    
+
     // Do whatever is necessary to create a new account
     static func addNewAccount(instanceData: InstanceData, client: Client, completion: @MainActor @escaping (_ error: Error?, _ acct: (any AcctDataType)?) -> Void) {
         // Verify credentials
         let request = Accounts.currentUser()
-        client.run(request) { (statuses) in
+        client.run(request) { statuses in
             if let error = statuses.error {
                 log.error("\(error)")
                 DispatchQueue.main.async {
@@ -131,7 +129,7 @@ class MastodonAcctHandler: AcctHandler {
             }
         }
     }
-    
+
     static func becomeCurrent(acctData: any AcctDataType, completion: @escaping (_ error: Error?) -> Void) {
         guard (acctData as? MastodonAcctData) != nil else {
             log.error("expected acctData to be MastodonAcctData")
@@ -141,7 +139,7 @@ class MastodonAcctHandler: AcctHandler {
         }
         completion(nil)
     }
-    
+
     static func setDisplayName(_ displayName: String, for acctData: any AcctDataType) async -> any AcctDataType {
         do {
             guard let mastodonAcct = acctData as? MastodonAcctData else {
@@ -157,7 +155,7 @@ class MastodonAcctHandler: AcctHandler {
                 log.error("account ID changed while setting avatar")
                 return acctData
             }
-        } catch let error {
+        } catch {
             log.error("setAvatar error: \(error)")
             return acctData
         }
@@ -178,12 +176,12 @@ class MastodonAcctHandler: AcctHandler {
                 log.error("account ID changed while setting avatar")
                 return acctData
             }
-        } catch let error {
+        } catch {
             log.error("setAvatar error: \(error)")
             return acctData
         }
     }
-    
+
     static func setHeader(_ header: UIImage, for acctData: any AcctDataType) async -> any AcctDataType {
         do {
             guard let mastodonAcct = acctData as? MastodonAcctData else {
@@ -199,14 +197,13 @@ class MastodonAcctHandler: AcctHandler {
                 log.error("account ID changed while setting header")
                 return acctData
             }
-        } catch let error {
+        } catch {
             log.error("setHeader error: \(error)")
             return acctData
         }
     }
 
     static func updateAccountFromNetwork(acctData: any AcctDataType) async -> any AcctDataType {
-        
         guard let mastodonAcct = acctData as? MastodonAcctData else {
             log.error("wrong acct type")
             return acctData
@@ -215,15 +212,15 @@ class MastodonAcctHandler: AcctHandler {
         async let getCurrentUser = AccountService.currentUser()
         async let getServerConstants = InstanceService.serverConstants()
         async let getCustomEmojis = InstanceService.customEmojis()
-        
+
         // Block on getting all results
         do {
             let results = try await [
                 getCurrentUser as Any,
                 getServerConstants,
-                getCustomEmojis
+                getCustomEmojis,
             ] as [Any]
-            
+
             let updatedUser = results[0] as? Account ?? mastodonAcct.account
             let updatedConstants = results[1] as? serverConstants
             let updatedEmojis = results[2] as? [Emoji] ?? []
@@ -232,9 +229,9 @@ class MastodonAcctHandler: AcctHandler {
             if updatedConstants?.defaultVisibility != nil {
                 postVisiblity = Visibility(rawValue: updatedConstants!.defaultVisibility!) ?? .public
             }
-            
+
             let postingLanguage: String? = updatedConstants?.defaultPostingLanguage
-            
+
             let updatedMastAcct = MastodonAcctData(account: updatedUser, instanceData: mastodonAcct.instanceData, client: mastodonAcct.client, defaultPostVisibility: postVisiblity, defaultPostingLanguage: postingLanguage, emoticons: updatedEmojis, forYou: mastodonAcct.forYou, uniqueID: mastodonAcct.uniqueID)
             AccountsManager.shared.updateAccount(updatedMastAcct)
             return updatedMastAcct
@@ -243,7 +240,7 @@ class MastodonAcctHandler: AcctHandler {
             return mastodonAcct
         }
     }
-    
+
     static func updateForYouFromNetwork(acctData: any AcctDataType) async -> any AcctDataType {
         guard let mastodonAcct = acctData as? MastodonAcctData else {
             log.error("wrong acct type")
@@ -262,7 +259,6 @@ class MastodonAcctHandler: AcctHandler {
         }
     }
 
-    
     static func setForYouType(acctData: any AcctDataType, forYouInfo: ForYouType) async -> (any AcctDataType)? {
         guard let mastodonAcct = acctData as? MastodonAcctData else {
             log.error("wrong acct type")
@@ -280,7 +276,6 @@ class MastodonAcctHandler: AcctHandler {
         }
     }
 
-
     static func notifyAboutAccountUpdates(oldAcctData: any AcctDataType, newAcctData: any AcctDataType) {
         guard let oldAcctData = oldAcctData as? MastodonAcctData else {
             log.error("wrong acct type: old")
@@ -293,38 +288,38 @@ class MastodonAcctHandler: AcctHandler {
 
         // Check and see what might have changed
         if oldAcctData.avatar != newAcctData.avatar {
-            NotificationCenter.default.post(name: didUpdateAccountAvatar, object: self, userInfo: ["account":newAcctData])
+            NotificationCenter.default.post(name: didUpdateAccountAvatar, object: self, userInfo: ["account": newAcctData])
         }
         if oldAcctData.account.header != newAcctData.account.header {
-            NotificationCenter.default.post(name: didUpdateAccountHeader, object: self, userInfo: ["account":newAcctData])
+            NotificationCenter.default.post(name: didUpdateAccountHeader, object: self, userInfo: ["account": newAcctData])
         }
         if oldAcctData.forYou != newAcctData.forYou {
-            NotificationCenter.default.post(name: didUpdateAccountForYou, object: self, userInfo: ["account":newAcctData])
+            NotificationCenter.default.post(name: didUpdateAccountForYou, object: self, userInfo: ["account": newAcctData])
         }
     }
-
 }
 
 class BlueskyAcctHandler: AcctHandler {
-        
     static func addExistingAccount(authResponse: BlueskyAPI.AuthResponse) async throws -> BlueskyAcctData {
         let tokenSet = BlueskyAPI.TokenSet(
             accessToken: authResponse.accessJwt,
-            refreshToken: authResponse.refreshJwt)
-        
+            refreshToken: authResponse.refreshJwt
+        )
+
         let api = BlueskyAPI(tokenSet: tokenSet)
-        
+
         let userID = authResponse.did
-        
+
         let user = try await api.getUserProfile(id: userID)
         let displayName = user.displayName ?? user.handle
-            
+
         return BlueskyAcctData(
             userID: userID,
             handle: user.handle,
             displayName: displayName,
             avatar: user.avatar ?? "",
-            tokenSet: tokenSet)
+            tokenSet: tokenSet
+        )
     }
 
     static func becomeCurrent(acctData: any AcctDataType, completion: @escaping (_ error: Error?) -> Void) {
@@ -336,33 +331,33 @@ class BlueskyAcctHandler: AcctHandler {
         }
         completion(nil)
     }
-    
-    static func setDisplayName(_ displayName: String, for acctData: any AcctDataType) async -> any AcctDataType {
+
+    static func setDisplayName(_: String, for acctData: any AcctDataType) async -> any AcctDataType {
         log.error(#function + " missing for Bluesky")
         return acctData
     }
-    
-    static func setAvatar(_ avatar: UIImage, for acctData: any AcctDataType) async -> any AcctDataType {
+
+    static func setAvatar(_: UIImage, for acctData: any AcctDataType) async -> any AcctDataType {
         log.error(#function + " missing for Bluesky")
         return acctData
     }
-    
-    static func setHeader(_ header: UIImage, for acctData: any AcctDataType) async -> any AcctDataType {
+
+    static func setHeader(_: UIImage, for acctData: any AcctDataType) async -> any AcctDataType {
         log.error(#function + " missing for Bluesky")
         return acctData
     }
-    
+
     static func updateAccountFromNetwork(acctData: any AcctDataType) async -> any AcctDataType {
         log.error(#function + " missing for Bluesky")
         return acctData
     }
-    
+
     static func updateForYouFromNetwork(acctData: any AcctDataType) async -> any AcctDataType {
         log.error(#function + " missing for Bluesky")
         return acctData
     }
-    
-    static func setForYouType(acctData: any AcctDataType, forYouInfo: ForYouType) async -> (any AcctDataType)? {
+
+    static func setForYouType(acctData: any AcctDataType, forYouInfo _: ForYouType) async -> (any AcctDataType)? {
         log.error(#function + " missing for Bluesky")
         return acctData
     }
@@ -377,6 +372,4 @@ class BlueskyAcctHandler: AcctHandler {
             return
         }
     }
-
-
 }

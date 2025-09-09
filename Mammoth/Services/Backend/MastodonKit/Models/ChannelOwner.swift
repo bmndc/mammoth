@@ -19,10 +19,10 @@ public class ChannelOwner: Codable {
     public let displayName: String
 
     init() {
-        self.username = ""
-        self.domain = ""
-        self.acct = ""
-        self.displayName = ""
+        username = ""
+        domain = ""
+        acct = ""
+        displayName = ""
     }
 
     init(username: String, domain: String, acct: String, displayName: String) {
@@ -31,7 +31,7 @@ public class ChannelOwner: Codable {
         self.acct = acct
         self.displayName = displayName
     }
-    
+
     private enum CodingKeys: String, CodingKey {
         case username
         case domain
@@ -41,10 +41,10 @@ public class ChannelOwner: Codable {
 }
 
 extension ChannelOwner: Equatable {
-    static public func ==(lhs: ChannelOwner, rhs: ChannelOwner) -> Bool {
-       return lhs.username == rhs.username &&
-        lhs.domain == rhs.domain &&
-        lhs.acct == rhs.acct &&
-        lhs.displayName == rhs.displayName
+    public static func == (lhs: ChannelOwner, rhs: ChannelOwner) -> Bool {
+        return lhs.username == rhs.username &&
+            lhs.domain == rhs.domain &&
+            lhs.acct == rhs.acct &&
+            lhs.displayName == rhs.displayName
     }
 }

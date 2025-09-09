@@ -14,70 +14,74 @@ protocol ProfileSectionHeaderDelegate: AnyObject {
 
 class ProfileSectionHeader: UITableViewHeaderFooterView {
     static let reuseIdentifier = "ProfileSectionHeader"
-    
+
     var hasSubscription: Bool?
-    
+
     private var segmentedControl = UISegmentedControl(items: [
         ProfileViewModel.ViewTypes.posts.labelText(),
-        ProfileViewModel.ViewTypes.postsAndReplies.labelText()
+        ProfileViewModel.ViewTypes.postsAndReplies.labelText(),
     ])
     weak var delegate: ProfileSectionHeaderDelegate?
-    
+
     override init(reuseIdentifier: String?) {
         super.init(reuseIdentifier: reuseIdentifier)
-        self.setupUI()
+        setupUI()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
-        self.segmentedControl.frame.size.height = 38.0
+        segmentedControl.frame.size.height = 38.0
     }
 }
 
 // MARK: - Setup UI
+
 private extension ProfileSectionHeader {
     func setupUI() {
-        self.isOpaque = true
-        self.contentView.backgroundColor = .custom.background
-        
-        self.segmentedControl.translatesAutoresizingMaskIntoConstraints = false
-        self.segmentedControl.selectedSegmentIndex = 0
-        self.segmentedControl.tintColor = .custom.baseTint
-        
-        self.addSubview(self.segmentedControl)
-        self.segmentedControl.addTarget(self, action: #selector(self.segmentedValueChanged(_:)), for: .valueChanged)
+        isOpaque = true
+        contentView.backgroundColor = .custom.background
+
+        segmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        segmentedControl.selectedSegmentIndex = 0
+        segmentedControl.tintColor = .custom.baseTint
+
+        addSubview(segmentedControl)
+        segmentedControl.addTarget(self, action: #selector(segmentedValueChanged(_:)), for: .valueChanged)
 
         NSLayoutConstraint.activate([
-            segmentedControl.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: -1),
-            segmentedControl.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 14),
-            segmentedControl.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -14)
+            segmentedControl.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -1),
+            segmentedControl.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 14),
+            segmentedControl.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -14),
         ])
     }
 }
 
 // MARK: - Configuration
+
 extension ProfileSectionHeader {
     func configure() {
-        if self.hasSubscription == true && self.segmentedControl.numberOfSegments == 2 {
-            self.segmentedControl.insertSegment(withTitle: ProfileViewModel.ViewTypes.subscription.labelText(), at: 2, animated: true)
+        if hasSubscription == true, segmentedControl.numberOfSegments == 2 {
+            segmentedControl.insertSegment(withTitle: ProfileViewModel.ViewTypes.subscription.labelText(), at: 2, animated: true)
         }
     }
-    
+
     func onThemeChange() {
-        self.contentView.backgroundColor = .custom.background
-        self.segmentedControl.tintColor = .custom.baseTint
+        contentView.backgroundColor = .custom.background
+        segmentedControl.tintColor = .custom.baseTint
     }
 }
 
 // MARK: - Handlers
+
 extension ProfileSectionHeader {
-    @objc func segmentedValueChanged(_ sender:UISegmentedControl!) {
+    @objc func segmentedValueChanged(_ sender: UISegmentedControl!) {
         if let selected = ProfileViewModel.ViewTypes(rawValue: sender.selectedSegmentIndex) {
-            self.delegate?.didChangeSegment(with: selected)
+            delegate?.didChangeSegment(with: selected)
         }
     }
 }

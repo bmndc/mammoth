@@ -28,7 +28,6 @@ import XCTest
 @testable import Mammoth
 
 final class LinkOpenerTests: XCTestCase {
-
     func testHttpsDeeplinks() throws {
         let testURL = try XCTUnwrap(URL(string: "https://example.com/pathcomponent?query=param"))
 

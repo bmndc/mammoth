@@ -7,11 +7,11 @@
 //
 
 import Foundation
+import NaturalLanguage
 import UIKit
 import Vision
-import NaturalLanguage
 
-protocol AltTextViewControllerDelegate : AnyObject {
+protocol AltTextViewControllerDelegate: AnyObject {
     func didConfirmText(updatedText: String)
 }
 
@@ -22,51 +22,51 @@ protocol AltTextViewControllerDelegate : AnyObject {
 
 // swiftlint:disable:next type_body_length
 class AltTextViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, SKPhotoBrowserDelegate, UITextViewDelegate {
-
     let btn0 = UIButton(type: .custom)
     let btn2 = UIButton(type: .custom)
     var tableView = UITableView()
     var canAdd: Bool = false
     var id: String = ""
     var keyHeight: CGFloat = 0
-    var currentImage: UIImage = UIImage()
+    var currentImage: UIImage = .init()
     var newList: Bool = false
     var newFilter: Bool = false
     var filterId: String = ""
     var editList: String = ""
     var listId: String = ""
-    var whichImagesAltText: Int? = nil
+    var whichImagesAltText: Int?
     var theAltText: String = ""
-    weak var delegate: AltTextViewControllerDelegate? = nil
+    weak var delegate: AltTextViewControllerDelegate?
     private let onClose: (() -> Void)?
-    
+
     init(onClose: (() -> Void)? = nil) {
         self.onClose = onClose
         super.init(nibName: nil, bundle: nil)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
-        
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
 
@@ -74,13 +74,13 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         super.viewDidDisappear(animated)
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextMultiCell {
             if let x = cell1.altText.text {
-                if x != "" && x != " " {
-                    self.addAlt(x)
+                if x != "", x != " " {
+                    addAlt(x)
                 }
             }
         }
-        
-        self.onClose?()
+
+        onClose?()
     }
 
     @objc func keyboardWillChange(notification: Notification) {
@@ -92,8 +92,8 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
     }
 
     func addAlt(_ altText: String) {
-        if self.editList != "" {
-            ListManager.shared.updateListTitle(self.listId, title: altText) { success in
+        if editList != "" {
+            ListManager.shared.updateListTitle(listId, title: altText) { success in
                 if success {
                     self.delegate?.didConfirmText(updatedText: altText)
                 }
@@ -102,14 +102,14 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
                 }
             }
         } else {
-            if self.newList {
-                ListManager.shared.addList(altText) { success in
+            if newList {
+                ListManager.shared.addList(altText) { _ in
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "fetchLists"), object: nil)
                 }
             } else {
-                if self.newFilter {
-                    let request = FilterPosts.addKeyword(id: self.filterId, keyword: altText)
-                    AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+                if newFilter {
+                    let request = FilterPosts.addKeyword(id: filterId, keyword: altText)
+                    AccountsManager.shared.currentAccountClient.run(request) { statuses in
                         if let _ = (statuses.value) {
                             DispatchQueue.main.async {
                                 print("added keyword")
@@ -118,10 +118,10 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
                         }
                     }
                 } else {
-                    GlobalStruct.mediaEditID = self.id
+                    GlobalStruct.mediaEditID = id
                     GlobalStruct.mediaEditDescription = altText
-                    let request = Media.updateDescription(description: altText, id: self.id)
-                    AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+                    let request = Media.updateDescription(description: altText, id: id)
+                    AccountsManager.shared.currentAccountClient.run(request) { _ in
                         DispatchQueue.main.async {
                             GlobalStruct.whichImagesAltText.append(self.whichImagesAltText ?? 0)
                             GlobalStruct.altAdded[self.whichImagesAltText ?? 0] = altText
@@ -137,7 +137,6 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -164,7 +163,7 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
             } else {
                 self.extendedLayoutIncludesOpaqueBars = false
             }
-            
+
             for cell in self.tableView.visibleCells {
                 if let cell = cell as? AltTextMultiCell {
                     cell.backgroundColor = .custom.backgroundTint
@@ -185,38 +184,38 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custom.backgroundTint
-        
-        if self.editList != "" {
-            self.navigationItem.title = NSLocalizedString("list.edit", comment: "")
+
+        if editList != "" {
+            navigationItem.title = NSLocalizedString("list.edit", comment: "")
         } else {
-            if self.newList {
-                self.navigationItem.title = NSLocalizedString("title.newList", comment: "")
+            if newList {
+                navigationItem.title = NSLocalizedString("title.newList", comment: "")
             } else {
-                if self.newFilter {
-                    self.navigationItem.title = NSLocalizedString("filters.keywords.add", comment: "")
+                if newFilter {
+                    navigationItem.title = NSLocalizedString("filters.keywords.add", comment: "")
                 } else {
-                    self.navigationItem.title = NSLocalizedString("composer.alt", comment: "")
+                    navigationItem.title = NSLocalizedString("composer.alt", comment: "")
                 }
             }
         }
 
-        NotificationCenter.default.addObserver(self,selector: #selector(keyboardWillChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
 
         // set up nav bar
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
 
         let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
@@ -225,20 +224,20 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         btn0.layer.cornerRadius = 14
         btn0.imageEdgeInsets = UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7)
         btn0.frame = CGRect(x: 0, y: 0, width: 28, height: 28)
-        btn0.addTarget(self, action: #selector(self.dismissTap), for: .touchUpInside)
+        btn0.addTarget(self, action: #selector(dismissTap), for: .touchUpInside)
         btn0.accessibilityLabel = NSLocalizedString("generic.dismiss", comment: "")
         let moreButton0 = UIBarButtonItem(customView: btn0)
-        self.navigationItem.setLeftBarButton(moreButton0, animated: true)
+        navigationItem.setLeftBarButton(moreButton0, animated: true)
 
         btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
         btn2.backgroundColor = UIColor.label.withAlphaComponent(0.08)
         btn2.layer.cornerRadius = 14
         btn2.imageEdgeInsets = UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7)
         btn2.frame = CGRect(x: 0, y: 0, width: 28, height: 28)
-        btn2.addTarget(self, action: #selector(self.addTap), for: .touchUpInside)
+        btn2.addTarget(self, action: #selector(addTap), for: .touchUpInside)
         btn2.accessibilityLabel = "Add Image Description"
         let moreButton1 = UIBarButtonItem(customView: btn2)
-        self.navigationItem.setRightBarButton(moreButton1, animated: true)
+        navigationItem.setRightBarButton(moreButton1, animated: true)
 
         // set up table
         setupTable()
@@ -248,8 +247,8 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         super.viewDidAppear(animated)
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextMultiCell {
             cell1.charCount.text = "1000"
-            if self.theAltText != "" {
-                cell1.charCount.text = "\(1000 - self.theAltText.count)"
+            if theAltText != "" {
+                cell1.charCount.text = "\(1000 - theAltText.count)"
                 // Resize the cell now that is has data
                 tableView.beginUpdates()
                 tableView.endUpdates()
@@ -258,7 +257,7 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         }
     }
 
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+    func scrollViewDidScroll(_: UIScrollView) {
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextMultiCell {
             cell1.altText.resignFirstResponder()
         }
@@ -268,13 +267,13 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         if canAdd {
             // add alt text
             triggerHapticImpact(style: .light)
-            self.dismiss(animated: true, completion: nil)
+            dismiss(animated: true, completion: nil)
         }
     }
 
     @objc func dismissTap() {
         triggerHapticImpact(style: .light)
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
 
     func setupTable() {
@@ -293,14 +292,14 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         view.addSubview(tableView)
     }
 
-    func numberOfSections(in tableView: UITableView) -> Int {
-        if self.editList != "" {
+    func numberOfSections(in _: UITableView) -> Int {
+        if editList != "" {
             return 1
         } else {
-            if self.newList {
+            if newList {
                 return 1
             } else {
-                if self.newFilter {
+                if newFilter {
                     return 1
                 } else {
                     return 3
@@ -309,26 +308,26 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         }
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return 1
     }
 
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if self.editList != "" {
+        if editList != "" {
             // Editing an existing list name
             let cell = tableView.dequeueReusableCell(withIdentifier: "AltTextMultiCell", for: indexPath) as! AltTextMultiCell
-            
+
             cell.altText.placeholder = NSLocalizedString("list.editTitle.placeholder", comment: "")
             cell.altText.accessibilityLabel = NSLocalizedString("list.editTitle.placeholder", comment: "")
             cell.altText.delegate = self
-            cell.altText.text = self.editList
-            
+            cell.altText.text = editList
+
             cell.altText.tag = indexPath.section
-            
+
             cell.separatorInset = .zero
             let bgColorView = UIView()
             bgColorView.backgroundColor = .clear
@@ -336,16 +335,16 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
             cell.backgroundColor = .custom.quoteTint
             return cell
         } else {
-            if self.newList {
+            if newList {
                 // Creating a new list name
                 let cell = tableView.dequeueReusableCell(withIdentifier: "AltTextMultiCell", for: indexPath) as! AltTextMultiCell
-                
+
                 cell.altText.placeholder = NSLocalizedString("list.new.placeholder", comment: "")
                 cell.altText.accessibilityLabel = NSLocalizedString("list.new.placeholder", comment: "")
                 cell.altText.delegate = self
-                
+
                 cell.altText.tag = indexPath.section
-                
+
                 cell.separatorInset = .zero
                 let bgColorView = UIView()
                 bgColorView.backgroundColor = .clear
@@ -353,16 +352,16 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
                 cell.backgroundColor = .custom.quoteTint
                 return cell
             } else {
-                if self.newFilter {
+                if newFilter {
                     // Creating a new filter
                     let cell = tableView.dequeueReusableCell(withIdentifier: "AltTextMultiCell", for: indexPath) as! AltTextMultiCell
-                    
+
                     cell.altText.placeholder = NSLocalizedString("filters.keywords.placeholder", comment: "")
                     cell.altText.accessibilityLabel = NSLocalizedString("filters.keywords.placeholder", comment: "")
                     cell.altText.delegate = self
-                    
+
                     cell.altText.tag = indexPath.section
-                    
+
                     cell.separatorInset = .zero
                     let bgColorView = UIView()
                     bgColorView.backgroundColor = .clear
@@ -373,27 +372,27 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
                     // Editing an image's Alt text
                     if indexPath.section == 0 {
                         let cell = tableView.dequeueReusableCell(withIdentifier: "AltTextMultiCell", for: indexPath) as! AltTextMultiCell
-                        
+
                         cell.altText.placeholder = NSLocalizedString("composer.alt.placeholder", comment: "")
                         cell.altText.accessibilityLabel = NSLocalizedString("composer.alt.placeholder", comment: "")
                         cell.altText.delegate = self
-                        
+
                         cell.altText.tag = indexPath.section
                         cell.altText.clipsToBounds = false
-                        
+
                         cell.separatorInset = .zero
                         let bgColorView = UIView()
                         bgColorView.backgroundColor = .clear
                         cell.selectedBackgroundView = bgColorView
                         cell.backgroundColor = .custom.quoteTint
-                        
-                        cell.altText.text = self.theAltText
+
+                        cell.altText.text = theAltText
                         return cell
                     } else if indexPath.section == 1 {
                         let cell = tableView.dequeueReusableCell(withIdentifier: "ImagePreviewCell", for: indexPath) as! ImagePreviewCell
-                        
-                        cell.image.image = self.currentImage
-                        
+
+                        cell.image.image = currentImage
+
                         cell.separatorInset = .zero
                         let bgColorView = UIView()
                         bgColorView.backgroundColor = .clear
@@ -402,12 +401,12 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
                         return cell
                     } else {
                         let cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell", for: indexPath)
-                        
+
                         cell.textLabel?.text = NSLocalizedString("composer.alt.detect", comment: "")
                         cell.textLabel?.textColor = UIColor.label
                         cell.textLabel?.textAlignment = .center
                         cell.textLabel?.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold)
-                        
+
                         cell.separatorInset = .zero
                         let bgColorView = UIView()
                         bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
@@ -425,7 +424,7 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
             var images = [SKPhoto]()
             if let cell = self.tableView.cellForRow(at: indexPath) as? ImagePreviewCell {
                 if let originImage = cell.image.image {
-                    let photo = SKPhoto.photoWithImage(self.currentImage)
+                    let photo = SKPhoto.photoWithImage(currentImage)
                     photo.shouldCachePhotoURLImage = true
                     images.append(photo)
                     let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: "", imageText2: 0, imageText3: 0, imageText4: "")
@@ -445,7 +444,7 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         }
         if indexPath.section == 2 {
             tableView.deselectRow(at: indexPath, animated: true)
-            self.translateThis()
+            translateThis()
         }
     }
 
@@ -459,12 +458,12 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextMultiCell {
             let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
             if cell1.altText.text != "" {
-                self.canAdd = true
-                self.btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.custom.activeInverted, renderingMode: .alwaysOriginal), for: .normal)
+                canAdd = true
+                btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.custom.activeInverted, renderingMode: .alwaysOriginal), for: .normal)
                 btn2.backgroundColor = .custom.active
             } else {
-                self.canAdd = false
-                self.btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
+                canAdd = false
+                btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
                 btn2.backgroundColor = UIColor.label.withAlphaComponent(0.08)
             }
         }
@@ -472,13 +471,13 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
     }
 
     func translateThis() {
-        guard let img = self.currentImage.cgImage else {
+        guard let img = currentImage.cgImage else {
             return
         }
         let requestHandler = VNImageRequestHandler(cgImage: img, options: [:])
-        let request = VNRecognizeTextRequest { (request, error) in
+        let request = VNRecognizeTextRequest { request, error in
             guard let observations = request.results as? [VNRecognizedTextObservation] else { return }
-            var str: String = ""
+            var str = ""
             for observation in observations {
                 let topCandidate: [VNRecognizedText] = observation.topCandidates(1)
                 if let recognizedText: VNRecognizedText = topCandidate.first {
@@ -501,17 +500,17 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
                 detectedLang = "\(temp.split(separator: "-").first ?? "auto")"
             }
             let urlString = "https://translate.googleapis.com/translate_a/single?client=gtx&sl=\(detectedLang)&tl=\(GlobalStruct.langStr)&dt=t&q=\(trans!)&ie=UTF-8&oe=UTF-8"
-            guard let requestUrl = URL(string:urlString) else {
+            guard let requestUrl = URL(string: urlString) else {
                 return
             }
-            let request = URLRequest(url:requestUrl)
+            let request = URLRequest(url: requestUrl)
             let task = URLSession.shared.dataTask(with: request) {
-                (data, response, error) in
+                data, _, error in
                 if error == nil, let usableData = data {
                     do {
                         let json = try JSONSerialization.jsonObject(with: usableData, options: .mutableContainers) as! [Any]
                         var translatedText = ""
-                        for i in (json[0] as! [Any]) {
+                        for i in json[0] as! [Any] {
                             translatedText += ((i as! [Any])[0] as? String ?? "")
                         }
                         if translatedText == "" {
@@ -541,12 +540,12 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         return languageCode
     }
 
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+    func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 {
-            if self.newList {
+            if newList {
                 return NSLocalizedString("list.new.footer", comment: "")
             } else {
-                if self.newFilter {
+                if newFilter {
                     return NSLocalizedString("filters.keywords.footer", comment: "")
                 } else {
                     return nil
@@ -559,9 +558,7 @@ class AltTextViewController: UIViewController, UITableViewDataSource, UITableVie
         }
     }
 
-    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+    func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
         return UITableView.automaticDimension
     }
-
 }
-

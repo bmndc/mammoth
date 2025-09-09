@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Mutes {
+public enum Mutes {
     /// Fetches a user's mutes.
     ///
     /// - Parameter range: The bounds used when requesting data from Mastodon.

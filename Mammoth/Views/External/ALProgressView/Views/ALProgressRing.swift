@@ -22,11 +22,10 @@
 
 import UIKit
 
-/// A fillable progress ring drawing. 
+/// A fillable progress ring drawing.
 open class ALProgressRing: UIView {
-    
     // MARK: Properties
-    
+
     /// Sets the line width for progress ring and groove ring.
     /// - Note: If you need separate customization use the `ringWidth` and `grooveWidth` properties
     public var lineWidth: CGFloat = 10 {
@@ -35,7 +34,7 @@ open class ALProgressRing: UIView {
             grooveWidth = lineWidth
         }
     }
-    
+
     /// The line width of the progress ring.
     public var ringWidth: CGFloat = 10 {
         didSet {
@@ -49,22 +48,22 @@ open class ALProgressRing: UIView {
             grooveLayer.lineWidth = grooveWidth
         }
     }
-    
+
     /// The first gradient color of the track.
     public var startColor: UIColor = .systemPink {
         didSet { gradientLayer.colors = [startColor.cgColor, endColor.cgColor] }
     }
-    
+
     /// The second gradient color of the track.
     public var endColor: UIColor = .systemRed {
         didSet { gradientLayer.colors = [startColor.cgColor, endColor.cgColor] }
     }
-    
+
     /// The groove color in which the fillable ring resides.
     public var grooveColor: UIColor = UIColor.systemGray.withAlphaComponent(0.2) {
         didSet { grooveLayer.strokeColor = grooveColor.cgColor }
     }
-    
+
     /// The start angle of the ring to begin drawing.
     public var startAngle: CGFloat = -.pi / 2 {
         didSet { ringLayer.path = ringPath() }
@@ -74,12 +73,12 @@ open class ALProgressRing: UIView {
     public var endAngle: CGFloat = 1.5 * .pi {
         didSet { ringLayer.path = ringPath() }
     }
-    
+
     /// The starting poin of the gradient. Default is (x: 0.5, y: 0)
     public var startGradientPoint: CGPoint = .init(x: 0.5, y: 0) {
         didSet { gradientLayer.startPoint = startGradientPoint }
     }
-    
+
     /// The ending position of the gradient. Default is (x: 0.5, y: 1)
     public var endGradientPoint: CGPoint = .init(x: 0.5, y: 1) {
         didSet { gradientLayer.endPoint = endGradientPoint }
@@ -87,7 +86,7 @@ open class ALProgressRing: UIView {
 
     /// Duration of the ring's fill animation. Default is 2.0
     public var duration: TimeInterval = 2.0
-    
+
     /// Timing function of the ring's fill animation. Default is `.easeOutExpo`
     public var timingFunction: ALTimingFunction = .easeOutExpo
 
@@ -99,7 +98,7 @@ open class ALProgressRing: UIView {
         }
         return radius
     }
-    
+
     /// The radius of the groove.
     public var grooveRadius: CGFloat {
         var radius = min(bounds.height, bounds.width) / 2 - grooveWidth / 2
@@ -108,7 +107,7 @@ open class ALProgressRing: UIView {
         }
         return radius
     }
-    
+
     /// The progress of the ring between 0 and 1. The ring will fill based on the value.
     public private(set) var progress: CGFloat = 0
 
@@ -119,7 +118,7 @@ open class ALProgressRing: UIView {
         layer.strokeStart = 0
         return layer
     }()
-    
+
     private let grooveLayer: CAShapeLayer = {
         let layer = CAShapeLayer()
         layer.lineCap = .round
@@ -128,10 +127,11 @@ open class ALProgressRing: UIView {
         layer.strokeEnd = 1
         return layer
     }()
-    
+
     private let gradientLayer = CAGradientLayer()
 
     // MARK: Life Cycle
+
     public init() {
         super.init(frame: .zero)
         setup()
@@ -147,19 +147,19 @@ open class ALProgressRing: UIView {
         setup()
     }
 
-    public override func layoutSubviews() {
+    override public func layoutSubviews() {
         super.layoutSubviews()
         configureRing()
         styleRingLayer()
     }
-    
-    public override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+
+    override public func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
         styleRingLayer()
     }
 
     // MARK: Methods
-    
+
     /// Set the progress value of the ring. The ring will fill based on the value.
     ///
     /// - Parameters:
@@ -179,7 +179,7 @@ open class ALProgressRing: UIView {
             completion?()
             return
         }
-        
+
         CATransaction.begin()
         let path = #keyPath(CAShapeLayer.strokeEnd)
         let fill = CABasicAnimation(keyPath: path)
@@ -192,7 +192,6 @@ open class ALProgressRing: UIView {
         CATransaction.commit()
     }
 
-    
     private func setup() {
         preservesSuperviewLayoutMargins = true
         layer.addSublayer(grooveLayer)
@@ -203,15 +202,15 @@ open class ALProgressRing: UIView {
     private func styleRingLayer() {
         grooveLayer.strokeColor = grooveColor.cgColor
         grooveLayer.lineWidth = grooveWidth
-        
+
         ringLayer.lineWidth = ringWidth
         ringLayer.strokeColor = UIColor.black.cgColor
         ringLayer.strokeEnd = min(progress, 1.0)
-        
+
         gradientLayer.colors = [startColor.cgColor, endColor.cgColor]
         gradientLayer.startPoint = CGPoint(x: 0.0, y: 0)
         gradientLayer.endPoint = CGPoint(x: 0.0, y: 1)
-        
+
         gradientLayer.shadowColor = startColor.cgColor
         gradientLayer.shadowOffset = .zero
     }
@@ -221,10 +220,10 @@ open class ALProgressRing: UIView {
         let groovePath = self.groovePath()
         grooveLayer.frame = bounds
         grooveLayer.path = groovePath
-        
+
         ringLayer.frame = bounds
         ringLayer.path = ringPath
-        
+
         gradientLayer.frame = bounds
         gradientLayer.mask = ringLayer
     }
@@ -234,7 +233,7 @@ open class ALProgressRing: UIView {
         let circlePath = UIBezierPath(arcCenter: center, radius: ringRadius, startAngle: startAngle, endAngle: endAngle, clockwise: true)
         return circlePath.cgPath
     }
-    
+
     private func groovePath() -> CGPath {
         let center = CGPoint(x: bounds.origin.x + frame.width / 2.0, y: bounds.origin.y + frame.height / 2.0)
         let circlePath = UIBezierPath(arcCenter: center, radius: grooveRadius, startAngle: startAngle, endAngle: endAngle, clockwise: true)

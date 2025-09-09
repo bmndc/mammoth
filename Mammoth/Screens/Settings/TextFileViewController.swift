@@ -8,9 +8,9 @@
 
 import UIKit
 
-class TextFileViewController : UIViewController {
+class TextFileViewController: UIViewController {
     private var filename: String
-    private var attributedText: NSAttributedString? = nil
+    private var attributedText: NSAttributedString?
     private lazy var textView: UITextView = {
         let textView = UITextView()
         textView.translatesAutoresizingMaskIntoConstraints = false
@@ -18,14 +18,14 @@ class TextFileViewController : UIViewController {
         textView.backgroundColor = .custom.background
         return textView
     }()
-    
+
     init(filename: String) {
         self.filename = filename
         super.init(nibName: nil, bundle: nil)
         var mutableFileContent: NSMutableAttributedString? = nil
         if let rtfURL = Bundle.main.url(forResource: filename, withExtension: "rtf") {
             if #available(iOS 15, *) {
-                var options = AttributedString.MarkdownParsingOptions.init()
+                var options = AttributedString.MarkdownParsingOptions()
                 options.allowsExtendedAttributes = true
                 mutableFileContent = try? NSMutableAttributedString(url: rtfURL, options: [.documentType: NSAttributedString.DocumentType.rtf], documentAttributes: nil)
             }
@@ -39,23 +39,22 @@ class TextFileViewController : UIViewController {
             attributedText = mutableFileContent
         }
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.title = self.filename
-        self.view.addSubview(textView)
+        title = filename
+        view.addSubview(textView)
         NSLayoutConstraint.activate([
-            textView.topAnchor.constraint(equalTo: self.view.topAnchor),
-            textView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-            textView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor),
-            textView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor),
+            textView.topAnchor.constraint(equalTo: view.topAnchor),
+            textView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            textView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            textView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
         textView.attributedText = attributedText
     }
 }
-
-

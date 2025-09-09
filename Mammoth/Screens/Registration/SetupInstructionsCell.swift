@@ -11,14 +11,14 @@ import UIKit
 class SetupInstructionsCell: UITableViewCell {
     static let reuseIdentifier = "SetupInstructionsCell"
 
-    @IBOutlet weak var titleTextView: UITextView!
-    @IBOutlet weak var instructionsLabel: UILabel!
+    @IBOutlet var titleTextView: UITextView!
+    @IBOutlet var instructionsLabel: UILabel!
 
     override func awakeFromNib() {
         super.awakeFromNib()
     }
-    
-    public func configure(title: String, instructions: String) {
+
+    func configure(title: String, instructions: String) {
         // For iPad, convert \n -> spaces
         let cellTitle: String
         if UIApplication.shared.preferredApplicationWindow?.traitCollection.horizontalSizeClass != .compact {
@@ -37,10 +37,8 @@ class SetupInstructionsCell: UITableViewCell {
         let attributedString = NSAttributedString(string: cellTitle, attributes: attributes)
         titleTextView.attributedText = attributedString
         titleTextView.font = UIFont(name: "InstrumentSerif-Regular", size: 48)
-        
+
         titleTextView.backgroundColor = .clear
         instructionsLabel.text = instructions
     }
 }
-
-

@@ -10,7 +10,7 @@ import UIKit
 
 public func triggerHapticImpact(style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
     if GlobalStruct.hapticsEnabled {
-        let haptics = UIImpactFeedbackGenerator(style: style) //default to medium if arg not present
+        let haptics = UIImpactFeedbackGenerator(style: style) // default to medium if arg not present
         haptics.impactOccurred()
     }
 }
@@ -39,7 +39,7 @@ public func triggerKeyHapticImpact() {
 public func triggerHapticNotification(feedback: UINotificationFeedbackGenerator.FeedbackType = .success) {
     if GlobalStruct.hapticsEnabled {
         let haptics = UINotificationFeedbackGenerator()
-        haptics.notificationOccurred(feedback) 
+        haptics.notificationOccurred(feedback)
     }
 }
 

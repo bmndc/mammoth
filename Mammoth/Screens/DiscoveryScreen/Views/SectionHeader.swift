@@ -13,10 +13,9 @@ protocol SectionHeaderDelegate: AnyObject {
 }
 
 class SectionHeader: UIView {
-    
-    weak var delegate: SectionHeaderDelegate? = nil
+    weak var delegate: SectionHeaderDelegate?
     var delegateContext: Int = 0
-    
+
     lazy var label: UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .medium)
@@ -34,47 +33,50 @@ class SectionHeader: UIView {
         button.setTitleColor(.custom.softContrast, for: .normal)
         return button
     }()
-    
+
     // a nil title implies no button
     init(buttonTitle: String?) {
         super.init(frame: .zero)
-        self.setupUI(buttonTitle: buttonTitle)
+        setupUI(buttonTitle: buttonTitle)
     }
-        
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
 }
 
 // MARK: - Setup UI
+
 private extension SectionHeader {
     func setupUI(buttonTitle: String?) {
-        self.backgroundColor = .custom.OVRLYSoftContrast
-        self.addSubview(label)
-        
+        backgroundColor = .custom.OVRLYSoftContrast
+        addSubview(label)
+
         NSLayoutConstraint.activate([
-            label.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-            label.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 12),
-            label.trailingAnchor.constraint(lessThanOrEqualTo: self.trailingAnchor, constant: -12),
+            label.centerYAnchor.constraint(equalTo: centerYAnchor),
+            label.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 12),
+            label.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor, constant: -12),
         ])
-        
+
         if buttonTitle != nil {
-            self.button.setTitle(buttonTitle, for: .normal)
-            self.addSubview(button)
+            button.setTitle(buttonTitle, for: .normal)
+            addSubview(button)
             NSLayoutConstraint.activate([
-                button.centerYAnchor.constraint(equalTo: self.centerYAnchor),
-                button.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -12),
-                button.leadingAnchor.constraint(greaterThanOrEqualTo: self.leadingAnchor, constant: 12),
+                button.centerYAnchor.constraint(equalTo: centerYAnchor),
+                button.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -12),
+                button.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor, constant: 12),
             ])
-            button.addTarget(self, action: #selector(self.buttonTapped), for: .touchUpInside)
+            button.addTarget(self, action: #selector(buttonTapped), for: .touchUpInside)
         }
     }
 }
 
 // MARK: - Configuration
+
 extension SectionHeader {
     func configure(labelText: String) {
-        self.label.text = labelText
+        label.text = labelText
     }
 }
 
@@ -88,16 +90,17 @@ extension SectionHeader {
 }
 
 // MARK: - Appearance changes
-internal extension SectionHeader {
-     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+
+extension SectionHeader {
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
-         if #available(iOS 13.0, *) {
-             if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-                 self.backgroundColor = .custom.OVRLYSoftContrast
-                 label.textColor = .custom.mediumContrast
-                 button.setTitleColor(.custom.softContrast, for: .normal)
-             }
-         }
+
+        if #available(iOS 13.0, *) {
+            if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                self.backgroundColor = .custom.OVRLYSoftContrast
+                label.textColor = .custom.mediumContrast
+                button.setTitleColor(.custom.softContrast, for: .normal)
+            }
+        }
     }
 }

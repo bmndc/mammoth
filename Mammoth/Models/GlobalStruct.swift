@@ -6,26 +6,25 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import UIKit
-import PhotosUI
 import AVFoundation
 import AVKit
+import Foundation
 import LinkPresentation
+import PhotosUI
+import UIKit
 
 public struct GlobalStruct {
     static var isSubscribed: Bool = false
-    
+
     // client and credentials
-    init() {
-        
-    }
+    init() {}
+
     static let shared = GlobalStruct()
-    
+
     // The supported localizations / app languages
     static let supportedLocalizations = ["en", "pt-BR", "de", "es", "nl", "it"]
     static let rootLocalization = "en"
-    
+
     static var clientID = ""
     static var clientSecret = ""
     static var returnedText = ""
@@ -35,7 +34,7 @@ public struct GlobalStruct {
     static var newClient = Client(baseURL: "")
     static var newInstance: InstanceData?
     static var maxChars: Int = 500
-    static var newPollPost: [Any]? = nil
+    static var newPollPost: [Any]?
     static var savedPostSearch: [String] = []
     static var drafts: [Draft] = []
     static var currentDraft: Draft?
@@ -44,10 +43,10 @@ public struct GlobalStruct {
     static var blurSensitiveContent: Bool = true
     static var autoPlayVideos: Bool = true
     static var currentFilterId: String = ""
-    static var currentFilter: Filters? = nil
+    static var currentFilter: Filters?
     static var circleProfiles: Bool = true
     static var chatView: Bool = true
-    static var currentPostLang2: String? = nil // used to set the user's profile language
+    static var currentPostLang2: String? // used to set the user's profile language
     static var tabTapRestore: Bool = true
     static var hasSetupNewsDots: Bool = false
     static var fullScreen: Bool = true
@@ -68,7 +67,7 @@ public struct GlobalStruct {
     static var votedOnPolls: [String: Poll] = [:]
     static var sidebarItem: Int = 0
     static var tempUpdateMetrics: [Status] = []
-    static var tempUpdateIndex: Int? = nil
+    static var tempUpdateIndex: Int?
     static var blockedUsers: [String] = []
     static var tempFollowing: [Account] = []
     static var reviewPrompt: Bool = true
@@ -76,26 +75,26 @@ public struct GlobalStruct {
     static var dmSecurityAlert: Bool = true
     static var mediaEditID: String = ""
     static var mediaEditDescription: String = ""
-    
+
     static var dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
     static var dateFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = GlobalStruct.dateFormat
         return formatter
     }
-    
+
     static var linkPreviewCards1: Bool = true
     static var linkPreviewCards2: Bool = true
     static var linkPreviewCardsLarge: Bool = true
-    
+
     // 0 for first time, 1 for displaying, 2 for hidden
     static var displayingVIPLists: Int = 0
-    
+
     static var VIPListID: String = ""
     static var topAccounts: [Account] = []
-    
+
     static var curIDNoti = ""
-    
+
     static var pnMentions: Bool = true
     static var pnLikes: Bool = true
     static var pnReposts: Bool = true
@@ -103,17 +102,17 @@ public struct GlobalStruct {
     static var pnPolls: Bool = true
     static var pnStatuses: Bool = true
     static var pnFollowRequests: Bool = true
-    
+
     static var refreshToken: String = ""
     static var allPinned: [Status] = []
-    
+
     // app settings
     static var overrideTheme: Int = 0
     static var overrideThemeHighContrast = false
     static var soundsEnabled: Bool = true
     static var hapticsEnabled: Bool = true
     static var actionAnimations: Bool = true
-    
+
     // appearance
     static var timeStampStyle: Int = 0
     static var originalPostTimeStamp: Bool = true
@@ -123,22 +122,23 @@ public struct GlobalStruct {
         case usertagOnly = 2
         case none = 3
     }
+
     static var displayName: DisplayNameType = .usernameOnly
     static var maxLines: Int = 0
-    
+
     @available(*, deprecated, message: "Use GlobalStruct.mediaSize instead")
     static var hideMed: Bool { mediaSize == .hidden }
-    
+
     @available(*, deprecated, message: "Use GlobalStruct.mediaSize instead")
     static var smallImages: Bool { mediaSize == .small }
-    
-    static var mediaSize: PostCardCell.PostCardMediaVariant = PostCardCell.PostCardMediaVariant.large
-    
+
+    static var mediaSize: PostCardCell.PostCardMediaVariant = .large
+
     static var feedReadDirection: NewsFeedReadDirection = .bottomUp
-    
+
     static var shareAsImageText: Bool = false
     static var shareAsImageTextCaption: String = "Check this out!"
-    
+
     // general
     static var tabBarTitles: Bool = false
     static var tabBarAnimations: Bool = true
@@ -155,26 +155,26 @@ public struct GlobalStruct {
     static var appLock: Bool = false
     static var cloudSync: Bool = false
     static var shareAnalytics: Bool = true
-    
+
     // composer
     static var keyboardType: Int = 0
     static var altText: Bool = false
-    
+
     // fonts
     static var smallerFontSize = UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2
     static var customTextSize: CGFloat = 0
     static var customLineSize: CGFloat = 0
 
     // videos
-    static var videoUrls: [String:String] = [:]
+    static var videoUrls: [String: String] = [:]
     static var feedVideoUrl: String = ""
-    
+
     // likes and reposts
     static var allLikes: [String] = []
     static var allReposts: [String] = []
     static var allBookmarks: [String] = []
     static var allCW: [String] = []
-    
+
     // other
     static var listTabIndex: Int = 0
     static var currentlyPosting: Bool = false
@@ -184,6 +184,7 @@ public struct GlobalStruct {
         case lowerLeft = 0
         case lowerRight = 1
     }
+
     static var postButtonLocation: PostButtonLocationType = .lowerRight
     static var showingNewPostComposer: Bool = false
     static var canvasImage = UIImage()
@@ -208,7 +209,7 @@ public struct GlobalStruct {
     static var notifIDs: [String] = []
     static var isNeedingColumnsUpdate: Bool = false
     static var isNeedingColumnsUpdate2: Bool = false
-    
+
     // custom tabs
     static var tab1Index: Int = 0
     static var tab2Index: Int = 1
@@ -218,7 +219,7 @@ public struct GlobalStruct {
     static var tab2: Bool = true
     static var tab3: Bool = true
     static var tab4: Bool = true
-    
+
     // popups
     static var popupPostPosted: Bool = true
     static var popupPostDeleted: Bool = true
@@ -226,7 +227,7 @@ public struct GlobalStruct {
     static var popupListActions: Bool = true
     static var popupBookmarkActions: Bool = true
     static var popupRateLimits: Bool = true
-    
+
     // iPad
     static var isCompact: Bool = false
     static var padColWidth: Int = 412
@@ -234,7 +235,7 @@ public struct GlobalStruct {
     static var sidebarHighlight: Int = 0
     static var singleColumn: Bool = false
     static var currentSingleColumnViewController = SingleColumnViewController()
-        
+
     // iPad columns
     static var columnsViews2: [UIViewController] = [
         HomeViewController(),
@@ -244,9 +245,9 @@ public struct GlobalStruct {
         ProfileViewController(acctData: AccountsManager.shared.currentAccount),
         NewsFeedViewController(type: .likes),
         NewsFeedViewController(type: .bookmarks),
-        FiltersViewController()
+        FiltersViewController(),
     ]
-        
+
     static var columnsOrder: [Int] = [1, 2, 3, 4, 5, 6, 7, 8, 9]
 }
 
@@ -264,7 +265,7 @@ struct Draft: Codable, Hashable {
     var images: [Data?]
     var imagesIds: [String]?
     var replyPost: [Status]
-    
+
     init(id: Int, contents: Status, images: [Data?], imagesIds: [String]?, replyPost: [Status]) {
         self.id = id
         self.contents = contents
@@ -272,35 +273,36 @@ struct Draft: Codable, Hashable {
         self.imagesIds = imagesIds
         self.replyPost = replyPost
     }
-    
+
     static func == (lhs: Draft, rhs: Draft) -> Bool {
         return lhs.id == rhs.id
     }
-    
+
     func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
 }
 
 extension String {
-    func rangeFromNSRange(nsRange : NSRange) -> Range<String.Index>? {
+    func rangeFromNSRange(nsRange: NSRange) -> Range<String.Index>? {
         return Range(nsRange, in: self)
     }
-    
+
     func ranges(of substring: String, options: CompareOptions = [], locale: Locale? = nil) -> [Range<Index>] {
         var ranges: [Range<Index>] = []
-        while let range = self.range(
+        while let range = range(
             of: substring,
             options: options,
-            range: (ranges.last?.upperBound ?? self.startIndex)..<self.endIndex, locale: locale) {
-                ranges.append(range)
+            range: (ranges.last?.upperBound ?? startIndex) ..< endIndex, locale: locale
+        ) {
+            ranges.append(range)
         }
         return ranges
     }
-    
+
     func stripHTML() -> String {
         let regex = try! NSRegularExpression(pattern: #"<a.+?href=\"https://(.+?)/@(.+?)\".+?>.+?</a>"#, options: .caseInsensitive)
-        var z = self.replacingOccurrences(of: "</p><p>", with: "\n\n", options: NSString.CompareOptions.regularExpression, range: nil)
+        var z = replacingOccurrences(of: "</p><p>", with: "\n\n", options: NSString.CompareOptions.regularExpression, range: nil)
         z = regex.stringByReplacingMatches(in: z, options: [], range: NSRange(location: 0, length: z.count), withTemplate: "@$2@$1")
         z = z.replacingOccurrences(of: "<br>", with: "\n", options: NSString.CompareOptions.regularExpression, range: nil)
         z = z.replacingOccurrences(of: "<br />", with: "\n", options: NSString.CompareOptions.regularExpression, range: nil)
@@ -315,7 +317,7 @@ extension String {
         z = z.replacingOccurrences(of: "&#39;", with: "'", options: NSString.CompareOptions.regularExpression, range: nil)
         return z
     }
-    
+
     func toDate() -> Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
@@ -330,7 +332,7 @@ extension String {
             return date2 ?? Date()
         }
     }
-    
+
     func toFeedDate() -> Date {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "E MMM d HH:mm:ss Z yyyy"
@@ -338,68 +340,68 @@ extension String {
         let date = dateFormatter.date(from: self)
         return date ?? Date()
     }
-    
+
     func slice(from: String, to: String) -> String? {
         return (range(of: from)?.upperBound).flatMap { substringFrom in
-            (range(of: to, range: substringFrom..<endIndex)?.lowerBound).map { substringTo in
-                String(self[substringFrom..<substringTo])
+            (range(of: to, range: substringFrom ..< endIndex)?.lowerBound).map { substringTo in
+                String(self[substringFrom ..< substringTo])
             }
         }
     }
-    
+
     func nsRange(from range: Range<String.Index>) -> NSRange {
         let from = range.lowerBound.samePosition(in: utf16)
         let to = range.upperBound.samePosition(in: utf16)
         return NSRange(location: utf16.distance(from: utf16.startIndex, to: from!),
                        length: utf16.distance(from: from!, to: to!))
     }
-    
+
     func capitalizingFirstLetter() -> String {
         return suffix(1).capitalized
     }
 
     mutating func capitalizeFirstLetter() {
-        self = self.capitalizingFirstLetter()
+        self = capitalizingFirstLetter()
     }
-    
+
     func matchingStrings(regex: String) -> [[String]] {
         guard let regex = try? NSRegularExpression(pattern: regex, options: []) else { return [] }
         let nsString = self as NSString
-        let results  = regex.matches(in: self, options: [], range: NSMakeRange(0, nsString.length))
+        let results = regex.matches(in: self, options: [], range: NSMakeRange(0, nsString.length))
         return results.map { result in
-            (0..<result.numberOfRanges).map {
+            (0 ..< result.numberOfRanges).map {
                 result.range(at: $0).location != NSNotFound
                     ? nsString.substring(with: result.range(at: $0))
                     : ""
             }
         }
     }
-    
+
     func matches(_ regex: String) -> Bool {
-        return self.range(of: regex, options: .regularExpression, range: nil, locale: nil) != nil
+        return range(of: regex, options: .regularExpression, range: nil, locale: nil) != nil
     }
-    
+
     func removingUrls() -> String {
         guard let detector = try? NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue) else {
             return self
         }
         return detector.stringByReplacingMatches(in: self,
                                                  options: [],
-                                                 range: NSRange(location: 0, length: self.utf16.count),
+                                                 range: NSRange(location: 0, length: utf16.count),
                                                  withTemplate: "")
     }
-    
+
     var containsEmoji: Bool {
         for scalar in unicodeScalars {
             switch scalar.value {
-            case 0x1F600...0x1F64F, // Emoticons
-                 0x1F300...0x1F5FF, // Misc Symbols and Pictographs
-                 0x1F680...0x1F6FF, // Transport and Map
-                 0x2600...0x26FF,   // Misc symbols
-                 0x2700...0x27BF,   // Dingbats
-                 0xFE00...0xFE0F,   // Variation Selectors
-                 0x1F900...0x1F9FF, // Supplemental Symbols and Pictographs
-                 0x1F1E6...0x1F1FF: // Flags
+            case 0x1F600 ... 0x1F64F, // Emoticons
+                 0x1F300 ... 0x1F5FF, // Misc Symbols and Pictographs
+                 0x1F680 ... 0x1F6FF, // Transport and Map
+                 0x2600 ... 0x26FF, // Misc symbols
+                 0x2700 ... 0x27BF, // Dingbats
+                 0xFE00 ... 0xFE0F, // Variation Selectors
+                 0x1F900 ... 0x1F9FF, // Supplemental Symbols and Pictographs
+                 0x1F1E6 ... 0x1F1FF: // Flags
                 return true
             default:
                 continue
@@ -410,21 +412,23 @@ extension String {
 }
 
 extension UITextView {
-#if targetEnvironment(macCatalyst)
-    @objc(_focusRingType)
-    override var focusRingType: UInt {
-        return 1 //NSFocusRingTypeNone
-    }
-#endif
-    
+    #if targetEnvironment(macCatalyst)
+        @objc(_focusRingType)
+        override var focusRingType: UInt {
+            return 1 // NSFocusRingTypeNone
+        }
+    #endif
+
     var cursorOffset: Int? {
         guard let range = selectedTextRange else { return nil }
         return offset(from: beginningOfDocument, to: range.start)
     }
+
     var cursorIndex: String.Index? {
         guard let location = cursorOffset else { return nil }
         return Range(.init(location: location, length: 0), in: text)?.lowerBound
     }
+
     var cursorDistance: Int? {
         guard let cursorIndex = cursorIndex else { return nil }
         return text.distance(from: text.startIndex, to: cursorIndex)
@@ -433,9 +437,8 @@ extension UITextView {
 
 extension UIViewController {
     func isInWindowHierarchy() -> Bool {
-        return self.isViewLoaded && self.view.window != nil
+        return isViewLoaded && view.window != nil
     }
-    
 }
 
 extension UIApplication {
@@ -465,17 +468,17 @@ extension Int {
     func withCommas() -> String {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimal
-        return numberFormatter.string(from: NSNumber(value:self))!
+        return numberFormatter.string(from: NSNumber(value: self))!
     }
-    
-    func formatUsingAbbrevation () -> String {
+
+    func formatUsingAbbrevation() -> String {
         let number = Double(self)
         let thousand = number / 1000
-        let million = number / 1000000
+        let million = number / 1_000_000
         if million >= 1.0 {
-            return "\(round(million*10)/10)M"
+            return "\(round(million * 10) / 10)M"
         } else if thousand >= 1.0 {
-            return "\(round(thousand*10)/10)K"
+            return "\(round(thousand * 10) / 10)K"
         } else {
             return "\(self)"
         }
@@ -487,7 +490,7 @@ extension UserDefaults {
         guard let colorData = data(forKey: key) else { return nil }
         do {
             return try NSKeyedUnarchiver.unarchivedObject(ofClass: UIColor.self, from: colorData)
-        } catch let error {
+        } catch {
             log.error("color error \(error.localizedDescription)")
             return nil
         }
@@ -498,14 +501,14 @@ extension UserDefaults {
         do {
             let data = try NSKeyedArchiver.archivedData(withRootObject: color, requiringSecureCoding: false)
             set(data, forKey: key)
-        } catch let error {
+        } catch {
             log.error("error color key data not saved \(error.localizedDescription)")
         }
     }
 }
 
 extension URL {
-    func getGifImageDataFromAssetUrl(completion: @escaping(_ imageData: Data?) -> Void) {
+    func getGifImageDataFromAssetUrl(completion: @escaping (_ imageData: Data?) -> Void) {
         let asset = PHAsset.fetchAssets(withALAssetURLs: [self], options: nil)
         if let image = asset.firstObject {
             PHImageManager.default().requestImageDataAndOrientation(for: image, options: nil, resultHandler: { imageData, _, _, _ in
@@ -514,7 +517,6 @@ extension URL {
         }
     }
 }
-
 
 func getMinutesDifferenceFromTwoDates(start: Date, end: Date) -> Int {
     let diffSeconds = Int(end.timeIntervalSince1970 - start.timeIntervalSince1970)
@@ -545,41 +547,41 @@ extension UIImage {
         UIGraphicsEndImageContext()
         return image
     }
-    
+
     func resize(targetSize: CGSize) -> UIImage {
         return UIGraphicsImageRenderer(size: targetSize).image { _ in
             self.draw(in: CGRect(origin: .zero, size: targetSize))
         }
     }
-    
+
     func withInset(_ insets: UIEdgeInsets) -> UIImage? {
-        let cgSize = CGSize(width: self.size.width + insets.left * self.scale + insets.right * self.scale,
-                            height: self.size.height + insets.top * self.scale + insets.bottom * self.scale)
-        
-        UIGraphicsBeginImageContextWithOptions(cgSize, false, self.scale)
+        let cgSize = CGSize(width: size.width + insets.left * scale + insets.right * scale,
+                            height: size.height + insets.top * scale + insets.bottom * scale)
+
+        UIGraphicsBeginImageContextWithOptions(cgSize, false, scale)
         defer { UIGraphicsEndImageContext() }
-        
-        let origin = CGPoint(x: insets.left * self.scale, y: insets.top * self.scale)
-        self.draw(at: origin)
-        
-        return UIGraphicsGetImageFromCurrentImageContext()?.withRenderingMode(self.renderingMode)
+
+        let origin = CGPoint(x: insets.left * scale, y: insets.top * scale)
+        draw(at: origin)
+
+        return UIGraphicsGetImageFromCurrentImageContext()?.withRenderingMode(renderingMode)
     }
 }
 
 extension AVPlayer {
     func isPlaying() -> Bool {
-        return (self.rate != 0.0 && self.status == .readyToPlay)
+        return rate != 0.0 && status == .readyToPlay
     }
 }
 
 class CustomButton: UIButton {
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    override func point(inside point: CGPoint, with _: UIEvent?) -> Bool {
         return bounds.insetBy(dx: -10, dy: -10).contains(point)
     }
 }
 
 class CustomStackView: UIStackView {
-    override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
+    override func point(inside point: CGPoint, with _: UIEvent?) -> Bool {
         return bounds.insetBy(dx: -10, dy: -10).contains(point)
     }
 }
@@ -587,12 +589,12 @@ class CustomStackView: UIStackView {
 extension UIFont {
     static func swizzle() {
         method_exchangeImplementations(
-                class_getInstanceMethod(self, #selector(getter: descender))!,
-                class_getInstanceMethod(self, #selector(getter: swizzledDescender))!
+            class_getInstanceMethod(self, #selector(getter: descender))!,
+            class_getInstanceMethod(self, #selector(getter: swizzledDescender))!
         )
         method_exchangeImplementations(
-                class_getInstanceMethod(self, #selector(getter: lineHeight))!,
-                class_getInstanceMethod(self, #selector(getter: swizzledLineHeight))!
+            class_getInstanceMethod(self, #selector(getter: lineHeight))!,
+            class_getInstanceMethod(self, #selector(getter: swizzledLineHeight))!
         )
     }
 
@@ -607,27 +609,27 @@ extension UIFont {
 
 extension UIColor {
     func lighter(by percentage: CGFloat = 30.0) -> UIColor? {
-        return self.adjust(by: abs(percentage) )
+        return adjust(by: abs(percentage))
     }
 
     func darker(by percentage: CGFloat = 30.0) -> UIColor? {
-        return self.adjust(by: -1 * abs(percentage) )
+        return adjust(by: -1 * abs(percentage))
     }
 
     func adjust(by percentage: CGFloat = 30.0) -> UIColor? {
         var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-        if self.getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
-            return UIColor(red: min(red + percentage/100, 1.0),
-                           green: min(green + percentage/100, 1.0),
-                           blue: min(blue + percentage/100, 1.0),
+        if getRed(&red, green: &green, blue: &blue, alpha: &alpha) {
+            return UIColor(red: min(red + percentage / 100, 1.0),
+                           green: min(green + percentage / 100, 1.0),
+                           blue: min(blue + percentage / 100, 1.0),
                            alpha: alpha)
         } else {
             return nil
         }
     }
-    
+
     func isLight() -> Bool? {
-        let originalCGColor = self.cgColor
+        let originalCGColor = cgColor
         let RGBCGColor = originalCGColor.converted(to: CGColorSpaceCreateDeviceRGB(), intent: .defaultIntent, options: nil)
         guard let components = RGBCGColor?.components else {
             return nil
@@ -636,43 +638,45 @@ extension UIColor {
             return nil
         }
         let brightness = Float(((components[0] * 299) + (components[1] * 587) + (components[2] * 114)) / 1000)
-        return (brightness > 0.7)
+        return brightness > 0.7
     }
 }
 
 extension UIView {
     #if targetEnvironment(macCatalyst)
-    @objc(_focusRingType)
-    var focusRingType: UInt {
-        return 1 //NSFocusRingTypeNone
-    }
+        @objc(_focusRingType)
+        var focusRingType: UInt {
+            return 1 // NSFocusRingTypeNone
+        }
     #endif
 }
 
 extension UIView {
     func takeScreenshot() -> UIImage {
-        UIGraphicsBeginImageContextWithOptions(self.bounds.size, false, UIScreen.main.scale)
-        drawHierarchy(in: self.bounds, afterScreenUpdates: true)
+        UIGraphicsBeginImageContextWithOptions(bounds.size, false, UIScreen.main.scale)
+        drawHierarchy(in: bounds, afterScreenUpdates: true)
         let image = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-        if (image != nil) {
+        if image != nil {
             return image!
         }
         return UIImage()
     }
+
     func rotate360Degrees(duration: CFTimeInterval = 1) {
         let rotateAnimation = CABasicAnimation(keyPath: "transform.rotation")
         rotateAnimation.fromValue = 0.0
         rotateAnimation.toValue = CGFloat(Double.pi * 2)
         rotateAnimation.isRemovedOnCompletion = false
         rotateAnimation.duration = duration
-        rotateAnimation.repeatCount=Float.infinity
-        self.layer.add(rotateAnimation, forKey: nil)
+        rotateAnimation.repeatCount = Float.infinity
+        layer.add(rotateAnimation, forKey: nil)
     }
+
     func findViewController() -> UIViewController? {
-        if let nextResponder = self.next as? UIViewController {
+        if let nextResponder = next as? UIViewController {
             return nextResponder
-        } else if let nextResponder = self.next as? UIView {
+        } else if let nextResponder = next as? UIView {
             return nextResponder.findViewController()
         } else {
             return nil
@@ -686,6 +690,7 @@ extension Date {
         dateFormatter.dateFormat = "EEEE"
         return dateFormatter.string(from: self).capitalized
     }
+
     func adding(minutes: Int) -> Date {
         return Calendar.current.date(byAdding: .minute, value: minutes, to: self)!
     }
@@ -696,7 +701,7 @@ extension Data {
         let directory = NSTemporaryDirectory()
         let fileName = "\(NSUUID().uuidString).mov"
         let fullURL = NSURL.fileURL(withPathComponents: [directory, fileName])
-        try! self.write(to: fullURL!)
+        try! write(to: fullURL!)
         let asset = AVAsset(url: fullURL!)
         return asset
     }
@@ -704,7 +709,7 @@ extension Data {
 
 extension UIDevice {
     var hasNotch: Bool {
-        guard #available(iOS 11.0, *), let window = UIApplication.shared.windows.filter({$0.isKeyWindow}).first else { return false }
+        guard #available(iOS 11.0, *), let window = UIApplication.shared.windows.filter({ $0.isKeyWindow }).first else { return false }
         if UIDevice.current.orientation.isPortrait {
             return window.safeAreaInsets.top >= 44
         } else {
@@ -726,9 +731,11 @@ class PaddedTextField: UITextField {
     override func textRect(forBounds bounds: CGRect) -> CGRect {
         return bounds.inset(by: padding)
     }
+
     override func placeholderRect(forBounds bounds: CGRect) -> CGRect {
         return bounds.inset(by: padding)
     }
+
     override func editingRect(forBounds bounds: CGRect) -> CGRect {
         return bounds.inset(by: padding)
     }
@@ -738,35 +745,35 @@ class tempEmptyView: UIViewController {
     var placeholder = UILabel()
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .custom.background
-        self.navigationItem.title = "Coming soon..."
-        
+        view.backgroundColor = .custom.background
+        navigationItem.title = "Coming soon..."
+
         // set up nav bar
-        configureNavigationBarLayout(navigationController: self.navigationController, userInterfaceStyle: self.traitCollection.userInterfaceStyle)
-        
+        configureNavigationBarLayout(navigationController: navigationController, userInterfaceStyle: traitCollection.userInterfaceStyle)
+
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
-        
-        self.placeholder.text = "Coming soon..."
-        self.placeholder.textColor = .secondaryLabel
-        self.placeholder.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
-        self.placeholder.sizeToFit()
-        self.placeholder.center = self.navigationController?.view.center ?? self.view.center
-        self.view.addSubview(self.placeholder)
+
+        placeholder.text = "Coming soon..."
+        placeholder.textColor = .secondaryLabel
+        placeholder.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
+        placeholder.sizeToFit()
+        placeholder.center = navigationController?.view.center ?? view.center
+        view.addSubview(placeholder)
     }
 }
 
-extension UIApplication {
-    public var isSplitOrSlideOver: Bool {
-        guard let w = self.delegate?.window, let window = w else { return false }
+public extension UIApplication {
+    var isSplitOrSlideOver: Bool {
+        guard let w = delegate?.window, let window = w else { return false }
         return !window.frame.equalTo(window.screen.bounds)
     }
-    
-    public func isRunningInFullScreen() -> Bool {
-        let keyWindow = self.windows.filter {$0.isKeyWindow}.first
+
+    func isRunningInFullScreen() -> Bool {
+        let keyWindow = windows.filter { $0.isKeyWindow }.first
         if let w = keyWindow {
             let maxScreenSize = max(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
             let minScreenSize = min(UIScreen.main.bounds.size.width, UIScreen.main.bounds.size.height)
@@ -777,5 +784,3 @@ extension UIApplication {
         return true
     }
 }
-
-

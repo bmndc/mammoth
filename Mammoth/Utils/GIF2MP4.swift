@@ -10,53 +10,51 @@
  GIF2MP4(data: data)?.convertAndExport(to: tempUrl, completion: { })
  */
 
-import UIKit
-import Foundation
 import AVFoundation
+import Foundation
+import UIKit
 
 class GIF2MP4 {
-    
     private(set) var gif: GIF
     private var outputURL: URL!
     private(set) var videoWriter: AVAssetWriter!
     private(set) var videoWriterInput: AVAssetWriterInput!
     private(set) var pixelBufferAdaptor: AVAssetWriterInputPixelBufferAdaptor!
     var videoSize: CGSize {
-        //The size of the video must be a multiple of 16
+        // The size of the video must be a multiple of 16
         return CGSize(width: max(1, floor(gif.size.width / 16)) * 16, height: max(1, floor(gif.size.height / 16)) * 16)
     }
-    
+
     init?(data: Data) {
         guard let gif = GIF(data: data) else { return nil }
         self.gif = gif
     }
-    
+
     private func prepare() {
-        
         try? FileManager.default.removeItem(at: outputURL)
 
         let avOutputSettings: [String: Any] = [
             AVVideoCodecKey: AVVideoCodecType.h264,
             AVVideoWidthKey: NSNumber(value: Float(videoSize.width)),
-            AVVideoHeightKey: NSNumber(value: Float(videoSize.height))
+            AVVideoHeightKey: NSNumber(value: Float(videoSize.height)),
         ]
-        
+
         let sourcePixelBufferAttributesDictionary = [
             kCVPixelBufferPixelFormatTypeKey as String: NSNumber(value: kCVPixelFormatType_32ARGB),
             kCVPixelBufferWidthKey as String: NSNumber(value: Float(videoSize.width)),
-            kCVPixelBufferHeightKey as String: NSNumber(value: Float(videoSize.height))
+            kCVPixelBufferHeightKey as String: NSNumber(value: Float(videoSize.height)),
         ]
-        
+
         videoWriter = try! AVAssetWriter(outputURL: outputURL, fileType: AVFileType.mp4)
         videoWriterInput = AVAssetWriterInput(mediaType: AVMediaType.video, outputSettings: avOutputSettings)
         videoWriter.add(videoWriterInput)
-        
+
         pixelBufferAdaptor = AVAssetWriterInputPixelBufferAdaptor(assetWriterInput: videoWriterInput, sourcePixelBufferAttributes: sourcePixelBufferAttributesDictionary)
         videoWriter.startWriting()
         videoWriter.startSession(atSourceTime: CMTime.zero)
     }
-    
-    func convertAndExport(to url: URL, completion: @escaping () -> Void ) {
+
+    func convertAndExport(to url: URL, completion: @escaping () -> Void) {
         outputURL = url
         prepare()
 
@@ -71,7 +69,7 @@ class GIF2MP4 {
                     isFinished = false
                     break
                 }
-                
+
                 if let cgImage = self.gif.getFrame(at: index) {
                     let frameDuration = self.gif.frameDurations[index]
                     delay += Double(frameDuration)
@@ -84,7 +82,7 @@ class GIF2MP4 {
                     }
                 }
             }
-            
+
             if isFinished {
                 self.videoWriterInput.markAsFinished()
                 self.videoWriter.finishWriting {
@@ -97,7 +95,7 @@ class GIF2MP4 {
             }
         }
     }
-    
+
     private func addImage(image: UIImage, withPresentationTime presentationTime: CMTime) -> Bool {
         guard let pixelBufferPool = pixelBufferAdaptor.pixelBufferPool else {
             print("pixelBufferPool is nil ")
@@ -127,11 +125,11 @@ class GIF2MP4 {
         let horizontalRatio = size.width / image.size.width
         let verticalRatio = size.height / image.size.height
         let aspectRatio = max(horizontalRatio, verticalRatio) // ScaleAspectFill
-        //let aspectRatio = min(horizontalRatio, verticalRatio) // ScaleAspectFit
+        // let aspectRatio = min(horizontalRatio, verticalRatio) // ScaleAspectFit
         let newSize = CGSize(width: image.size.width * aspectRatio, height: image.size.height * aspectRatio)
 
-        let x = newSize.width < size.width ? (size.width - newSize.width) / 2: -(newSize.width-size.width)/2
-        let y = newSize.height < size.height ? (size.height - newSize.height) / 2: -(newSize.height-size.height)/2
+        let x = newSize.width < size.width ? (size.width - newSize.width) / 2 : -(newSize.width - size.width) / 2
+        let y = newSize.height < size.height ? (size.height - newSize.height) / 2 : -(newSize.height - size.height) / 2
 
         context.draw(image.cgImage!, in: CGRect(x: x, y: y, width: newSize.width, height: newSize.height))
         CVPixelBufferUnlockBaseAddress(pixelBuffer, CVPixelBufferLockFlags(rawValue: CVOptionFlags(0)))
@@ -144,7 +142,6 @@ import ImageIO
 import MobileCoreServices
 
 class GIF {
-
     private let frameDelayThreshold = 0.02
     private(set) var duration = 0.0
     private(set) var imageSource: CGImageSource!
@@ -154,16 +151,17 @@ class GIF {
         guard let f = frames.first, let cgImage = f else { return .zero }
         return CGSize(width: cgImage.width, height: cgImage.height)
     }
-    private lazy var getFrameQueue: DispatchQueue = DispatchQueue(label: "gif.frame.queue", qos: .userInteractive)
+
+    private lazy var getFrameQueue: DispatchQueue = .init(label: "gif.frame.queue", qos: .userInteractive)
 
     init?(data: Data) {
         guard let imgSource = CGImageSourceCreateWithData(data as CFData, nil), let imgType = CGImageSourceGetType(imgSource), UTTypeConformsTo(imgType, kUTTypeGIF) else {
             return nil
         }
-        self.imageSource = imgSource
+        imageSource = imgSource
         let imgCount = CGImageSourceGetCount(imageSource)
         frames = [CGImage?](repeating: nil, count: imgCount)
-        for i in 0..<imgCount {
+        for i in 0 ..< imgCount {
             let delay = getGIFFrameDuration(imgSource: imageSource, index: i)
             frameDurations.append(delay)
             duration += delay
@@ -189,9 +187,9 @@ class GIF {
 
     private func getGIFFrameDuration(imgSource: CGImageSource, index: Int) -> TimeInterval {
         guard let frameProperties = CGImageSourceCopyPropertiesAtIndex(imgSource, index, nil) as? [String: Any],
-            let gifProperties = frameProperties[kCGImagePropertyGIFDictionary as String] as? NSDictionary,
-            let unclampedDelay = gifProperties[kCGImagePropertyGIFUnclampedDelayTime] as? TimeInterval
-            else { return 0.02 }
+              let gifProperties = frameProperties[kCGImagePropertyGIFDictionary as String] as? NSDictionary,
+              let unclampedDelay = gifProperties[kCGImagePropertyGIFUnclampedDelayTime] as? TimeInterval
+        else { return 0.02 }
 
         var frameDuration = TimeInterval(0)
 

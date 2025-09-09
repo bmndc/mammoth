@@ -8,8 +8,7 @@
 
 import Foundation
 
-struct ChannelService {
-    
+enum ChannelService {
     /// Fetches the list of channels  from Moth.social
     static func allChannels() async throws -> [Channel] {
         let request = Channels.allChannels()
@@ -32,5 +31,4 @@ struct ChannelService {
         let result = try await ClientService.runMothRequest(request: request)
         return result
     }
-
 }

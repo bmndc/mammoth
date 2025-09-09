@@ -23,29 +23,29 @@ public enum RequestRange {
 extension RequestRange {
     func parameters(limit limitFunction: (Int) -> Int) -> [Parameter]? {
         switch self {
-        case .max(let id, let limit):
+        case let .max(id, limit):
             return [
                 Parameter(name: "max_id", value: id),
-                Parameter(name: "limit", value: limit.map(limitFunction).flatMap(toOptionalString))
+                Parameter(name: "limit", value: limit.map(limitFunction).flatMap(toOptionalString)),
             ]
-        case .since(let id, let limit):
+        case let .since(id, limit):
             return [
                 Parameter(name: "since_id", value: id),
-                Parameter(name: "limit", value: limit.map(limitFunction).flatMap(toOptionalString))
+                Parameter(name: "limit", value: limit.map(limitFunction).flatMap(toOptionalString)),
             ]
-        case .min(let id, let limit):
+        case let .min(id, limit):
 //            if (UserDefaults.standard.object(forKey: "orderset") == nil) || (UserDefaults.standard.object(forKey: "orderset") as! Int == 0) {
-                return [
-                    Parameter(name: "min_id", value: id),
-                    Parameter(name: "limit", value: limit.map(limitFunction).flatMap(toOptionalString))
-                ]
+            return [
+                Parameter(name: "min_id", value: id),
+                Parameter(name: "limit", value: limit.map(limitFunction).flatMap(toOptionalString)),
+            ]
 //            } else {
 //                return [
 //                    Parameter(name: "since_id", value: id),
 //                    Parameter(name: "limit", value: limit.map(limitFunction).flatMap(toOptionalString))
 //                ]
 //            }
-        case .limit(let limit):
+        case let .limit(limit):
             return [Parameter(name: "limit", value: String(limitFunction(limit)))]
         default:
             return nil

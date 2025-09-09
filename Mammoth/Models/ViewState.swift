@@ -16,8 +16,8 @@ enum ViewState {
 }
 
 extension ViewState: Equatable {
-    static func ==(lhs: ViewState, rhs: ViewState) -> Bool {
-        switch(lhs, rhs) {
+    static func == (lhs: ViewState, rhs: ViewState) -> Bool {
+        switch (lhs, rhs) {
         case (.idle, .idle):
             return true
         case (.loading, .loading):

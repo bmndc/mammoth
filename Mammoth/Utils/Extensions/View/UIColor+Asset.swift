@@ -9,10 +9,8 @@
 import UIKit
 
 extension UIColor {
-    
     // App-specific colors
-    struct custom {
-        
+    enum custom {
         // Previously in GlobalStruct
         static var backgroundTint: UIColor { return UIColor.custom.background }
         static var baseTint: UIColor { return appColorNamed("High Contrast") }
@@ -20,13 +18,13 @@ extension UIColor {
         static var mainTextColor2 = UIColor.label
         static var quoteTint: UIColor { return UIColor.secondarySystemBackground }
         static var actionButtons: UIColor { return UIColor.secondaryLabel.withAlphaComponent(0.4) }
-        
+
         // Previously used around the app
         static var appCol: UIColor { return UIColor(named: "AppCol")! }
         static var selectedCell: UIColor { return appColorNamed("selectedCell") }
         static var selectedFollowing: UIColor { return appColorNamed("selectedFollowing") }
         static var spinnerBG: UIColor { return appColorNamed("spinnerBG") }
-        
+
         // From Figma docs
         static var activeInverted: UIColor { return appColorNamed("Active Inverted") }
         static var active: UIColor { return appColorNamed("Active") }
@@ -54,7 +52,7 @@ extension UIColor {
         static var pollBarText: UIColor { return appColorNamed("Poll Bar Text") }
         static var pollBars: UIColor { return appColorNamed("Poll Bars") }
     }
-    
+
     func greenTintedColor() -> UIColor {
         var red: CGFloat = 0.0
         var green: CGFloat = 0.0
@@ -63,17 +61,18 @@ extension UIColor {
         getRed(&red, green: &green, blue: &blue, alpha: &alpha)
         return UIColor(red: red, green: green * 2.0, blue: blue, alpha: alpha)
     }
+
     static func appColorNamed(_ name: String) -> UIColor {
-#if false
-        // For testing
-        if GlobalStruct.overrideThemeHighContrast {
-            return UIColor(named: name)!.greenTintedColor()
-        } else {
-            return UIColor(named: name)!
-        }
-#else
-        let prefix = GlobalStruct.overrideThemeHighContrast ? "HC" : ""
-        return UIColor(named: prefix + name)!
-#endif
+        #if false
+            // For testing
+            if GlobalStruct.overrideThemeHighContrast {
+                return UIColor(named: name)!.greenTintedColor()
+            } else {
+                return UIColor(named: name)!
+            }
+        #else
+            let prefix = GlobalStruct.overrideThemeHighContrast ? "HC" : ""
+            return UIColor(named: prefix + name)!
+        #endif
     }
 }

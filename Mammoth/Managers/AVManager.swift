@@ -6,13 +6,13 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
 import AVFoundation
+import Foundation
 
 class AVManager {
     static let shared = AVManager()
-    
-    public var currentPlayer: AVPlayer? {
+
+    var currentPlayer: AVPlayer? {
         willSet {
             // Mute previously playing video
             // Only one video can be unmuted at the time
@@ -21,12 +21,12 @@ class AVManager {
             }
         }
     }
-    
+
     func prepareForUse() {
         Mute.shared.checkInterval = 0.5
         Mute.shared.alwaysNotify = false
         Mute.shared.check()
-        
+
         Mute.shared.notify = { [weak self] isMuted in
             guard let self else { return }
             if isMuted {

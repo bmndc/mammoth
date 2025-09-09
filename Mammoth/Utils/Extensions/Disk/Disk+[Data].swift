@@ -35,7 +35,7 @@ public extension Disk {
             let folderUrl = try createURL(for: path, in: directory)
             try createSubfoldersBeforeCreatingFile(at: folderUrl)
             try FileManager.default.createDirectory(at: folderUrl, withIntermediateDirectories: false, attributes: nil)
-            for i in 0..<value.count {
+            for i in 0 ..< value.count {
                 let data = value[i]
                 let dataName = "\(i)"
                 let dataUrl = folderUrl.appendingPathComponent(dataName, isDirectory: false)
@@ -45,7 +45,7 @@ public extension Disk {
             throw error
         }
     }
-    
+
     /// Append a file with Data to a folder
     ///
     /// - Parameters:
@@ -58,7 +58,7 @@ public extension Disk {
             if let folderUrl = try? getExistingFileURL(for: path, in: directory) {
                 let fileUrls = try FileManager.default.contentsOfDirectory(at: folderUrl, includingPropertiesForKeys: nil, options: [])
                 var largestFileNameInt = -1
-                for i in 0..<fileUrls.count {
+                for i in 0 ..< fileUrls.count {
                     let fileUrl = fileUrls[i]
                     if let fileNameInt = fileNameInt(fileUrl) {
                         if fileNameInt > largestFileNameInt {
@@ -79,7 +79,7 @@ public extension Disk {
             throw error
         }
     }
-    
+
     /// Append an array of data objects as files to a folder
     ///
     /// - Parameters:
@@ -100,7 +100,7 @@ public extension Disk {
             throw error
         }
     }
-    
+
     /// Retrieve an array of Data objects from disk
     ///
     /// - Parameters:
@@ -109,18 +109,18 @@ public extension Disk {
     ///   - type: here for Swifty generics magic, use [Data].self
     /// - Returns: [Data] from disk
     /// - Throws: Error if there were any issues retrieving the specified folder of files
-    static func retrieve(_ path: String, from directory: Directory, as type: [Data].Type) throws -> [Data] {
+    static func retrieve(_ path: String, from directory: Directory, as _: [Data].Type) throws -> [Data] {
         do {
             let url = try getExistingFileURL(for: path, in: directory)
             let fileUrls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [])
-            let sortedFileUrls = fileUrls.sorted(by: { (url1, url2) -> Bool in
+            let sortedFileUrls = fileUrls.sorted(by: { url1, url2 -> Bool in
                 if let fileNameInt1 = fileNameInt(url1), let fileNameInt2 = fileNameInt(url2) {
                     return fileNameInt1 <= fileNameInt2
                 }
                 return true
             })
             var dataObjects = [Data]()
-            for i in 0..<sortedFileUrls.count {
+            for i in 0 ..< sortedFileUrls.count {
                 let fileUrl = sortedFileUrls[i]
                 let data = try Data(contentsOf: fileUrl)
                 dataObjects.append(data)
@@ -131,4 +131,3 @@ public extension Disk {
         }
     }
 }
-

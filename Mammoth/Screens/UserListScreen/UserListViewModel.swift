@@ -9,8 +9,7 @@
 import Foundation
 
 class UserListViewModel {
-
-    public enum UserListType: Int, CaseIterable {
+    enum UserListType: Int, CaseIterable {
         case likes
         case reposts
         case followers
@@ -18,7 +17,7 @@ class UserListViewModel {
         case mutes
         case blocks
         case listMembers
-        
+
         func title(_ user: UserCardModel? = nil) -> String {
             switch self {
             case .likes:
@@ -37,63 +36,63 @@ class UserListViewModel {
                 return NSLocalizedString("list.members", comment: "")
             }
         }
-        
+
         func fetchAll(_ post: PostCardModel, range: RequestRange = .default) async throws -> ([UserCardModel], Pagination?) {
             switch self {
             case .likes:
                 let (accounts, pagination) = try await StatusService.likes(id: post.originalId, instanceName: post.originalInstanceName, range: range)
-                let users = accounts.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
+                let users = accounts.map { UserCardModel(account: $0, requestFollowStatusUpdate: .none) }
                 return (users, pagination)
             case .reposts:
                 let (accounts, pagination) = try await StatusService.reposts(id: post.originalId, instanceName: post.originalInstanceName, range: range)
-                let users = accounts.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
+                let users = accounts.map { UserCardModel(account: $0, requestFollowStatusUpdate: .none) }
                 return (users, pagination)
             default:
-                fatalError("pass a user instead to fetch all \(self.rawValue)")
+                fatalError("pass a user instead to fetch all \(rawValue)")
             }
         }
-        
+
         func fetchAll(_ user: UserCardModel, range: RequestRange = .default) async throws -> ([UserCardModel], Pagination?) {
             switch self {
             case .followers:
                 let (accounts, pagination) = try await AccountService.followers(userId: user.id, instanceName: user.instanceName, range: range)
-                let users = accounts.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
+                let users = accounts.map { UserCardModel(account: $0, requestFollowStatusUpdate: .none) }
                 return (users, pagination)
             case .following:
                 let (accounts, pagination) = try await AccountService.following(userId: user.id, instanceName: user.instanceName, range: range)
-                let users = accounts.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none, isFollowing: true) })
+                let users = accounts.map { UserCardModel(account: $0, requestFollowStatusUpdate: .none, isFollowing: true) }
                 return (users, pagination)
             case .mutes:
 //                let (accounts, pagination) = try await AccountService.mutes(range: range)
-                let cachedMutes = ModerationManager.shared.mutedUsers.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
+                let cachedMutes = ModerationManager.shared.mutedUsers.map { UserCardModel(account: $0, requestFollowStatusUpdate: .none) }
 //                let users = accounts.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
                 return (cachedMutes, nil)
             case .blocks:
 //                let (accounts, pagination) = try await AccountService.blocks(range: range)
-                let cachedBlocks = ModerationManager.shared.blockedUsers.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
+                let cachedBlocks = ModerationManager.shared.blockedUsers.map { UserCardModel(account: $0, requestFollowStatusUpdate: .none) }
 //                let users = accounts.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
                 return (cachedBlocks, nil)
             default:
-                fatalError("pass a post instead to fetch all \(self.rawValue)")
+                fatalError("pass a post instead to fetch all \(rawValue)")
             }
         }
-        
+
         func fetchAll(_ listID: String, range: RequestRange = .default) async throws -> ([UserCardModel], Pagination?) {
             switch self {
             case .listMembers:
                 let (accounts, pagination) = try await ListService.accounts(listID: listID, range: range)
-                let users = accounts.map({ UserCardModel(account: $0, requestFollowStatusUpdate: .none) })
+                let users = accounts.map { UserCardModel(account: $0, requestFollowStatusUpdate: .none) }
                 return (users, pagination)
             default:
-                fatalError("pass a user instead to fetch all \(self.rawValue)")
+                fatalError("pass a user instead to fetch all \(rawValue)")
             }
         }
     }
-    
+
     weak var delegate: RequestDelegate?
     private var isLoadMoreEnabled: Bool = true
     private var nextPageRange: RequestRange?
-    
+
     private var state: ViewState {
         didSet {
             DispatchQueue.main.async {
@@ -107,22 +106,22 @@ class UserListViewModel {
     private var post: PostCardModel?
     private(set) var user: UserCardModel?
     private(set) var listID: String?
-    
-    public var ongoingTask: Task<Void, Error>?
+
+    var ongoingTask: Task<Void, Error>?
 
     init(type: UserListType, user: UserCardModel) {
-        self.state = .idle
+        state = .idle
         self.type = type
         self.user = user
-        self.listData = []
-        
+        listData = []
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onStatusUpdate),
+                                               selector: #selector(onStatusUpdate),
                                                name: didChangeFollowStatusNotification,
                                                object: nil)
-        
-        self.state = .loading
-        self.ongoingTask = Task {
+
+        state = .loading
+        ongoingTask = Task {
             do {
                 if let acct = user.account, let account = await AccountService.lookup(acct.fullAcct, serverName: acct.server) {
                     let lookedUpUser = UserCardModel(account: account, instanceName: account.server)
@@ -130,7 +129,7 @@ class UserListViewModel {
                         self.user = lookedUpUser
                     }
                     try await self.loadList(lookedUpUser, loadNextPage: false)
-                    
+
                     if self.type == .blocks || self.type == .mutes {
                         self.state = .loading
                         try await ModerationManager.shared.fetchLists()
@@ -140,68 +139,67 @@ class UserListViewModel {
                     if let acct = user.account {
                         let user = UserCardModel(account: acct, instanceName: user.instanceName ?? acct.server)
                         try await self.loadList(user, loadNextPage: false)
-                        await MainActor.run  {
+                        await MainActor.run {
                             self.user = user
                         }
                     }
                 }
-            } catch { }
+            } catch {}
         }
-        
     }
-    
+
     init(type: UserListType, post: PostCardModel) {
-        self.state = .idle
+        state = .idle
         self.type = type
         self.post = post
-        self.listData = []
-        
+        listData = []
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onStatusUpdate),
+                                               selector: #selector(onStatusUpdate),
                                                name: didChangeFollowStatusNotification,
                                                object: nil)
-        
-        self.ongoingTask = Task { try await self.loadList() }
+
+        ongoingTask = Task { try await self.loadList() }
     }
-    
+
     init(listID: String) {
-        self.state = .idle
-        self.type = .listMembers
+        state = .idle
+        type = .listMembers
         self.listID = listID
-        self.listData = []
-        
-        self.ongoingTask = Task { try await self.loadList() }
+        listData = []
+
+        ongoingTask = Task { try await self.loadList() }
     }
 
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
-    public func title() -> String {
-        switch self.type {
+
+    func title() -> String {
+        switch type {
         case .likes, .reposts, .blocks, .mutes, .listMembers:
-            return self.type.title()
+            return type.title()
         default:
             return ""
         }
     }
-    
-    public func carouselItems() -> [UserListType] {
-        switch self.type {
+
+    func carouselItems() -> [UserListType] {
+        switch type {
         case .followers, .following:
             return [.followers, .following]
         default:
             return []
         }
     }
-    
-    public func changeType(type: UserListType) {
+
+    func changeType(type: UserListType) {
         self.type = type
-        self.listData = []
-        self.isLoadMoreEnabled = true
-        if let user = self.user {
-            self.ongoingTask?.cancel()
-            self.ongoingTask = Task {
+        listData = []
+        isLoadMoreEnabled = true
+        if let user = user {
+            ongoingTask?.cancel()
+            ongoingTask = Task {
                 try await self.loadList(user, loadNextPage: false)
             }
         }
@@ -209,56 +207,57 @@ class UserListViewModel {
 }
 
 // MARK: - DataSource
+
 extension UserListViewModel {
-    func numberOfItems(forSection section: Int) -> Int {
-        return max(self.listData.count + (self.shouldDisplayLoader() ? 1 : 0) + (self.shouldDisplayError() ? 1 : 0), 1)
+    func numberOfItems(forSection _: Int) -> Int {
+        return max(listData.count + (shouldDisplayLoader() ? 1 : 0) + (shouldDisplayError() ? 1 : 0), 1)
     }
-    
+
     var numberOfSections: Int {
         return 1
     }
 
     func getInfo(forIndexPath indexPath: IndexPath) -> UserCardModel? {
-        guard self.listData.count > indexPath.row else { return nil}
-        return self.listData[indexPath.row]
+        guard listData.count > indexPath.row else { return nil }
+        return listData[indexPath.row]
     }
-    
+
     func shouldDisplayLoader() -> Bool {
-        if case .loading = self.state {
+        if case .loading = state {
             return true
         }
         return false
     }
-    
+
     func shouldDisplayError() -> Bool {
-        if case .error = self.state {
+        if case .error = state {
             return true
         }
         return false
     }
-    
+
     func isListEmpty() -> Bool {
-        if self.state == .loading {
+        if state == .loading {
             return false
         }
-        
-        return self.listData.isEmpty
+
+        return listData.isEmpty
     }
-    
+
     func shouldShowFollowButton() -> Bool {
-        if let user = self.user, user.isSelf {
-            if self.type == .following {
+        if let user = user, user.isSelf {
+            if type == .following {
                 return false
             }
         }
-        
+
         return true
     }
-    
+
     func actionButtonType() -> UserCardCell.ActionButtonType {
-        switch self.type {
+        switch type {
         case .followers, .following, .likes, .reposts:
-            if self.shouldShowFollowButton() {
+            if shouldShowFollowButton() {
                 return .follow
             } else {
                 return .none
@@ -271,16 +270,16 @@ extension UserListViewModel {
             return .removeFromList
         }
     }
-    
+
     func shouldFetchNext(prefetchRowsAt indexPaths: [IndexPath]) -> Bool {
-        if !self.isLoadMoreEnabled {
+        if !isLoadMoreEnabled {
             return false
         }
-        
-        switch(self.state) {
+
+        switch state {
         case .loading:
             return false // Dont preload new items if already loading
-        case .error(_):
+        case .error:
             fallthrough
         case .success:
             let highest = indexPaths.reduce(0) {
@@ -290,30 +289,29 @@ extension UserListViewModel {
                     return $1.row
                 }
             }
-            
-            let total = self.numberOfItems(forSection: 0)
-            
+
+            let total = numberOfItems(forSection: 0)
+
             if highest > total - 6 {
                 return true
             } else {
                 return false
             }
-            
         default:
             return false
         }
     }
-    
+
     func updateFollowStatusForAccountName(_ accountName: String!, followStatus: FollowManager.FollowStatus) -> Int? {
         // Find the index of this account
-        let cardIndex = self.listData.firstIndex(where: { card in
+        let cardIndex = listData.firstIndex(where: { card in
             card.account?.fullAcct == accountName
         })
         if let cardIndex {
             // Force the new status upon the card
-            let card = self.listData[cardIndex]
+            let card = listData[cardIndex]
             card.setFollowStatus(followStatus)
-            self.listData[cardIndex] = card
+            listData[cardIndex] = card
             // Return the index to be updated
             return cardIndex
         } else {
@@ -323,54 +321,55 @@ extension UserListViewModel {
 }
 
 // MARK: - Service
+
 extension UserListViewModel {
-    public func refreshData() async throws {
-        self.isLoadMoreEnabled = true
-        
-        if self.type == .blocks || self.type == .mutes {
+    func refreshData() async throws {
+        isLoadMoreEnabled = true
+
+        if type == .blocks || type == .mutes {
             try await ModerationManager.shared.fetchLists()
         }
-        
-        try await self.loadList()
+
+        try await loadList()
     }
-    
-    public func loadList(loadNextPage: Bool = false) async throws {
-        switch self.type {
+
+    func loadList(loadNextPage: Bool = false) async throws {
+        switch type {
         case .likes, .reposts:
-            if let post = self.post {
-                try await self.loadList(post, loadNextPage: loadNextPage)
+            if let post = post {
+                try await loadList(post, loadNextPage: loadNextPage)
             }
         case .followers, .following, .mutes, .blocks:
-            if let user = self.user {
-                try await self.loadList(user, loadNextPage: loadNextPage)
+            if let user = user {
+                try await loadList(user, loadNextPage: loadNextPage)
             }
         case .listMembers:
-            if let listID = self.listID {
-                try await self.loadList(listID, loadNextPage: loadNextPage)
+            if let listID = listID {
+                try await loadList(listID, loadNextPage: loadNextPage)
             }
         }
     }
-    
-    private func loadList(_ post: PostCardModel, loadNextPage: Bool = false) async throws -> Void {
-        self.state = .loading
+
+    private func loadList(_ post: PostCardModel, loadNextPage: Bool = false) async throws {
+        state = .loading
         do {
             var range: RequestRange = .default
-            if loadNextPage, let nextPageRange = self.nextPageRange {
+            if loadNextPage, let nextPageRange = nextPageRange {
                 range = nextPageRange
             }
-            
-            let (results, pagination) = try await self.type.fetchAll(post, range: range)
+
+            let (results, pagination) = try await type.fetchAll(post, range: range)
             if Task.isCancelled { return }
-            
-            self.nextPageRange = pagination?.next
-            
+
+            nextPageRange = pagination?.next
+
             await MainActor.run {
                 if loadNextPage {
                     let newList = (self.listData + results).removingDuplicates()
                     if newList == self.listData {
                         self.isLoadMoreEnabled = false
                     }
-                    
+
                     self.listData = newList
                 } else {
                     if results.isEmpty {
@@ -378,27 +377,27 @@ extension UserListViewModel {
                     }
                     self.listData = results
                 }
-                
+
                 self.state = .success
             }
-        } catch let error {
-            self.state = .error(error)
+        } catch {
+            state = .error(error)
         }
     }
-    
-    private func loadList(_ user: UserCardModel, loadNextPage: Bool = false) async throws -> Void {
-        self.state = .loading
+
+    private func loadList(_ user: UserCardModel, loadNextPage: Bool = false) async throws {
+        state = .loading
         do {
             var range: RequestRange = .default
-            if loadNextPage, let nextPageRange = self.nextPageRange {
+            if loadNextPage, let nextPageRange = nextPageRange {
                 range = nextPageRange
             }
-            
-            let (results, pagination) = try await self.type.fetchAll(user, range: range)
+
+            let (results, pagination) = try await type.fetchAll(user, range: range)
             if Task.isCancelled { return }
-            
-            self.nextPageRange = pagination?.next
-            
+
+            nextPageRange = pagination?.next
+
             await MainActor.run {
                 if loadNextPage {
                     if results.isEmpty {
@@ -408,33 +407,33 @@ extension UserListViewModel {
                         if newList == self.listData {
                             self.isLoadMoreEnabled = false
                         }
-                        
+
                         self.listData = newList
                     }
                 } else {
                     self.listData = results
                 }
-                
+
                 self.state = .success
             }
-        } catch let error {
-            self.state = .error(error)
+        } catch {
+            state = .error(error)
         }
     }
-    
-    private func loadList(_ listID: String, loadNextPage: Bool = false) async throws -> Void {
-        self.state = .loading
+
+    private func loadList(_ listID: String, loadNextPage: Bool = false) async throws {
+        state = .loading
         do {
             var range: RequestRange = .default
-            if loadNextPage, let nextPageRange = self.nextPageRange {
+            if loadNextPage, let nextPageRange = nextPageRange {
                 range = nextPageRange
             }
-            
-            let (results, pagination) = try await self.type.fetchAll(listID, range: range)
+
+            let (results, pagination) = try await type.fetchAll(listID, range: range)
             if Task.isCancelled { return }
-            
-            self.nextPageRange = pagination?.next
-            
+
+            nextPageRange = pagination?.next
+
             await MainActor.run {
                 if loadNextPage {
                     if results.isEmpty {
@@ -444,30 +443,30 @@ extension UserListViewModel {
                         if newList == self.listData {
                             self.isLoadMoreEnabled = false
                         }
-                        
+
                         self.listData = newList
                     }
                 } else {
                     self.listData = results
                 }
-                
+
                 self.state = .success
             }
-        } catch let error {
-            self.state = .error(error)
+        } catch {
+            state = .error(error)
         }
     }
-    
+
     func syncFollowStatus(forIndexPaths indexPaths: [IndexPath]) {
-        indexPaths.forEach({
-            if let userCard = self.getInfo(forIndexPath: $0), let account = userCard.account {
+        for indexPath in indexPaths {
+            if let userCard = getInfo(forIndexPath: indexPath), let account = userCard.account {
                 let newStatus = FollowManager.shared.followStatusForAccount(account, requestUpdate: .whenUncertain)
-                if newStatus != self.listData[$0.row].followStatus {
-                    self.listData[$0.row].followStatus = newStatus
-                    self.delegate?.didUpdateCard(at: $0)
+                if newStatus != listData[indexPath.row].followStatus {
+                    listData[indexPath.row].followStatus = newStatus
+                    delegate?.didUpdateCard(at: indexPath)
                 }
             }
-        })
+        }
     }
 }
 

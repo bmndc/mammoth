@@ -8,8 +8,7 @@
 
 import Foundation
 
-struct SearchService {
-    
+enum SearchService {
     static func search(query: String) async throws -> Results {
         let request = Search.search(query: query, resolve: true)
         let result = try await ClientService.runRequest(request: request)
@@ -21,17 +20,16 @@ struct SearchService {
         let result = try await ClientService.runRequest(request: request)
         return result.accounts
     }
-    
+
     static func searchPosts(query: String) async throws -> [Status] {
         let request = Search.searchPosts(query: query)
         let result = try await ClientService.runRequest(request: request)
         return result.statuses
     }
-    
+
     static func searchTags(query: String) async throws -> [Tag] {
         let request = Search.searchTags(query: query)
         let result = try await ClientService.runRequest(request: request)
         return result.hashtags
     }
-
 }

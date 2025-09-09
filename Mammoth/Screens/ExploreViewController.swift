@@ -6,15 +6,14 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
+import CoreLocation
 import Foundation
 import UIKit
-import CoreLocation
 
 // swiftlint:disable:next type_body_length
 class ExploreViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIContextMenuInteractionDelegate {
-    
-    var currentUserID: String? = nil
-    var client: Client? = nil
+    var currentUserID: String?
+    var client: Client?
     var showingSearch: Bool = true
     let btn1 = UIButton(type: .custom)
     let btn2 = UIButton(type: .custom)
@@ -26,24 +25,24 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
     var acc: [Account] = []
     var otherInstance: String = ""
     var fromOtherCommunity: Bool = false
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        self.tableView.reloadData()
-        tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
+        tableView.reloadData()
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
         tableView.tableHeaderView?.frame.size.height = 60
-        
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        
+
         DispatchQueue.main.async {
             UIView.setAnimationsEnabled(false)
             self.tableView.reloadData()
@@ -53,7 +52,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             UIView.setAnimationsEnabled(true)
         }
     }
-    
+
     var tempScrollPosition: CGFloat = 0
     @objc func scrollToTop() {
         DispatchQueue.main.async {
@@ -66,11 +65,10 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -79,7 +77,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                 UIColor.custom.mainTextColor = .secondaryLabel
             }
             self.tableView.reloadData()
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -88,25 +86,25 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
             self.navigationController?.navigationBar.standardAppearance = navApp
             self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-            
+
             for cell in self.tableView.visibleCells {
                 if let cell = cell as? TrendsFeedCell {
                     cell.titleLabel.textColor = .custom.mainTextColor
                     cell.backgroundColor = .custom.quoteTint
-                    
+
                     cell.titleLabel.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
                     cell.bio.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + GlobalStruct.customTextSize, weight: .regular)
                 }
                 if let cell = cell as? TrendsCell {
                     cell.titleLabel.textColor = .custom.mainTextColor
                     cell.backgroundColor = .custom.quoteTint
-                    
+
                     cell.titleLabel.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
                 }
             }
         }
     }
-    
+
     @objc func reloadBars() {
         DispatchQueue.main.async {
             if GlobalStruct.hideNavBars2 {
@@ -116,69 +114,69 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
+
     @objc func fetchPad() {
-        self.fetchAllTrendData()
+        fetchAllTrendData()
     }
-    
+
     @objc func reloadThis() {
         DispatchQueue.main.async {
             self.tableView.reloadData()
         }
     }
-    
+
     @objc func reloadThisExplore() {
         DispatchQueue.main.async {
             self.fetchVIPMembers()
         }
     }
-    
+
     @objc func updateClient() {
         if UIDevice.current.userInterfaceIdiom != .phone {
-            self.currentUserID = AccountsManager.shared.currentUser()?.id
-            self.client = AccountsManager.shared.currentAccountClient
+            currentUserID = AccountsManager.shared.currentUser()?.id
+            client = AccountsManager.shared.currentAccountClient
         }
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.currentUserID = AccountsManager.shared.currentUser()?.id
-        self.client = AccountsManager.shared.currentAccountClient
+        currentUserID = AccountsManager.shared.currentUser()?.id
+        client = AccountsManager.shared.currentAccountClient
 
         view.backgroundColor = .custom.backgroundTint
-        self.navigationItem.title = NSLocalizedString("title.explore", comment: "")
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updateClient), name: NSNotification.Name(rawValue: "updateClient"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadThis), name: NSNotification.Name(rawValue: "reloadThis"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadThisExplore), name: NSNotification.Name(rawValue: "reloadThisExplore"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadTrendHeader), name: NSNotification.Name(rawValue: "reloadTrendHeader"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.fetchPad), name: NSNotification.Name(rawValue: "fetchPad"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.fetchFollowingTags), name: NSNotification.Name(rawValue: "fetchFollowingTags"), object: nil)
-        
+        navigationItem.title = NSLocalizedString("title.explore", comment: "")
+
+        NotificationCenter.default.addObserver(self, selector: #selector(updateClient), name: NSNotification.Name(rawValue: "updateClient"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadThis), name: NSNotification.Name(rawValue: "reloadThis"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadThisExplore), name: NSNotification.Name(rawValue: "reloadThisExplore"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadTrendHeader), name: NSNotification.Name(rawValue: "reloadTrendHeader"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(fetchPad), name: NSNotification.Name(rawValue: "fetchPad"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(fetchFollowingTags), name: NSNotification.Name(rawValue: "fetchFollowingTags"), object: nil)
+
         // set up nav bar
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+
         // set up nav
         setupNav()
-        
+
         // set up table
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
         setupTable()
-        
+
         // fetch data
-        if !self.fromOtherCommunity {
-            self.restoreAll()
+        if !fromOtherCommunity {
+            restoreAll()
         }
         if GlobalStruct.isCompact || UIDevice.current.userInterfaceIdiom == .phone {
             fetchTrendingLinks()
@@ -191,10 +189,10 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         fetchFollowingTags()
         fetchVIPMembers()
     }
-    
+
     func fetchVIPMembers() {
         let request2 = Lists.accounts(id: GlobalStruct.VIPListID)
-        self.client!.run(request2) { (statuses) in
+        client!.run(request2) { statuses in
             if let error = statuses.error {
                 log.error("Failed to fetch list accounts: \(error)")
                 DispatchQueue.main.async {
@@ -225,10 +223,9 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
-    func setupNav() {
-    }
-    
+
+    func setupNav() {}
+
     func setupTable() {
         tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell")
@@ -256,15 +253,15 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
 
     func fetchTrendingLinks() {
         let request0 = TrendingTags.links()
-        var testClient = self.client!
-        if self.fromOtherCommunity {
+        var testClient = client!
+        if fromOtherCommunity {
             let accessToken = (AccountsManager.shared.currentAccount as? MastodonAcctData)?.instanceData.accessToken
             testClient = Client(
-                baseURL: "https://\(self.otherInstance)",
+                baseURL: "https://\(otherInstance)",
                 accessToken: accessToken
             )
         }
-        testClient.run(request0) { (statuses) in
+        testClient.run(request0) { statuses in
             if let stat = (statuses.value) {
                 DispatchQueue.main.async {
                     self.allLinks = stat
@@ -277,18 +274,18 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
+
     func fetchAllTrendData() {
         let request0 = TrendingTags.trendingTags()
-        var testClient = self.client!
-        if self.fromOtherCommunity {
+        var testClient = client!
+        if fromOtherCommunity {
             let accessToken = (AccountsManager.shared.currentAccount as? MastodonAcctData)?.instanceData.accessToken
             testClient = Client(
-                baseURL: "https://\(self.otherInstance)",
+                baseURL: "https://\(otherInstance)",
                 accessToken: accessToken
             )
         }
-        testClient.run(request0) { (statuses) in
+        testClient.run(request0) { statuses in
             if let stat = (statuses.value) {
                 DispatchQueue.main.async {
                     self.allTrends = stat
@@ -297,18 +294,18 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
+
     @objc func fetchFollowingTags() {
         let request0 = TrendingTags.followedTags()
-        var testClient = self.client!
-        if self.fromOtherCommunity {
+        var testClient = client!
+        if fromOtherCommunity {
             let accessToken = (AccountsManager.shared.currentAccount as? MastodonAcctData)?.instanceData.accessToken
             testClient = Client(
-                baseURL: "https://\(self.otherInstance)",
+                baseURL: "https://\(otherInstance)",
                 accessToken: accessToken
             )
         }
-        testClient.run(request0) { (statuses) in
+        testClient.run(request0) { statuses in
             if let stat = (statuses.value) {
                 DispatchQueue.main.async {
                     self.allTags = stat
@@ -317,15 +314,15 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
+
     func saveToDisk() {
         log.debug(#function + " - " + String(describing: self))
 
         if allLinksNeedsSave {
             do {
-                if self.allLinks.isEmpty {} else {
+                if allLinks.isEmpty {} else {
                     log.debug("writing allLinks")
-                    try Disk.save(self.allLinks, to: .documents, as: "\(self.currentUserID ?? "all")/allLinks.json")
+                    try Disk.save(allLinks, to: .documents, as: "\(currentUserID ?? "all")/allLinks.json")
                     allLinksNeedsSave = false
                 }
             } catch {
@@ -333,33 +330,33 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
+
     func restoreAll() {
         do {
-            self.allLinks = try Disk.retrieve("\(self.currentUserID ?? "all")/allLinks.json", from: .documents, as: [Card].self)
-            self.allLinksNeedsSave = false
-            self.tableView.reloadData()
+            allLinks = try Disk.retrieve("\(currentUserID ?? "all")/allLinks.json", from: .documents, as: [Card].self)
+            allLinksNeedsSave = false
+            tableView.reloadData()
         } catch {
             log.error("error fetching links from Disk - \(error)")
         }
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
-        if self.fromOtherCommunity {
+
+    func numberOfSections(in _: UITableView) -> Int {
+        if fromOtherCommunity {
             return 3
         } else {
-            if self.allTags.isEmpty {
+            if allTags.isEmpty {
                 return 4
             } else {
                 return 5
             }
         }
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if self.fromOtherCommunity {
+
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if fromOtherCommunity {
             if section == 0 {
-                if self.allLinks.isEmpty {
+                if allLinks.isEmpty {
                     return 0
                 } else {
                     return 1
@@ -367,64 +364,64 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             } else if section == 1 {
                 return 1
             } else {
-                return self.allTrends.count
+                return allTrends.count
             }
         } else {
-            if self.allTags.isEmpty {
+            if allTags.isEmpty {
                 if section == 0 {
-                    if self.allLinks.isEmpty {
+                    if allLinks.isEmpty {
                         return 0
                     } else {
                         return 1
                     }
                 } else if section == 1 {
-                    if self.fromOtherCommunity {
+                    if fromOtherCommunity {
                         return 0
                     } else {
                         return 5
                     }
                 } else if section == 2 {
-                    if self.fromOtherCommunity {
+                    if fromOtherCommunity {
                         return 0
                     } else {
                         return 1 + ListManager.shared.allLists(includeTopFriends: false).count
                     }
                 } else {
-                    return self.allTrends.count
+                    return allTrends.count
                 }
             } else {
                 if section == 0 {
-                    if self.allLinks.isEmpty {
+                    if allLinks.isEmpty {
                         return 0
                     } else {
                         return 1
                     }
                 } else if section == 1 {
-                    if self.fromOtherCommunity {
+                    if fromOtherCommunity {
                         return 0
                     } else {
                         return 5
                     }
                 } else if section == 2 {
-                    if self.fromOtherCommunity {
+                    if fromOtherCommunity {
                         return 0
                     } else {
                         return 1 + ListManager.shared.allLists(includeTopFriends: false).count
                     }
                 } else if section == 3 {
-                    if self.fromOtherCommunity {
+                    if fromOtherCommunity {
                         return 0
                     } else {
-                        return self.allTags.count
+                        return allTags.count
                     }
                 } else {
-                    return self.allTrends.count
+                    return allTrends.count
                 }
             }
         }
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+
+    func tableView(_: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if indexPath.section == 0 {
             return 230
         } else {
@@ -435,10 +432,10 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         }
     }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         if section == 0 {
-            if self.allLinks.isEmpty {
+            if allLinks.isEmpty {
                 return 0
             } else {
                 return UITableView.automaticDimension
@@ -447,29 +444,29 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             return 52
         }
     }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+
+    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if section == 0 {
             return nil
         } else if section == 1 {
             let bg = UIView()
-            bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+            bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
             let lab = UILabel()
             lab.frame = bg.frame
-            
+
             lab.attributedText = NSAttributedString(string: NSLocalizedString("title.explore", comment: ""))
-            
+
             lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
             lab.textColor = UIColor.label
             bg.addSubview(lab)
             return bg
         } else if section == 2 {
-            if self.fromOtherCommunity {
+            if fromOtherCommunity {
                 let bg = UIView()
-                bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+                bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
                 let lab = UILabel()
                 lab.frame = bg.frame
-                
+
                 lab.attributedText = NSAttributedString(string: NSLocalizedString("explore.trendingTags", comment: ""))
 
                 lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
@@ -478,10 +475,10 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                 return bg
             } else {
                 let bg = UIView()
-                bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+                bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
                 let lab = UILabel()
                 lab.frame = bg.frame
-                
+
                 let symbolConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
                 let fullString = NSMutableAttributedString(string: "")
                 let image1Attachment = NSTextAttachment()
@@ -490,19 +487,19 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                 fullString.append(image1String)
                 fullString.append(NSAttributedString(string: "  " + NSLocalizedString("explore.lists", comment: "")))
                 lab.attributedText = fullString
-                
+
                 lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
                 lab.textColor = UIColor.label
                 bg.addSubview(lab)
                 return bg
             }
         } else if section == 3 {
-            if self.allTags.isEmpty {
+            if allTags.isEmpty {
                 let bg = UIView()
-                bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+                bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
                 let lab = UILabel()
                 lab.frame = bg.frame
-                
+
                 let symbolConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
                 let fullString = NSMutableAttributedString(string: "")
                 let image1Attachment = NSTextAttachment()
@@ -511,20 +508,20 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                 fullString.append(image1String)
                 fullString.append(NSAttributedString(string: "  " + NSLocalizedString("explore.trendingTags", comment: "")))
                 lab.attributedText = fullString
-                
+
                 lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
                 lab.textColor = UIColor.label
                 bg.addSubview(lab)
                 return bg
             } else {
-                if self.fromOtherCommunity {
+                if fromOtherCommunity {
                     return nil
                 } else {
                     let bg = UIView()
-                    bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+                    bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
                     let lab = UILabel()
                     lab.frame = bg.frame
-                    
+
                     let symbolConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
                     let fullString = NSMutableAttributedString(string: "")
                     let image1Attachment = NSTextAttachment()
@@ -533,7 +530,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                     fullString.append(image1String)
                     fullString.append(NSAttributedString(string: "  " + NSLocalizedString("explore.followedTags", comment: "")))
                     lab.attributedText = fullString
-                    
+
                     lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
                     lab.textColor = UIColor.label
                     bg.addSubview(lab)
@@ -542,10 +539,10 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         } else {
             let bg = UIView()
-            bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+            bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
             let lab = UILabel()
             lab.frame = bg.frame
-            
+
             let symbolConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
             let fullString = NSMutableAttributedString(string: "")
             let image1Attachment = NSTextAttachment()
@@ -554,66 +551,66 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             fullString.append(image1String)
             fullString.append(NSAttributedString(string: "  " + NSLocalizedString("explore.trendingTags", comment: "")))
             lab.attributedText = fullString
-            
+
             lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
             lab.textColor = UIColor.label
             bg.addSubview(lab)
             return bg
         }
     }
-    
+
     @objc func reloadTrendHeader() {
-        self.tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
+        tableView.reloadRows(at: [IndexPath(row: 0, section: 0)], with: .none)
     }
-    
+
     @objc func profile1tap() {
         triggerHapticImpact(style: .light)
-        let vc = ProfileViewController(user: UserCardModel(account: self.acc[0]), screenType: .others)
+        let vc = ProfileViewController(user: UserCardModel(account: acc[0]), screenType: .others)
         if vc.isBeingPresented {} else {
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
-    
+
     @objc func profile2tap() {
         triggerHapticImpact(style: .light)
-        let vc = ProfileViewController(user: UserCardModel(account: self.acc[1]), screenType: .others)
+        let vc = ProfileViewController(user: UserCardModel(account: acc[1]), screenType: .others)
         if vc.isBeingPresented {} else {
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
-    
+
     @objc func profile3tap() {
         triggerHapticImpact(style: .light)
-        let vc = ProfileViewController(user: UserCardModel(account: self.acc[2]), screenType: .others)
+        let vc = ProfileViewController(user: UserCardModel(account: acc[2]), screenType: .others)
         if vc.isBeingPresented {} else {
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
-    
+
     @objc func profile4tap() {
         triggerHapticImpact(style: .light)
-        let vc = ProfileViewController(user: UserCardModel(account: self.acc[3]), screenType: .others)
+        let vc = ProfileViewController(user: UserCardModel(account: acc[3]), screenType: .others)
         if vc.isBeingPresented {} else {
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
-    
+
     @objc func profile5tap() {
         triggerHapticImpact(style: .light)
-        let vc = ProfileViewController(user: UserCardModel(account: self.acc[4]), screenType: .others)
+        let vc = ProfileViewController(user: UserCardModel(account: acc[4]), screenType: .others)
         if vc.isBeingPresented {} else {
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
-    
+
     @objc func profile6tap() {
         triggerHapticImpact(style: .light)
-        let vc = ProfileViewController(user: UserCardModel(account: self.acc[5]), screenType: .others)
+        let vc = ProfileViewController(user: UserCardModel(account: acc[5]), screenType: .others)
         if vc.isBeingPresented {} else {
-            self.navigationController?.pushViewController(vc, animated: true)
+            navigationController?.pushViewController(vc, animated: true)
         }
     }
-    
+
     @objc func profileMoretap() {
         triggerHapticImpact(style: .light)
         if GlobalStruct.displayingVIPLists == 0 {
@@ -622,21 +619,21 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             let vc = LikedByMutedBlockedViewController()
             vc.type = 6
             if vc.isBeingPresented {} else {
-                self.navigationController?.pushViewController(vc, animated: true)
+                navigationController?.pushViewController(vc, animated: true)
             }
         }
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "TrendsTopCell", for: indexPath) as! TrendsTopCell
-            if self.fromOtherCommunity {
+            if fromOtherCommunity {
                 GlobalStruct.hasSetupNewsDots = false
-                cell.setupPost(self.allLinks)
+                cell.setupPost(allLinks)
             } else {
                 if GlobalStruct.hasSetupNewsDots == false {
                     GlobalStruct.hasSetupNewsDots = true
-                    cell.setupPost(self.allLinks)
+                    cell.setupPost(allLinks)
                 }
             }
             cell.separatorInset = .zero
@@ -646,7 +643,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             cell.backgroundColor = .custom.quoteTint
             return cell
         } else if indexPath.section == 1 {
-            if self.fromOtherCommunity {
+            if fromOtherCommunity {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "TrendsCellExtra3", for: indexPath) as! TrendsCellExtra
                 cell.configure(NSLocalizedString("explore.trendingPosts", comment: ""))
                 cell.separatorInset = .zero
@@ -659,19 +656,17 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             } else {
                 if indexPath.row == 0 {
                     let cell = tableView.dequeueReusableCell(withIdentifier: "VIPCell", for: indexPath) as! VIPCell
-                    if self.fromOtherCommunity {
-                        
+                    if fromOtherCommunity {
                     } else {
                         cell.titleText.text = "Top Friends"
                         cell.valueText.text = "Posts from your inner circle"
-                        
-                        self.acc = Array(GlobalStruct.topAccounts.reversed())
-                        
-                        cell.profile1.removeTarget(self, action: #selector(self.profile1tap), for: .touchUpInside)
-                        cell.profile1.removeTarget(self, action: #selector(self.profileMoretap), for: .touchUpInside)
-                        
-                        if self.acc.count > 5 {
-                            
+
+                        acc = Array(GlobalStruct.topAccounts.reversed())
+
+                        cell.profile1.removeTarget(self, action: #selector(profile1tap), for: .touchUpInside)
+                        cell.profile1.removeTarget(self, action: #selector(profileMoretap), for: .touchUpInside)
+
+                        if acc.count > 5 {
                             cell.profile6.alpha = 1
                             cell.profile6.isUserInteractionEnabled = true
                             cell.profile5.alpha = 1
@@ -682,66 +677,66 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                             cell.profile3.isUserInteractionEnabled = true
                             cell.profile2.alpha = 1
                             cell.profile2.isUserInteractionEnabled = true
-                            
+
                             if let profileURL = URL(string: acc[0].avatar) {
                                 cell.profile1.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile1.addTarget(self, action: #selector(self.profile1tap), for: .touchUpInside)
-                                
+                                cell.profile1.addTarget(self, action: #selector(profile1tap), for: .touchUpInside)
+
                                 let interaction1 = UIContextMenuInteraction(delegate: self)
                                 cell.profile1.addInteraction(interaction1)
-                                cell.profile1.tag = indexPath.row + 100000
+                                cell.profile1.tag = indexPath.row + 100_000
                             }
                             if let profileURL = URL(string: acc[1].avatar) {
                                 cell.profile2.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile2.addTarget(self, action: #selector(self.profile2tap), for: .touchUpInside)
-                                
+                                cell.profile2.addTarget(self, action: #selector(profile2tap), for: .touchUpInside)
+
                                 let interaction2 = UIContextMenuInteraction(delegate: self)
                                 cell.profile2.addInteraction(interaction2)
-                                cell.profile2.tag = indexPath.row + 200000
+                                cell.profile2.tag = indexPath.row + 200_000
                             }
                             if let profileURL = URL(string: acc[2].avatar) {
                                 cell.profile3.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile3.addTarget(self, action: #selector(self.profile3tap), for: .touchUpInside)
-                                
+                                cell.profile3.addTarget(self, action: #selector(profile3tap), for: .touchUpInside)
+
                                 let interaction3 = UIContextMenuInteraction(delegate: self)
                                 cell.profile3.addInteraction(interaction3)
-                                cell.profile3.tag = indexPath.row + 300000
+                                cell.profile3.tag = indexPath.row + 300_000
                             }
                             if let profileURL = URL(string: acc[3].avatar) {
                                 cell.profile4.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile4.addTarget(self, action: #selector(self.profile4tap), for: .touchUpInside)
-                                
+                                cell.profile4.addTarget(self, action: #selector(profile4tap), for: .touchUpInside)
+
                                 let interaction4 = UIContextMenuInteraction(delegate: self)
                                 cell.profile4.addInteraction(interaction4)
-                                cell.profile4.tag = indexPath.row + 400000
+                                cell.profile4.tag = indexPath.row + 400_000
                             }
                             if let profileURL = URL(string: acc[4].avatar) {
                                 cell.profile5.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile5.addTarget(self, action: #selector(self.profile5tap), for: .touchUpInside)
-                                
+                                cell.profile5.addTarget(self, action: #selector(profile5tap), for: .touchUpInside)
+
                                 let interaction5 = UIContextMenuInteraction(delegate: self)
                                 cell.profile5.addInteraction(interaction5)
-                                cell.profile5.tag = indexPath.row + 500000
+                                cell.profile5.tag = indexPath.row + 500_000
                             }
                             if let profileURL = URL(string: acc[5].avatar) {
                                 cell.profile6.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile6.addTarget(self, action: #selector(self.profile6tap), for: .touchUpInside)
+                                cell.profile6.addTarget(self, action: #selector(profile6tap), for: .touchUpInside)
                                 cell.profile6.alpha = 1
                                 cell.profile6.isUserInteractionEnabled = true
-                                
+
                                 let interaction6 = UIContextMenuInteraction(delegate: self)
                                 cell.profile6.addInteraction(interaction6)
-                                cell.profile6.tag = indexPath.row + 600000
-                                
+                                cell.profile6.tag = indexPath.row + 600_000
+
                                 cell.profileMore.alpha = 1
-                                cell.profileMore.addTarget(self, action: #selector(self.profileMoretap), for: .touchUpInside)
+                                cell.profileMore.addTarget(self, action: #selector(profileMoretap), for: .touchUpInside)
                                 cell.profileMore.isUserInteractionEnabled = true
                             }
-                        } else if self.acc.count > 4 {
+                        } else if acc.count > 4 {
                             cell.profile6.alpha = 0
                             cell.profile6.setImage(UIImage(), for: .normal)
                             cell.profile6.isUserInteractionEnabled = false
-                            
+
                             cell.profile5.alpha = 1
                             cell.profile5.isUserInteractionEnabled = true
                             cell.profile4.alpha = 1
@@ -750,249 +745,249 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                             cell.profile3.isUserInteractionEnabled = true
                             cell.profile2.alpha = 1
                             cell.profile2.isUserInteractionEnabled = true
-                            
+
                             cell.profileMore.alpha = 0
                             cell.profileMore.isUserInteractionEnabled = false
-                            
+
                             if let profileURL = URL(string: acc[0].avatar) {
                                 cell.profile1.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile1.addTarget(self, action: #selector(self.profile1tap), for: .touchUpInside)
-                                
+                                cell.profile1.addTarget(self, action: #selector(profile1tap), for: .touchUpInside)
+
                                 let interaction1 = UIContextMenuInteraction(delegate: self)
                                 cell.profile1.addInteraction(interaction1)
-                                cell.profile1.tag = indexPath.row + 100000
+                                cell.profile1.tag = indexPath.row + 100_000
                             }
                             if let profileURL = URL(string: acc[1].avatar) {
                                 cell.profile2.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile2.addTarget(self, action: #selector(self.profile2tap), for: .touchUpInside)
-                                
+                                cell.profile2.addTarget(self, action: #selector(profile2tap), for: .touchUpInside)
+
                                 let interaction2 = UIContextMenuInteraction(delegate: self)
                                 cell.profile2.addInteraction(interaction2)
-                                cell.profile2.tag = indexPath.row + 200000
+                                cell.profile2.tag = indexPath.row + 200_000
                             }
                             if let profileURL = URL(string: acc[2].avatar) {
                                 cell.profile3.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile3.addTarget(self, action: #selector(self.profile3tap), for: .touchUpInside)
-                                
+                                cell.profile3.addTarget(self, action: #selector(profile3tap), for: .touchUpInside)
+
                                 let interaction3 = UIContextMenuInteraction(delegate: self)
                                 cell.profile3.addInteraction(interaction3)
-                                cell.profile3.tag = indexPath.row + 300000
+                                cell.profile3.tag = indexPath.row + 300_000
                             }
                             if let profileURL = URL(string: acc[3].avatar) {
                                 cell.profile4.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile4.addTarget(self, action: #selector(self.profile4tap), for: .touchUpInside)
-                                
+                                cell.profile4.addTarget(self, action: #selector(profile4tap), for: .touchUpInside)
+
                                 let interaction4 = UIContextMenuInteraction(delegate: self)
                                 cell.profile4.addInteraction(interaction4)
-                                cell.profile4.tag = indexPath.row + 400000
+                                cell.profile4.tag = indexPath.row + 400_000
                             }
                             if let profileURL = URL(string: acc[4].avatar) {
                                 cell.profile5.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile5.addTarget(self, action: #selector(self.profile5tap), for: .touchUpInside)
-                                
+                                cell.profile5.addTarget(self, action: #selector(profile5tap), for: .touchUpInside)
+
                                 let interaction5 = UIContextMenuInteraction(delegate: self)
                                 cell.profile5.addInteraction(interaction5)
-                                cell.profile5.tag = indexPath.row + 500000
+                                cell.profile5.tag = indexPath.row + 500_000
                             }
-                        } else if self.acc.count > 3 {
+                        } else if acc.count > 3 {
                             cell.profile6.alpha = 0
                             cell.profile6.setImage(UIImage(), for: .normal)
                             cell.profile6.isUserInteractionEnabled = false
-                            
+
                             cell.profile5.alpha = 0
                             cell.profile5.setImage(UIImage(), for: .normal)
                             cell.profile5.isUserInteractionEnabled = false
-                            
+
                             cell.profile4.alpha = 1
                             cell.profile4.isUserInteractionEnabled = true
                             cell.profile3.alpha = 1
                             cell.profile3.isUserInteractionEnabled = true
                             cell.profile2.alpha = 1
                             cell.profile2.isUserInteractionEnabled = true
-                            
+
                             cell.profileMore.alpha = 0
                             cell.profileMore.isUserInteractionEnabled = false
-                            
+
                             if let profileURL = URL(string: acc[0].avatar) {
                                 cell.profile1.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile1.addTarget(self, action: #selector(self.profile1tap), for: .touchUpInside)
-                                
+                                cell.profile1.addTarget(self, action: #selector(profile1tap), for: .touchUpInside)
+
                                 let interaction1 = UIContextMenuInteraction(delegate: self)
                                 cell.profile1.addInteraction(interaction1)
-                                cell.profile1.tag = indexPath.row + 100000
+                                cell.profile1.tag = indexPath.row + 100_000
                             }
                             if let profileURL = URL(string: acc[1].avatar) {
                                 cell.profile2.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile2.addTarget(self, action: #selector(self.profile2tap), for: .touchUpInside)
-                                
+                                cell.profile2.addTarget(self, action: #selector(profile2tap), for: .touchUpInside)
+
                                 let interaction2 = UIContextMenuInteraction(delegate: self)
                                 cell.profile2.addInteraction(interaction2)
-                                cell.profile2.tag = indexPath.row + 200000
+                                cell.profile2.tag = indexPath.row + 200_000
                             }
                             if let profileURL = URL(string: acc[2].avatar) {
                                 cell.profile3.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile3.addTarget(self, action: #selector(self.profile3tap), for: .touchUpInside)
-                                
+                                cell.profile3.addTarget(self, action: #selector(profile3tap), for: .touchUpInside)
+
                                 let interaction3 = UIContextMenuInteraction(delegate: self)
                                 cell.profile3.addInteraction(interaction3)
-                                cell.profile3.tag = indexPath.row + 300000
+                                cell.profile3.tag = indexPath.row + 300_000
                             }
                             if let profileURL = URL(string: acc[3].avatar) {
                                 cell.profile4.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile4.addTarget(self, action: #selector(self.profile4tap), for: .touchUpInside)
-                                
+                                cell.profile4.addTarget(self, action: #selector(profile4tap), for: .touchUpInside)
+
                                 let interaction4 = UIContextMenuInteraction(delegate: self)
                                 cell.profile4.addInteraction(interaction4)
-                                cell.profile4.tag = indexPath.row + 400000
+                                cell.profile4.tag = indexPath.row + 400_000
                             }
-                        } else if self.acc.count > 2 {
+                        } else if acc.count > 2 {
                             cell.profile6.alpha = 0
                             cell.profile6.setImage(UIImage(), for: .normal)
                             cell.profile6.isUserInteractionEnabled = false
-                            
+
                             cell.profile5.alpha = 0
                             cell.profile5.setImage(UIImage(), for: .normal)
                             cell.profile5.isUserInteractionEnabled = false
-                            
+
                             cell.profile4.alpha = 0
                             cell.profile4.setImage(UIImage(), for: .normal)
                             cell.profile4.isUserInteractionEnabled = false
-                            
+
                             cell.profile3.alpha = 1
                             cell.profile3.isUserInteractionEnabled = true
                             cell.profile2.alpha = 1
                             cell.profile2.isUserInteractionEnabled = true
-                            
+
                             cell.profileMore.alpha = 0
                             cell.profileMore.isUserInteractionEnabled = false
-                            
+
                             if let profileURL = URL(string: acc[0].avatar) {
                                 cell.profile1.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile1.addTarget(self, action: #selector(self.profile1tap), for: .touchUpInside)
-                                
+                                cell.profile1.addTarget(self, action: #selector(profile1tap), for: .touchUpInside)
+
                                 let interaction1 = UIContextMenuInteraction(delegate: self)
                                 cell.profile1.addInteraction(interaction1)
-                                cell.profile1.tag = indexPath.row + 100000
+                                cell.profile1.tag = indexPath.row + 100_000
                             }
                             if let profileURL = URL(string: acc[1].avatar) {
                                 cell.profile2.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile2.addTarget(self, action: #selector(self.profile2tap), for: .touchUpInside)
-                                
+                                cell.profile2.addTarget(self, action: #selector(profile2tap), for: .touchUpInside)
+
                                 let interaction2 = UIContextMenuInteraction(delegate: self)
                                 cell.profile2.addInteraction(interaction2)
-                                cell.profile2.tag = indexPath.row + 200000
+                                cell.profile2.tag = indexPath.row + 200_000
                             }
                             if let profileURL = URL(string: acc[2].avatar) {
                                 cell.profile3.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile3.addTarget(self, action: #selector(self.profile3tap), for: .touchUpInside)
-                                
+                                cell.profile3.addTarget(self, action: #selector(profile3tap), for: .touchUpInside)
+
                                 let interaction3 = UIContextMenuInteraction(delegate: self)
                                 cell.profile3.addInteraction(interaction3)
-                                cell.profile3.tag = indexPath.row + 300000
+                                cell.profile3.tag = indexPath.row + 300_000
                             }
-                        } else if self.acc.count > 1 {
+                        } else if acc.count > 1 {
                             cell.profile6.alpha = 0
                             cell.profile6.setImage(UIImage(), for: .normal)
                             cell.profile6.isUserInteractionEnabled = false
-                            
+
                             cell.profile5.alpha = 0
                             cell.profile5.setImage(UIImage(), for: .normal)
                             cell.profile5.isUserInteractionEnabled = false
-                            
+
                             cell.profile4.alpha = 0
                             cell.profile4.setImage(UIImage(), for: .normal)
                             cell.profile4.isUserInteractionEnabled = false
-                            
+
                             cell.profile3.alpha = 0
                             cell.profile3.setImage(UIImage(), for: .normal)
                             cell.profile3.isUserInteractionEnabled = false
-                            
+
                             cell.profile2.alpha = 1
                             cell.profile2.isUserInteractionEnabled = true
-                            
+
                             cell.profileMore.alpha = 0
                             cell.profileMore.isUserInteractionEnabled = false
-                            
+
                             if let profileURL = URL(string: acc[0].avatar) {
                                 cell.profile1.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile1.addTarget(self, action: #selector(self.profile1tap), for: .touchUpInside)
-                                
+                                cell.profile1.addTarget(self, action: #selector(profile1tap), for: .touchUpInside)
+
                                 let interaction1 = UIContextMenuInteraction(delegate: self)
                                 cell.profile1.addInteraction(interaction1)
-                                cell.profile1.tag = indexPath.row + 100000
+                                cell.profile1.tag = indexPath.row + 100_000
                             }
                             if let profileURL = URL(string: acc[1].avatar) {
                                 cell.profile2.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile2.addTarget(self, action: #selector(self.profile2tap), for: .touchUpInside)
-                                
+                                cell.profile2.addTarget(self, action: #selector(profile2tap), for: .touchUpInside)
+
                                 let interaction2 = UIContextMenuInteraction(delegate: self)
                                 cell.profile2.addInteraction(interaction2)
-                                cell.profile2.tag = indexPath.row + 200000
+                                cell.profile2.tag = indexPath.row + 200_000
                             }
-                        } else if self.acc.count > 0 {
+                        } else if acc.count > 0 {
                             cell.profile6.alpha = 0
                             cell.profile6.setImage(UIImage(), for: .normal)
                             cell.profile6.isUserInteractionEnabled = false
-                            
+
                             cell.profile5.alpha = 0
                             cell.profile5.setImage(UIImage(), for: .normal)
                             cell.profile5.isUserInteractionEnabled = false
-                            
+
                             cell.profile4.alpha = 0
                             cell.profile4.setImage(UIImage(), for: .normal)
                             cell.profile4.isUserInteractionEnabled = false
-                            
+
                             cell.profile3.alpha = 0
                             cell.profile3.setImage(UIImage(), for: .normal)
                             cell.profile3.isUserInteractionEnabled = false
-                            
+
                             cell.profile2.alpha = 0
                             cell.profile2.setImage(UIImage(), for: .normal)
                             cell.profile2.isUserInteractionEnabled = false
-                            
+
                             cell.profileMore.alpha = 0
                             cell.profileMore.isUserInteractionEnabled = false
-                            
+
                             if let profileURL = URL(string: acc[0].avatar) {
                                 cell.profile1.sd_setImage(with: profileURL, for: .normal, completed: nil)
-                                cell.profile1.addTarget(self, action: #selector(self.profile1tap), for: .touchUpInside)
-                                
+                                cell.profile1.addTarget(self, action: #selector(profile1tap), for: .touchUpInside)
+
                                 let interaction1 = UIContextMenuInteraction(delegate: self)
                                 cell.profile1.addInteraction(interaction1)
-                                cell.profile1.tag = indexPath.row + 100000
+                                cell.profile1.tag = indexPath.row + 100_000
                             }
                         } else {
                             cell.profile6.alpha = 0
                             cell.profile6.setImage(UIImage(), for: .normal)
                             cell.profile6.isUserInteractionEnabled = false
-                            
+
                             cell.profile5.alpha = 0
                             cell.profile5.setImage(UIImage(), for: .normal)
                             cell.profile5.isUserInteractionEnabled = false
-                            
+
                             cell.profile4.alpha = 0
                             cell.profile4.setImage(UIImage(), for: .normal)
                             cell.profile4.isUserInteractionEnabled = false
-                            
+
                             cell.profile3.alpha = 0
                             cell.profile3.setImage(UIImage(), for: .normal)
                             cell.profile3.isUserInteractionEnabled = false
-                            
+
                             cell.profile2.alpha = 0
                             cell.profile2.setImage(UIImage(), for: .normal)
                             cell.profile2.isUserInteractionEnabled = false
-                            
+
                             let symbolConfig = UIImage.SymbolConfiguration(pointSize: 18, weight: .regular)
                             cell.profile1.setImage(UIImage(systemName: "plus", withConfiguration: symbolConfig)?.withTintColor(.custom.baseTint, renderingMode: .alwaysTemplate), for: .normal)
                             cell.profile1.backgroundColor = .custom.backgroundTint
-                            
-                            cell.profile1.addTarget(self, action: #selector(self.profileMoretap), for: .touchUpInside)
-                            
+
+                            cell.profile1.addTarget(self, action: #selector(profileMoretap), for: .touchUpInside)
+
                             cell.profileMore.alpha = 0
                             cell.profileMore.isUserInteractionEnabled = false
                         }
                     }
-                    
+
                     cell.separatorInset = .zero
                     let bgColorView = UIView()
                     bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
@@ -1043,29 +1038,29 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                 }
             }
         } else if indexPath.section == 2 {
-            if self.fromOtherCommunity {
+            if fromOtherCommunity {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "TrendsCell", for: indexPath) as! TrendsCell
-                var talkingAbout: Int = 0
-                _ = self.allTrends[indexPath.row].history?.map({ x in
+                var talkingAbout = 0
+                _ = allTrends[indexPath.row].history?.map { x in
                     talkingAbout += Int(x.accounts) ?? 0
-                })
-                cell.titleLabel.text = "#\(self.allTrends[indexPath.row].name)"
-                
+                }
+                cell.titleLabel.text = "#\(allTrends[indexPath.row].name)"
+
                 let attachment1 = NSTextAttachment()
                 let symbolConfig1 = UIImage.SymbolConfiguration(pointSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 4, weight: .semibold)
                 let downImage1 = UIImage(systemName: "megaphone.fill", withConfiguration: symbolConfig1) ?? UIImage()
                 attachment1.image = downImage1.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal)
                 let attStringNewLine000 = NSMutableAttributedString()
-                var talkingAboutText: String = " " + String.localizedStringWithFormat(NSLocalizedString("explore.people", comment: ""), talkingAbout.withCommas())
+                var talkingAboutText = " " + String.localizedStringWithFormat(NSLocalizedString("explore.people", comment: ""), talkingAbout.withCommas())
                 if talkingAbout <= 10 {
                     talkingAboutText = " " + NSLocalizedString("explore.somePeople", comment: "")
                 }
-                let attStringNewLine00 = NSMutableAttributedString(string: talkingAboutText, attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .regular), NSAttributedString.Key.foregroundColor : UIColor.secondaryLabel])
+                let attStringNewLine00 = NSMutableAttributedString(string: talkingAboutText, attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.secondaryLabel])
                 let attString00 = NSAttributedString(attachment: attachment1)
                 attStringNewLine000.append(attString00)
                 attStringNewLine000.append(attStringNewLine00)
                 cell.titleLabel2.attributedText = attStringNewLine000
-                
+
                 cell.separatorInset = .zero
                 let bgColorView = UIView()
                 bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
@@ -1097,29 +1092,29 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                 }
             }
         } else if indexPath.section == 3 {
-            if self.allTags.isEmpty {
+            if allTags.isEmpty {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "TrendsCell", for: indexPath) as! TrendsCell
-                var talkingAbout: Int = 0
-                _ = self.allTrends[indexPath.row].history?.map({ x in
+                var talkingAbout = 0
+                _ = allTrends[indexPath.row].history?.map { x in
                     talkingAbout += Int(x.accounts) ?? 0
-                })
-                cell.titleLabel.text = "#\(self.allTrends[indexPath.row].name)"
-                
+                }
+                cell.titleLabel.text = "#\(allTrends[indexPath.row].name)"
+
                 let attachment1 = NSTextAttachment()
                 let symbolConfig1 = UIImage.SymbolConfiguration(pointSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 4, weight: .semibold)
                 let downImage1 = UIImage(systemName: "megaphone.fill", withConfiguration: symbolConfig1) ?? UIImage()
                 attachment1.image = downImage1.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal)
                 let attStringNewLine000 = NSMutableAttributedString()
-                var talkingAboutText: String = " " + String.localizedStringWithFormat(NSLocalizedString("explore.people", comment: ""), talkingAbout.withCommas())
+                var talkingAboutText = " " + String.localizedStringWithFormat(NSLocalizedString("explore.people", comment: ""), talkingAbout.withCommas())
                 if talkingAbout <= 10 {
                     talkingAboutText = " " + NSLocalizedString("explore.somePeople", comment: "")
                 }
-                let attStringNewLine00 = NSMutableAttributedString(string: talkingAboutText, attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .regular), NSAttributedString.Key.foregroundColor : UIColor.secondaryLabel])
+                let attStringNewLine00 = NSMutableAttributedString(string: talkingAboutText, attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.secondaryLabel])
                 let attString00 = NSAttributedString(attachment: attachment1)
                 attStringNewLine000.append(attString00)
                 attStringNewLine000.append(attStringNewLine00)
                 cell.titleLabel2.attributedText = attStringNewLine000
-                
+
                 cell.separatorInset = .zero
                 let bgColorView = UIView()
                 bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
@@ -1129,9 +1124,9 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                 return cell
             } else {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileFieldsCell2", for: indexPath) as! ProfileFieldsCell
-                cell.title.text = "#\(self.allTags[indexPath.row].name)"
+                cell.title.text = "#\(allTags[indexPath.row].name)"
                 cell.title.isUserInteractionEnabled = false
-                
+
                 cell.accessoryType = .disclosureIndicator
                 cell.backgroundColor = .custom.quoteTint
                 cell.separatorInset = .zero
@@ -1142,27 +1137,27 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             }
         } else {
             let cell = tableView.dequeueReusableCell(withIdentifier: "TrendsCell", for: indexPath) as! TrendsCell
-            var talkingAbout: Int = 0
-            _ = self.allTrends[indexPath.row].history?.map({ x in
+            var talkingAbout = 0
+            _ = allTrends[indexPath.row].history?.map { x in
                 talkingAbout += Int(x.accounts) ?? 0
-            })
-            cell.titleLabel.text = "#\(self.allTrends[indexPath.row].name)"
-            
+            }
+            cell.titleLabel.text = "#\(allTrends[indexPath.row].name)"
+
             let attachment1 = NSTextAttachment()
             let symbolConfig1 = UIImage.SymbolConfiguration(pointSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 4, weight: .semibold)
             let downImage1 = UIImage(systemName: "megaphone.fill", withConfiguration: symbolConfig1) ?? UIImage()
             attachment1.image = downImage1.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal)
             let attStringNewLine000 = NSMutableAttributedString()
-            var talkingAboutText: String = " " + String.localizedStringWithFormat(NSLocalizedString("explore.people", comment: ""), talkingAbout.withCommas())
+            var talkingAboutText = " " + String.localizedStringWithFormat(NSLocalizedString("explore.people", comment: ""), talkingAbout.withCommas())
             if talkingAbout <= 10 {
                 talkingAboutText = " " + NSLocalizedString("explore.somePeople", comment: "")
             }
-            let attStringNewLine00 = NSMutableAttributedString(string: talkingAboutText, attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .regular), NSAttributedString.Key.foregroundColor : UIColor.secondaryLabel])
+            let attStringNewLine00 = NSMutableAttributedString(string: talkingAboutText, attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.secondaryLabel])
             let attString00 = NSAttributedString(attachment: attachment1)
             attStringNewLine000.append(attString00)
             attStringNewLine000.append(attStringNewLine00)
             cell.titleLabel2.attributedText = attStringNewLine000
-            
+
             cell.separatorInset = .zero
             let bgColorView = UIView()
             bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
@@ -1172,14 +1167,14 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             return cell
         }
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 1 {
-            if self.fromOtherCommunity {
-                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.trending(self.otherInstance)))
+            if fromOtherCommunity {
+                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.trending(otherInstance)))
                 if vc.isBeingPresented {} else {
-                    self.navigationController?.pushViewController(vc, animated: true)
+                    navigationController?.pushViewController(vc, animated: true)
                 }
             } else {
                 if indexPath.row == 0 {
@@ -1188,7 +1183,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                     } else {
                         let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.list(List(id: GlobalStruct.VIPListID, title: "Top Friends"))))
                         if vc.isBeingPresented {} else {
-                            self.navigationController?.pushViewController(vc, animated: true)
+                            navigationController?.pushViewController(vc, animated: true)
                         }
                     }
                 }
@@ -1197,123 +1192,122 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                         let currentInstance = account.instanceData.instanceText
                         let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.trending(currentInstance)))
                         if vc.isBeingPresented {} else {
-                            self.navigationController?.pushViewController(vc, animated: true)
+                            navigationController?.pushViewController(vc, animated: true)
                         }
                     }
-                    
                 }
                 if indexPath.row == 2 {
                     let vc = ProfileDirectoryViewController()
                     vc.fromSuggestions = true
                     if vc.isBeingPresented {} else {
-                        self.navigationController?.pushViewController(vc, animated: true)
+                        navigationController?.pushViewController(vc, animated: true)
                     }
                 }
                 if indexPath.row == 3 {
                     let vc = ProfileDirectoryViewController()
                     if vc.isBeingPresented {} else {
-                        self.navigationController?.pushViewController(vc, animated: true)
+                        navigationController?.pushViewController(vc, animated: true)
                     }
                 }
                 if indexPath.row == 4 {
                     let vc = SignInViewController()
                     vc.isFromSignIn = false
                     if vc.isBeingPresented {} else {
-                        self.navigationController?.pushViewController(vc, animated: true)
+                        navigationController?.pushViewController(vc, animated: true)
                     }
                 }
             }
         } else if indexPath.section == 2 {
-            if self.fromOtherCommunity {
-                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: self.allTrends[indexPath.row].name, url: ""))))
-                
+            if fromOtherCommunity {
+                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: allTrends[indexPath.row].name, url: ""))))
+
                 if vc.isBeingPresented {} else {
-                    self.navigationController?.pushViewController(vc, animated: true)
+                    navigationController?.pushViewController(vc, animated: true)
                 }
             } else {
                 if indexPath.row == 0 {
                     let vc = AltTextViewController()
                     vc.newList = true
-                    self.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
+                    present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
                 } else {
                     let listId = ListManager.shared.allLists(includeTopFriends: false)[indexPath.row - 1].id
                     let listTitle = ListManager.shared.allLists(includeTopFriends: false)[indexPath.row - 1].title
                     let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.list(List(id: listId, title: listTitle))))
-                    
+
                     if vc.isBeingPresented {} else {
-                        self.navigationController?.pushViewController(vc, animated: true)
+                        navigationController?.pushViewController(vc, animated: true)
                     }
                 }
             }
         } else if indexPath.section == 3 {
-            if self.allTags.isEmpty {
-                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: self.allTrends[indexPath.row].name, url: ""))))
-                
+            if allTags.isEmpty {
+                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: allTrends[indexPath.row].name, url: ""))))
+
                 if vc.isBeingPresented {} else {
-                    self.navigationController?.pushViewController(vc, animated: true)
+                    navigationController?.pushViewController(vc, animated: true)
                 }
             } else {
-                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: self.allTags[indexPath.row].name, url: ""))))
+                let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: allTags[indexPath.row].name, url: ""))))
                 if vc.isBeingPresented {} else {
-                    self.navigationController?.pushViewController(vc, animated: true)
+                    navigationController?.pushViewController(vc, animated: true)
                 }
             }
         } else if indexPath.section == 4 {
-            let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: self.allTrends[indexPath.row].name, url: ""))))
+            let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: allTrends[indexPath.row].name, url: ""))))
             if vc.isBeingPresented {} else {
-                self.navigationController?.pushViewController(vc, animated: true)
+                navigationController?.pushViewController(vc, animated: true)
             }
         }
     }
-    
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
         var acc: Account? = nil
-        if (interaction.view?.tag ?? 0) >= 600000 {
+        if (interaction.view?.tag ?? 0) >= 600_000 {
             acc = self.acc[5]
-        } else if (interaction.view?.tag ?? 0) >= 500000 {
+        } else if (interaction.view?.tag ?? 0) >= 500_000 {
             acc = self.acc[4]
-        } else if (interaction.view?.tag ?? 0) >= 400000 {
+        } else if (interaction.view?.tag ?? 0) >= 400_000 {
             acc = self.acc[3]
-        } else if (interaction.view?.tag ?? 0) >= 300000 {
+        } else if (interaction.view?.tag ?? 0) >= 300_000 {
             acc = self.acc[2]
-        } else if (interaction.view?.tag ?? 0) >= 200000 {
+        } else if (interaction.view?.tag ?? 0) >= 200_000 {
             acc = self.acc[1]
         } else {
             acc = self.acc[0]
         }
-        if acc?.id ?? "" == self.currentUserID ?? "" {
+        if acc?.id ?? "" == currentUserID ?? "" {
             return nil
         } else {
             return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: {
-                suggestedActions in
-                return self.makeContextProfileMain(interaction.view?.tag ?? 0)
+                _ in
+                self.makeContextProfileMain(interaction.view?.tag ?? 0)
             })
         }
     }
-    
+
     func makeContextProfileMain(_ index: Int) -> UIMenu {
         var acc: Account? = nil
-        if (index) >= 600000 {
+        if index >= 600_000 {
             acc = self.acc[5]
-        } else if (index) >= 500000 {
+        } else if index >= 500_000 {
             acc = self.acc[4]
-        } else if (index) >= 400000 {
+        } else if index >= 400_000 {
             acc = self.acc[3]
-        } else if (index) >= 300000 {
+        } else if index >= 300_000 {
             acc = self.acc[2]
-        } else if (index) >= 200000 {
+        } else if index >= 200_000 {
             acc = self.acc[1]
         } else {
             acc = self.acc[0]
         }
-        let op0 = UIAction(title: NSLocalizedString("profile.mention", comment: ""), image: UIImage(systemName: "at"), identifier: nil) { action in
+        let op0 = UIAction(title: NSLocalizedString("profile.mention", comment: ""), image: UIImage(systemName: "at"), identifier: nil) { _ in
             let vc = NewPostViewController()
             vc.isModalInPresentation = true
             vc.fromPro = true
             vc.proText = "@\(acc?.acct ?? "") "
             self.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
         }
-        let op00 = UIAction(title: "Message", image: UIImage(systemName: "tray.full"), identifier: nil) { action in
+        let op00 = UIAction(title: "Message", image: UIImage(systemName: "tray.full"), identifier: nil) { _ in
             let vc = NewPostViewController()
             vc.isModalInPresentation = true
             vc.fromPro = true
@@ -1325,22 +1319,22 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         if #available(iOS 16.0, *) {
             mentionMenu.preferredElementSize = .medium
         }
-        
-        let op000 = UIAction(title: "Recent Media", image: UIImage(systemName: "photo.on.rectangle"), identifier: nil) { action in
+
+        let op000 = UIAction(title: "Recent Media", image: UIImage(systemName: "photo.on.rectangle"), identifier: nil) { _ in
             let vc = GalleryViewController()
             vc.otherUserId = acc?.id ?? ""
             if vc.isBeingPresented {} else {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }
-        
-        var opVIP = UIAction(title: "Add to Top Friends", image: UIImage(systemName: "star"), identifier: nil) { action in
+
+        var opVIP = UIAction(title: "Add to Top Friends", image: UIImage(systemName: "star"), identifier: nil) { _ in
             if GlobalStruct.displayingVIPLists == 0 {
                 let userInfoDict = (acc == nil) ? nil : ["Account": acc!]
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "createVIPListPrompt"), object: nil, userInfo: userInfoDict)
             } else {
                 let request2 = Lists.add(accountIDs: [acc?.id ?? ""], toList: GlobalStruct.VIPListID)
-                self.client!.run(request2) { (statuses) in
+                self.client!.run(request2) { statuses in
                     if let error = statuses.error {
                         log.error("Failed to add to list: \(error)")
                         DispatchQueue.main.async {
@@ -1351,7 +1345,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                                 }
                             } else {
                                 let userInfoDict = (acc == nil) ? nil : ["Account": acc!]
-                                NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo:  userInfoDict)
+                                NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo: userInfoDict)
                             }
                         }
                     }
@@ -1380,18 +1374,18 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         if GlobalStruct.topAccounts.contains(where: { x in
             x.id == acc?.id ?? ""
         }) {
-            opVIP = UIAction(title: "Remove from Top Friends", image: UIImage(systemName: "star.slash"), identifier: nil) { action in
+            opVIP = UIAction(title: "Remove from Top Friends", image: UIImage(systemName: "star.slash"), identifier: nil) { _ in
                 let request2 = Lists.remove(accountIDs: [acc?.id ?? ""], fromList: GlobalStruct.VIPListID)
-                self.client!.run(request2) { (statuses) in
+                self.client!.run(request2) { statuses in
                     if let _ = (statuses.value) {
                         DispatchQueue.main.async {
                             // added
                             print("removed users from VIP list")
                             NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadThisExplore"), object: nil)
                             if let x = acc {
-                                GlobalStruct.topAccounts = GlobalStruct.topAccounts.filter({ y in
+                                GlobalStruct.topAccounts = GlobalStruct.topAccounts.filter { y in
                                     y != x
-                                })
+                                }
                                 NotificationCenter.default.post(name: Notification.Name(rawValue: "fetchAllTimelinesLikedBy"), object: nil)
                                 if let x = self.currentUserID {
                                     do {
@@ -1410,16 +1404,16 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         if GlobalStruct.displayingVIPLists == 2 {
             opVIP.attributes = .hidden
         }
-        
+
         var listAct1: [UIAction] = []
-        for x in ListManager.shared.allLists(includeTopFriends: false)  {
-            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { action in
+        for x in ListManager.shared.allLists(includeTopFriends: false) {
+            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { _ in
                 ListManager.shared.addToList(accountID: acc?.id ?? "", listID: x.id) { success in
                     if !success {
                         log.error("Failed to add to list")
                         DispatchQueue.main.async {
                             let userInfoDict = (acc == nil) ? nil : ["Account": acc!, "List": x.id]
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo:  userInfoDict)
+                            NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo: userInfoDict)
                         }
                     } else {
                         DispatchQueue.main.async {
@@ -1434,7 +1428,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         let list1 = UIMenu(title: "Add to List", image: UIImage(systemName: "plus"), options: [], children: listAct1)
         var listAct2: [UIAction] = []
         for x in ListManager.shared.allLists(includeTopFriends: false) {
-            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { action in
+            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { _ in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "postUnVIP"), object: nil)
                 ListManager.shared.removeFromList(accountID: acc?.id ?? "", listID: x.id) { success in
                     if success {
@@ -1448,12 +1442,12 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         }
         let list2 = UIMenu(title: "Remove from List", image: UIImage(systemName: "minus"), options: [], children: listAct2)
         let op3 = UIMenu(title: "Manage Lists", image: UIImage(systemName: "list.bullet"), options: [], children: [list1, list2])
-        
-        let trans = UIAction(title: "Translate Bio", image: UIImage(systemName: "globe"), identifier: nil) {_ in
+
+        let trans = UIAction(title: "Translate Bio", image: UIImage(systemName: "globe"), identifier: nil) { _ in
             PostActions.translateString(acc?.note.stripHTML() ?? "")
         }
-        
-        let share = UIAction(title: "Share Profile", image: FontAwesome.image(fromChar: "\u{e09a}"), identifier: nil) { action in
+
+        let share = UIAction(title: "Share Profile", image: FontAwesome.image(fromChar: "\u{e09a}"), identifier: nil) { _ in
             let text = URL(string: "\(acc?.url ?? "")")!
             let textToShare = [text]
             let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
@@ -1461,58 +1455,58 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             self.present(activityViewController, animated: true, completion: nil)
         }
         let shareMenu = UIMenu(title: "", options: [.displayInline], children: [share])
-        
+
         return UIMenu(title: "", options: [], children: [mentionMenu, op000, opVIP, op3, trans, shareMenu])
     }
-    
-    func tableView(_ tableView: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
-        if indexPath.section == 2 && indexPath.row != 0 {
-            if self.fromOtherCommunity {
+
+    func tableView(_: UITableView, contextMenuConfigurationForRowAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
+        if indexPath.section == 2, indexPath.row != 0 {
+            if fromOtherCommunity {
                 return nil
             } else {
-                return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { suggestedActions in
-                    return self.makeContextMenu(indexPath.row)
+                return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { _ in
+                    self.makeContextMenu(indexPath.row)
                 })
             }
         } else if indexPath.section == 3 {
-            if self.allTags.isEmpty {
-                return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { suggestedActions in
-                    return self.makeContextMenu2(indexPath.row)
+            if allTags.isEmpty {
+                return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { _ in
+                    self.makeContextMenu2(indexPath.row)
                 })
             } else {
-                return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { suggestedActions in
-                    return self.makeContextMenu3(indexPath.row)
+                return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { _ in
+                    self.makeContextMenu3(indexPath.row)
                 })
             }
         } else if indexPath.section == 4 {
-            return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { suggestedActions in
-                return self.makeContextMenu2(indexPath.row)
+            return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: { nil }, actionProvider: { _ in
+                self.makeContextMenu2(indexPath.row)
             })
         } else {
             return nil
         }
     }
-    
+
     func makeContextMenu(_ index: Int) -> UIMenu {
-        let op1 = UIAction(title: "View List Members", image: UIImage(systemName: "person.2"), identifier: nil) { action in
+        let op1 = UIAction(title: "View List Members", image: UIImage(systemName: "person.2"), identifier: nil) { _ in
             let vc = UserListViewController(listID: ListManager.shared.allLists(includeTopFriends: false)[index - 1].id)
             if vc.isBeingPresented {} else {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }
         op1.accessibilityLabel = "Reply"
-        let op2 = UIAction(title: "Edit List Title", image: UIImage(systemName: "pencil"), identifier: nil) { action in
+        let op2 = UIAction(title: "Edit List Title", image: UIImage(systemName: "pencil"), identifier: nil) { _ in
             let vc = AltTextViewController()
             vc.editList = ListManager.shared.allLists(includeTopFriends: false)[index - 1].title
             vc.listId = ListManager.shared.allLists(includeTopFriends: false)[index - 1].id
             self.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
         }
         op2.accessibilityLabel = "Edit List Title"
-        let op3 = UIAction(title: "Delete List", image: UIImage(systemName: "trash"), identifier: nil) { action in
+        let op3 = UIAction(title: "Delete List", image: UIImage(systemName: "trash"), identifier: nil) { _ in
             let alert = UIAlertController(title: nil, message: "Are you sure you want to delete this list?", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Delete", style: .destructive , handler: { (UIAlertAction) in
+            alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
                 let id = ListManager.shared.allLists(includeTopFriends: false)[index - 1].id
-                ListManager.shared.deleteList(id) { success in
+                ListManager.shared.deleteList(id) { _ in
                     DispatchQueue.main.async {
                         log.debug("deleted list: \(id)")
                         NotificationCenter.default.post(name: Notification.Name(rawValue: "fetchLists"), object: nil)
@@ -1520,8 +1514,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                     }
                 }
             }))
-            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-                
+            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
             }))
             if let presenter = alert.popoverPresentationController {
                 presenter.sourceView = getTopMostViewController()?.view
@@ -1533,8 +1526,8 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         op3.attributes = .destructive
         return UIMenu(title: "", options: [], children: [op1, op2, op3])
     }
-    
-    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+
+    func tableView(_: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         if indexPath.section == 2 && indexPath.row != 0 {
             return true
         } else {
@@ -1542,10 +1535,10 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         }
     }
 
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == .delete) {
+    func tableView(_: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if editingStyle == .delete {
             let alert = UIAlertController(title: nil, message: "Are you sure you want to delete this list?", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "Delete", style: .destructive , handler:{ (UIAlertAction) in
+            alert.addAction(UIAlertAction(title: "Delete", style: .destructive, handler: { _ in
                 let id = ListManager.shared.allLists(includeTopFriends: false)[indexPath.row - 1].id
                 ListManager.shared.deleteList(id, completion: { success in
                     DispatchQueue.main.async {
@@ -1557,8 +1550,7 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
                     }
                 })
             }))
-            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-                
+            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
             }))
             if let presenter = alert.popoverPresentationController {
                 presenter.sourceView = getTopMostViewController()?.view
@@ -1567,12 +1559,12 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
             getTopMostViewController()?.present(alert, animated: true, completion: nil)
         }
     }
-    
+
     func makeContextMenu2(_ index: Int) -> UIMenu {
-        let op1 = UIAction(title: "Follow Tag", image: UIImage(systemName: "plus.circle"), identifier: nil) { action in
+        let op1 = UIAction(title: "Follow Tag", image: UIImage(systemName: "plus.circle"), identifier: nil) { _ in
             triggerHapticImpact(style: .light)
             let request = TrendingTags.follow(id: "\(self.allTrends[index].name.lowercased())")
-            self.client!.run(request) { (statuses) in
+            self.client!.run(request) { statuses in
                 if let _ = (statuses.value) {
                     DispatchQueue.main.async {
                         triggerHapticNotification()
@@ -1584,16 +1576,16 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         op1.accessibilityLabel = "Follow Tag"
         return UIMenu(title: "", options: [], children: [op1])
     }
-    
+
     func makeContextMenu3(_ index: Int) -> UIMenu {
-        let op1 = UIAction(title: "Unfollow Tag", image: UIImage(systemName: "minus.circle"), identifier: nil) { action in
+        let op1 = UIAction(title: "Unfollow Tag", image: UIImage(systemName: "minus.circle"), identifier: nil) { _ in
             triggerHapticImpact(style: .light)
             let request = TrendingTags.unfollow(id: "\(self.allTags[index].name.lowercased())")
-            self.client!.run(request) { (statuses) in
+            self.client!.run(request) { statuses in
                 if let _ = (statuses.value) {
                     DispatchQueue.main.async {
                         triggerHapticNotification()
-                        self.allTags = self.allTags.filter { $0.name.lowercased() != self.allTags[index].name.lowercased()}
+                        self.allTags = self.allTags.filter { $0.name.lowercased() != self.allTags[index].name.lowercased() }
                         self.tableView.reloadData()
                     }
                 }
@@ -1602,6 +1594,4 @@ class ExploreViewController: UIViewController, UITableViewDataSource, UITableVie
         op1.accessibilityLabel = "Unfollow Tag"
         return UIMenu(title: "", options: [], children: [op1])
     }
-    
 }
-

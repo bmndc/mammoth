@@ -8,11 +8,11 @@
 
 import UIKit
 
-internal extension UIApplication {
+extension UIApplication {
     var preferredApplicationWindow: UIWindow? {
         // Since delegate window is of type UIWindow??, we have to
         // unwrap it twice to be sure the window is not nil
-        let keyWindow = UIApplication.shared.windows.filter {$0.isKeyWindow}.first
+        let keyWindow = UIApplication.shared.windows.filter { $0.isKeyWindow }.first
         if let appWindow = UIApplication.shared.delegate?.window, let window = appWindow {
             return window
         } else if let window = keyWindow {

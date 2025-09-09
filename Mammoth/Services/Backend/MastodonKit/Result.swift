@@ -15,33 +15,33 @@ public enum Result1<Model> {
     case failure(Error)
 }
 
-extension Result1 {
+public extension Result1 {
     /// Convenience getter for the value.
-    public var value: Model? {
+    var value: Model? {
         switch self {
-        case .success(let value, _): return value
+        case let .success(value, _): return value
         case .failure: return nil
         }
     }
 
     /// Convenience getter for the pagination.
-    public var pagination: Pagination? {
+    var pagination: Pagination? {
         switch self {
-        case .success(_, let pagination): return pagination
+        case let .success(_, pagination): return pagination
         case .failure: return nil
         }
     }
 
     /// Convenience getter for the error.
-    public var error: Error? {
+    var error: Error? {
         switch self {
         case .success: return nil
-        case .failure(let error): return error
+        case let .failure(error): return error
         }
     }
 
     /// Convenience getter to test whether the result is an error or not.
-    public var isError: Bool {
+    var isError: Bool {
         switch self {
         case .success: return false
         case .failure: return true

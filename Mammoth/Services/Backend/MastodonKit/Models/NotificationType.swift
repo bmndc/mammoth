@@ -21,16 +21,16 @@ public enum NotificationType: String, Codable, CaseIterable {
     case direct
     /// A poll the user has voted on has ended.
     case poll
-    
+
     case status
     case update
     case follow_request
-    
-//  TODO: handle these notification types.
+
+    //  TODO: handle these notification types.
 //    case adminSignup
 //    case adminReport
 //    case severed_relationships
-    
+
     private enum CodingKeys: String, CodingKey {
         case mention
         case reblog

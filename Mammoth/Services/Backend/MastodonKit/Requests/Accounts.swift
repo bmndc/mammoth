@@ -9,7 +9,7 @@
 import Foundation
 import UIKit
 
-public struct Accounts {
+public enum Accounts {
     /// Fetches an account.
     ///
     /// - Parameter id: The account id.
@@ -52,15 +52,15 @@ public struct Accounts {
                                          fieldName3: String? = nil,
                                          fieldValue3: String? = nil,
                                          fieldName4: String? = nil,
-                                         fieldValue4: String? = nil) -> Request<Account> {
-
+                                         fieldValue4: String? = nil) -> Request<Account>
+    {
         let lockText = (locked ?? false) ? "true" : "false"
         let botText = (bot ?? false) ? "true" : "false"
         let discoverableText = (discoverable ?? false) ? "true" : "false"
         let indexableText = (indexable ?? false) ? "true" : "false"
         let sensitiveText = (sensitive ?? false) ? "true" : "false"
         let hideCollectionsText = (hideCollections ?? false) ? "true" : "false"
-        
+
         var parameters = [
             Parameter(name: "display_name", value: displayName),
             Parameter(name: "note", value: note),
@@ -78,7 +78,7 @@ public struct Accounts {
             Parameter(name: "fields_attributes[2][name]", value: fieldName3),
             Parameter(name: "fields_attributes[2][value]", value: fieldValue3),
             Parameter(name: "fields_attributes[3][name]", value: fieldName4),
-            Parameter(name: "fields_attributes[3][value]", value: fieldValue4)
+            Parameter(name: "fields_attributes[3][value]", value: fieldValue4),
         ]
         if language != nil {
             parameters.append(Parameter(name: "source[language]", value: language))
@@ -91,12 +91,9 @@ public struct Accounts {
         if header != nil {
             parameters.append(Parameter(name: "header", value: header?.base64EncondedString))
         }
-            
+
         let method = HTTPMethod.patch(.parameters(parameters))
         return Request<Account>(path: "/api/v1/accounts/update_credentials", method: method)
-
-        
-        
     }
 
     /// Gets an account's followers.
@@ -124,14 +121,14 @@ public struct Accounts {
 
         return Request<[Account]>(path: "/api/v1/accounts/\(id)/following", method: method)
     }
-    
+
     public static func familiarFollowers(ids: [String]) -> Request<[Familiar]> {
         let parameters = ids.map(toArrayOfParameters(withName: "id"))
         let method = HTTPMethod.get(.parameters(parameters))
 
         return Request<[Familiar]>(path: "/api/v1/accounts/familiar_followers", method: method)
     }
-    
+
     /// Follow suggestions.
     ///
     /// - Returns: Request for `[Account]`.
@@ -152,7 +149,7 @@ public struct Accounts {
     public static func deleteFollowSuggestion(id: String) -> Request<Empty> {
         return Request<Empty>(path: "/api/v1/suggestions/\(id)", method: .delete(.empty))
     }
-    
+
     /// Endorse an account.
     ///
     /// - Parameters:
@@ -161,7 +158,7 @@ public struct Accounts {
     public static func endorse(id: String) -> Request<Relationship> {
         return Request<Relationship>(path: "/api/v1/accounts/\(id)/pin", method: .post(.empty))
     }
-    
+
     /// Remove endorsement from an account.
     ///
     /// - Parameters:
@@ -170,14 +167,14 @@ public struct Accounts {
     public static func endorseRemove(id: String) -> Request<Relationship> {
         return Request<Relationship>(path: "/api/v1/accounts/\(id)/unpin", method: .post(.empty))
     }
-    
+
     public static func addPrivateNote(id: String, comment: String) -> Request<Relationship> {
         let parameter = [Parameter(name: "comment", value: comment)]
         let method = HTTPMethod.post(.parameters(parameter))
 
         return Request<Relationship>(path: "/api/v1/accounts/\(id)/note", method: method)
     }
-    
+
     public static func updateNotify(id: String, notify: Bool) -> Request<Relationship> {
         var reb = "true"
         if notify == false {
@@ -188,7 +185,7 @@ public struct Accounts {
 
         return Request<Relationship>(path: "/api/v1/accounts/\(id)/follow", method: method)
     }
-    
+
     public static func updateRepost(id: String, repost: Bool) -> Request<Relationship> {
         var reb = "true"
         if repost == false {
@@ -199,7 +196,7 @@ public struct Accounts {
 
         return Request<Relationship>(path: "/api/v1/accounts/\(id)/follow", method: method)
     }
-    
+
     /// Get endorsements.
     ///
     /// - Returns: Request for `[Account]`.
@@ -222,13 +219,14 @@ public struct Accounts {
                                 pinnedOnly: Bool? = nil,
                                 excludeReplies: Bool? = nil,
                                 excludeReblogs: Bool? = nil,
-                                range: RequestRange = .default) -> Request<[Status]> {
+                                range: RequestRange = .default) -> Request<[Status]>
+    {
         let rangeParameters = range.parameters(limit: between(1, and: 40, default: 20)) ?? []
         let parameters = rangeParameters + [
             Parameter(name: "only_media", value: mediaOnly.flatMap(trueOrNil)),
             Parameter(name: "pinned", value: pinnedOnly.flatMap(trueOrNil)),
             Parameter(name: "exclude_replies", value: excludeReplies.flatMap(trueOrNil)),
-            Parameter(name: "exclude_reblogs", value: excludeReblogs.flatMap(trueOrNil))
+            Parameter(name: "exclude_reblogs", value: excludeReblogs.flatMap(trueOrNil)),
         ]
 
         let method = HTTPMethod.get(.parameters(parameters))
@@ -263,7 +261,7 @@ public struct Accounts {
             method = HTTPMethod.post(.parameters(parameters))
         } else {
             method = HTTPMethod.post(.empty)
-        }        
+        }
         return Request<Relationship>(path: "/api/v1/accounts/\(id)/unfollow", method: method)
     }
 
@@ -300,7 +298,7 @@ public struct Accounts {
     /// - Returns: Request for `Relationship`.
     public static func mute(id: String, durationInSeconds: Int) -> Request<Relationship> {
         let parameters = [
-            Parameter(name: "duration", value: String(durationInSeconds))
+            Parameter(name: "duration", value: String(durationInSeconds)),
         ]
         let method = HTTPMethod.post(durationInSeconds == 0 ? .empty : .parameters(parameters))
         return Request<Relationship>(path: "/api/v1/accounts/\(id)/mute", method: method)
@@ -320,7 +318,7 @@ public struct Accounts {
     /// - Returns: Request for `[Relationship]`.
     public static func relationships(ids: [String], withSuspended: Bool = false) -> Request<[Relationship]> {
         var parameters = [
-            Parameter(name: "with_suspended", value: String(withSuspended))
+            Parameter(name: "with_suspended", value: String(withSuspended)),
         ]
         parameters.append(contentsOf: ids.map(toArrayOfParameters(withName: "id")))
         let method = HTTPMethod.get(.parameters(parameters))
@@ -340,13 +338,13 @@ public struct Accounts {
             Parameter(name: "email", value: email),
             Parameter(name: "password", value: password),
             Parameter(name: "agreement", value: agreementText),
-            Parameter(name: "locale", value: locale)
+            Parameter(name: "locale", value: locale),
         ]
         let method = HTTPMethod.post(.parameters(parameter))
 
         return Request<LoginSettings>(path: "/api/v1/accounts", method: method)
     }
-    
+
     public static func followRecommendations(_ id: String) -> Request<[Account]> {
         return Request<[Account]>(path: "/api/v1/accounts/\(id)/follow_recommendations", method: .get(.empty))
     }
@@ -365,10 +363,9 @@ public struct Accounts {
     /// Requires 3.4 or better
     public static func lookup(acct: String) -> Request<Account> {
         let parameters = [
-            Parameter(name: "acct", value: acct)
+            Parameter(name: "acct", value: acct),
         ]
         let method = HTTPMethod.get(.parameters(parameters))
         return Request<Account>(path: "/api/v1/accounts/lookup", method: method)
     }
-    
 }

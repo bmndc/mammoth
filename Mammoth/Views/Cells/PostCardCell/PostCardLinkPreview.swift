@@ -7,15 +7,15 @@
 //
 
 import Foundation
-import UIKit
 import SDWebImage
+import UIKit
 
 class PostCardLinkPreview: UIView {
-    
-    static private let largeImageHeight = 220.0
-    static private let layoutMargins = UIEdgeInsets(top: 8, left: 10, bottom: 10, right: 10)
-    
+    private static let largeImageHeight = 220.0
+    private static let layoutMargins = UIEdgeInsets(top: 8, left: 10, bottom: 10, right: 10)
+
     // MARK: - Properties
+
     private var mainStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.isOpaque = true
@@ -31,14 +31,14 @@ class PostCardLinkPreview: UIView {
         stackView.layer.needsDisplayOnBoundsChange = false
         stackView.layer.rasterizationScale = UIScreen.main.scale
         stackView.layer.contentsScale = UIScreen.main.scale
-        
+
         stackView.layer.borderColor = UIColor.custom.outlines.cgColor
         stackView.layer.masksToBounds = true
         stackView.layer.cornerRadius = 6
-        
+
         return stackView
     }()
-    
+
     private var imageStack: UIStackView = {
         let stackView = UIStackView()
         stackView.isOpaque = true
@@ -50,7 +50,7 @@ class PostCardLinkPreview: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     private var textStack: UIStackView = {
         let stackView = UIStackView()
         stackView.isOpaque = true
@@ -63,7 +63,7 @@ class PostCardLinkPreview: UIView {
         stackView.setContentHuggingPriority(.defaultLow, for: .horizontal)
         return stackView
     }()
-    
+
     private var imageView: UIImageView = {
         let imageView = UIImageView()
         imageView.isOpaque = true
@@ -74,8 +74,9 @@ class PostCardLinkPreview: UIView {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         return imageView
     }()
-    private var imageHeightConstraint: NSLayoutConstraint? = nil
-    
+
+    private var imageHeightConstraint: NSLayoutConstraint?
+
     private var urlLabel: UILabel = {
         let label = UILabel()
         label.isOpaque = true
@@ -87,7 +88,7 @@ class PostCardLinkPreview: UIView {
         label.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return label
     }()
-    
+
     private var titleLabel: UILabel = {
         let label = UILabel()
         label.isOpaque = true
@@ -99,121 +100,123 @@ class PostCardLinkPreview: UIView {
         label.setContentHuggingPriority(.defaultHigh, for: .vertical)
         return label
     }()
-    
+
     private var status: Status?
-    public var onPress: PostCardButtonCallback?
+    var onPress: PostCardButtonCallback?
     private var isPrivateMention = false
     private var isTipAccount = false
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupUI()
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.onTapped))
-        self.mainStackView.addGestureRecognizer(tapGesture)
-        
+        setupUI()
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(onTapped))
+        mainStackView.addGestureRecognizer(tapGesture)
+
         let contextMenu = UIContextMenuInteraction(delegate: self)
-        self.mainStackView.addInteraction(contextMenu)
+        mainStackView.addInteraction(contextMenu)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func prepareForReuse() {
-        self.status = nil
-        self.imageView.image = nil
-        self.imageView.sd_cancelCurrentImageLoad()
-        self.onPress = nil
+        status = nil
+        imageView.image = nil
+        imageView.sd_cancelCurrentImageLoad()
+        onPress = nil
     }
-    
+
     func setupUIFromSettings() {
         urlLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
         titleLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold)
     }
 }
 
-
 // MARK: - Setup UI
+
 private extension PostCardLinkPreview {
     func setupUI() {
-        self.isOpaque = true
-        self.addSubview(mainStackView)
-        
+        isOpaque = true
+        addSubview(mainStackView)
+
 //        mainStackView.addArrangedSubview(imageStack)
         mainStackView.addArrangedSubview(textStack)
-        textStack.addArrangedSubview(self.urlLabel)
-        textStack.addArrangedSubview(self.titleLabel)
-        
+        textStack.addArrangedSubview(urlLabel)
+        textStack.addArrangedSubview(titleLabel)
+
 //        imageStack.addArrangedSubview(self.imageView)
 //        imageHeightConstraint = imageHeightConstraint ?? self.imageView.heightAnchor.constraint(equalToConstant: PostCardLinkPreview.largeImageHeight)
 //        imageHeightConstraint?.priority = .defaultHigh
 //        imageHeightConstraint?.isActive = true
-        
+
         NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 9),
-            mainStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            mainStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            mainStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            
+            mainStackView.topAnchor.constraint(equalTo: topAnchor, constant: 9),
+            mainStackView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            mainStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mainStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+
 //            imageStack.trailingAnchor.constraint(equalTo: self.trailingAnchor),
 //            imageView.trailingAnchor.constraint(equalTo: self.imageStack.trailingAnchor),
         ])
-        
+
         let urlLabelTrailing = urlLabel.trailingAnchor.constraint(equalTo: textStack.layoutMarginsGuide.trailingAnchor)
         let titleLabelTrailing = titleLabel.trailingAnchor.constraint(equalTo: textStack.layoutMarginsGuide.trailingAnchor)
-        
+
         NSLayoutConstraint.activate([
             // Force urlLabel to fill the parent width
             urlLabelTrailing,
             // Force titleLabel to fill the parent width
-            titleLabelTrailing
+            titleLabelTrailing,
         ])
-        
+
         setupUIFromSettings()
         onThemeChange()
     }
 }
 
 // MARK: - Estimated height
+
 extension PostCardLinkPreview {
     static func estimatedHeight(width: CGFloat, postCard: PostCardModel) -> CGFloat {
-        
         let marginTop = 9.0
         let urlFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
         let titleFont = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold)
-        
+
         var height: CGFloat = marginTop
         height += PostCardLinkPreview.layoutMargins.top
         height += PostCardLinkPreview.layoutMargins.bottom
-        
+
         height += ceil(postCard.formattedCardUrlStr?.height(width: width, font: urlFont) ?? postCard.linkCard?.url?.height(width: width, font: urlFont) ?? 0.0)
         height += ceil(postCard.linkCard?.title.height(width: width, font: titleFont) ?? 0.0)
-        
+
         return height
     }
 }
 
 // MARK: - Configuration
+
 extension PostCardLinkPreview {
     func configure(postCard: PostCardModel) {
-        guard case .mastodon(let status) = postCard.data
+        guard case let .mastodon(status) = postCard.data
         else { return }
-        
+
         self.status = status
-        
-        let shouldChangeTheme = self.isPrivateMention != postCard.isPrivateMention || self.isTipAccount != postCard.isTipAccount
-        self.isPrivateMention = postCard.isPrivateMention
-        self.isTipAccount = postCard.isTipAccount
-        
+
+        let shouldChangeTheme = isPrivateMention != postCard.isPrivateMention || isTipAccount != postCard.isTipAccount
+        isPrivateMention = postCard.isPrivateMention
+        isTipAccount = postCard.isTipAccount
+
         if let urlString = postCard.formattedCardUrlStr {
-            self.urlLabel.text = urlString
+            urlLabel.text = urlString
         } else {
-            self.urlLabel.text = postCard.linkCard?.url
+            urlLabel.text = postCard.linkCard?.url
         }
-        
-        self.titleLabel.text = postCard.linkCard?.title
-       
+
+        titleLabel.text = postCard.linkCard?.title
+
 //        // Display the link image if needed
 //        if !postCard.hideLinkImage, let imageURL = postCard.linkCard?.image {
 //            self.imageView.ma_setImage(with: imageURL,
@@ -224,80 +227,82 @@ extension PostCardLinkPreview {
 //                    postCard.decodedImages[imageURL.absoluteString] = image
 //                }
 //            }
-//            
+//
 //            self.imageView.isHidden = false
-//            
+//
 //        } else if self.imageView.isHidden == false {
 //            self.imageView.isHidden = true
 //        }
-        
+
         if shouldChangeTheme {
-            self.onThemeChange()
+            onThemeChange()
         }
     }
-    
+
     func onThemeChange() {
-        self.mainStackView.layer.borderColor = UIColor.custom.outlines.cgColor
-        self.urlLabel.textColor = .custom.feintContrast
-        let backgroundColor: UIColor = if self.isPrivateMention {
+        mainStackView.layer.borderColor = UIColor.custom.outlines.cgColor
+        urlLabel.textColor = .custom.feintContrast
+        let backgroundColor: UIColor = if isPrivateMention {
             .custom.OVRLYSoftContrast
-        } else if self.isTipAccount {
+        } else if isTipAccount {
             // tip background.
             .custom.background
         } else {
             .custom.background
         }
-        self.urlLabel.backgroundColor = backgroundColor
-        self.titleLabel.backgroundColor = backgroundColor
+        urlLabel.backgroundColor = backgroundColor
+        titleLabel.backgroundColor = backgroundColor
         self.backgroundColor = backgroundColor
         mainStackView.backgroundColor = backgroundColor
         imageStack.backgroundColor = backgroundColor
         textStack.backgroundColor = backgroundColor
     }
-    
-    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-       super.traitCollectionDidChange(previousTraitCollection)
-       onThemeChange()
-   }
 
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+        super.traitCollectionDidChange(previousTraitCollection)
+        onThemeChange()
+    }
 }
 
 // MARK: - Handlers
+
 extension PostCardLinkPreview {
     @objc func onTapped() {
-        if let urlStr = self.status?.reblog?.card?.url ?? self.status?.card?.url, let  url = URL(string: urlStr) {
-            self.onPress?(.link, true, .url(url))
+        if let urlStr = status?.reblog?.card?.url ?? status?.card?.url, let url = URL(string: urlStr) {
+            onPress?(.link, true, .url(url))
         }
     }
 }
 
 // MARK: - Context menu creators
+
 extension PostCardLinkPreview: UIContextMenuInteractionDelegate {
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-        if let status = self.status, let onButtonPress = self.onPress {
+    func contextMenuInteraction(_: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
+        if let status = status, let onButtonPress = onPress {
             let postCard = PostCardModel(status: status)
             if let urlStr = postCard.linkCard?.url, let url = URL(string: urlStr) {
-                return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { [weak self] suggestedActions in
+                return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { [weak self] _ in
                     guard let self else { return UIMenu() }
-                    
+
                     let options = [
                         self.createContextMenuAction(NSLocalizedString("post.openLink", comment: ""), .link, isActive: false, data: .url(url), onPress: onButtonPress),
                         self.createContextMenuAction(NSLocalizedString("generic.copy", comment: ""), .copy, isActive: false, data: .url(url), onPress: onButtonPress),
                         self.createContextMenuAction(NSLocalizedString("generic.share", comment: ""), .share, isActive: false, data: .url(url), onPress: onButtonPress),
-                    ].compactMap({$0})
-                    
+                    ].compactMap { $0 }
+
                     return UIMenu(title: "", options: [.displayInline], children: options)
                 })
             }
         }
-        
+
         return nil
     }
 
     private func createContextMenuAction(_ title: String, _ buttonType: PostCardButtonType, isActive: Bool, data: PostCardButtonCallbackData?, onPress: @escaping PostCardButtonCallback) -> UIAction {
         let action = UIAction(title: title,
-                                  image: buttonType.icon(symbolConfig: postCardSymbolConfig),
-                                  identifier: nil) { _ in
+                              image: buttonType.icon(symbolConfig: postCardSymbolConfig),
+                              identifier: nil)
+        { _ in
             onPress(buttonType, isActive, data)
         }
         action.accessibilityLabel = title

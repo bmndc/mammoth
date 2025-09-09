@@ -10,8 +10,8 @@ import Foundation
 import UIKit
 
 class PostCardHeaderExtension: UIView {
-    
     // MARK: - Properties
+
     var mainStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .horizontal
@@ -21,11 +21,11 @@ class PostCardHeaderExtension: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     var leadingMarginAnchor: NSLayoutXAxisAnchor {
         mainStackView.leadingAnchor
     }
-    
+
     private var titleLabel: UILabel = {
         let label = UILabel()
         label.textColor = .custom.feintContrast
@@ -33,55 +33,58 @@ class PostCardHeaderExtension: UIView {
         label.isOpaque = true
         return label
     }()
-    
-    public var onPress: PostCardButtonCallback?
+
+    var onPress: PostCardButtonCallback?
     private var postCard: PostCardModel?
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupUI()
-        
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(self.profileTapped))
-        self.addGestureRecognizer(tapGesture)
+        setupUI()
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(profileTapped))
+        addGestureRecognizer(tapGesture)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func prepareForReuse() {
-        self.postCard = nil
-        self.onPress = nil
-        self.titleLabel.text = nil
+        postCard = nil
+        onPress = nil
+        titleLabel.text = nil
     }
-    
+
     func setupUIFromSettings() {
         titleLabel.font = .systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
     }
 }
 
 // MARK: - Setup UI
+
 private extension PostCardHeaderExtension {
     func setupUI() {
-        self.addSubview(mainStackView)
-        
-        let leadingConstraint = mainStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 0)
+        addSubview(mainStackView)
+
+        let leadingConstraint = mainStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 0)
         leadingConstraint.priority = .defaultHigh
-        
+
         NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(equalTo: self.topAnchor),
-            mainStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+            mainStackView.topAnchor.constraint(equalTo: topAnchor),
+            mainStackView.bottomAnchor.constraint(equalTo: bottomAnchor),
             mainStackView.heightAnchor.constraint(equalToConstant: 18),
             leadingConstraint,
-            mainStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
+            mainStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
         ])
-        
+
         mainStackView.addArrangedSubview(titleLabel)
         setupUIFromSettings()
     }
 }
 
 // MARK: - Estimated height
+
 extension PostCardHeaderExtension {
     static func estimatedHeight() -> CGFloat {
         return 18
@@ -89,35 +92,33 @@ extension PostCardHeaderExtension {
 }
 
 // MARK: - Configuration
+
 extension PostCardHeaderExtension {
     func configure(postCard: PostCardModel) {
-        guard case .mastodon(_) = postCard.data else { return }
-        
+        guard case .mastodon = postCard.data else { return }
+
         self.postCard = postCard
-        
+
         if postCard.isReblogged {
             let normalized_username = postCard
                 .rebloggerUsername
                 .stripCustomEmojiShortcodes()
                 .stripEmojis()
                 .stripLeadingTrailingSpaces()
-            self.titleLabel.text = String.localizedStringWithFormat(NSLocalizedString("post.reposted", comment: "Shows up over a post in the timeline indicating who reposted it."), normalized_username)
+            titleLabel.text = String.localizedStringWithFormat(NSLocalizedString("post.reposted", comment: "Shows up over a post in the timeline indicating who reposted it."), normalized_username)
         }
-        
+
         if postCard.isHashtagged {
-            self.titleLabel.text = "[replace with hashtag]"
+            titleLabel.text = "[replace with hashtag]"
         }
-        
-        
-        
+
         if postCard.isPrivateMention {
-            self.titleLabel.text = NSLocalizedString("post.privateMention", comment: "Shows up over a post in the timeline indicating that it's been sent privately.")
-            self.titleLabel.textColor = .custom.feintContrast
+            titleLabel.text = NSLocalizedString("post.privateMention", comment: "Shows up over a post in the timeline indicating that it's been sent privately.")
+            titleLabel.textColor = .custom.feintContrast
         } else if postCard.isTipAccount {
-            self.titleLabel.text = NSLocalizedString("post.fromTipped", comment: "Shows up over a post in the timeline indicating that it's been sent privately.")
-            self.titleLabel.textColor = .custom.gold
+            titleLabel.text = NSLocalizedString("post.fromTipped", comment: "Shows up over a post in the timeline indicating that it's been sent privately.")
+            titleLabel.textColor = .custom.gold
         }
-        
 
         if let postCard = self.postCard {
             if postCard.isPrivateMention {
@@ -129,9 +130,9 @@ extension PostCardHeaderExtension {
             titleLabel.backgroundColor = .custom.background
         }
     }
-    
+
     func onThemeChange() {
-        if let postCard = self.postCard {
+        if let postCard = postCard {
             if postCard.isPrivateMention {
                 backgroundColor = .custom.OVRLYSoftContrast
             } else if postCard.isTipAccount {
@@ -143,17 +144,18 @@ extension PostCardHeaderExtension {
     }
 
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
-       super.traitCollectionDidChange(previousTraitCollection)
-       onThemeChange()
-   }
+        super.traitCollectionDidChange(previousTraitCollection)
+        onThemeChange()
+    }
 }
 
 // MARK: - Handlers
+
 extension PostCardHeaderExtension {
     @objc func profileTapped() {
-        guard case .mastodon(let status) = postCard?.data else { return }
+        guard case let .mastodon(status) = postCard?.data else { return }
         if let account = status.account {
-            self.onPress?(.profile, true, .account(account))
+            onPress?(.profile, true, .account(account))
         }
     }
 }

@@ -1,7 +1,7 @@
 /**
-*  Copyright (c) John Sundell 2021
-*  MIT license, see LICENSE.md file for details
-*/
+ *  Copyright (c) John Sundell 2021
+ *  MIT license, see LICENSE.md file for details
+ */
 
 // MARK: - ForEach
 

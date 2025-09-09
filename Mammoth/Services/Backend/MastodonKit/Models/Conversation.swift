@@ -17,14 +17,14 @@ public class Conversation: Codable, Hashable {
     public var lastStatus: Status?
     /// Whether the message has been read.
     public let unread: Bool
-    
+
     private enum CodingKeys: String, CodingKey {
         case id
         case accounts
         case lastStatus = "last_status"
         case unread
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(id)
     }
@@ -32,10 +32,9 @@ public class Conversation: Codable, Hashable {
 
 extension Conversation: Equatable {}
 
-public func ==(lhs: Conversation, rhs: Conversation) -> Bool {
+public func == (lhs: Conversation, rhs: Conversation) -> Bool {
     let areEqual = lhs.id == rhs.id &&
         lhs.id == rhs.id
-    
+
     return areEqual
 }
-

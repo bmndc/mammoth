@@ -8,24 +8,19 @@
 
 import Foundation
 
-
 // Listens to notifications, and does things for the app
 
 class AccountsManagerShim {
-    
     static let shared = AccountsManagerShim()
-    
-    init() {
-    }
-    
-    func willSwitchCurentAccount() {
-    }
-    
+
+    init() {}
+
+    func willSwitchCurentAccount() {}
+
     func didSwitchCurrentAccount(forceUIRefresh: Bool) {
         DispatchQueue.main.async {
-            
             let currentAccount = AccountsManager.shared.currentAccount
-            
+
             GlobalStruct.hasSetupNewsDots = false
             GlobalStruct.timer1.invalidate()
             GlobalStruct.topAccounts = []
@@ -44,26 +39,25 @@ class AccountsManagerShim {
                 UserDefaults.standard.removePersistentDomain(forName: domain)
                 UserDefaults.standard.synchronize()
             }
-            
+
             // Recreate the window root view controller if a regular switch;
             // otherwise, let the user continue with setting up their profile,
             // picking accounts to follow, etc.
             if forceUIRefresh {
                 NotificationCenter.default.post(name: shouldChangeRootViewController, object: nil)
             }
-            
+
             var userInfo: [AnyHashable: Any]? = nil
             if let mastodonAccount = (currentAccount as? MastodonAcctData)?.account {
                 userInfo = ["userCard": UserCardModel(account: mastodonAccount)]
             }
-            
+
             NotificationCenter.default.post(name: didSwitchCurrentAccountNotification, object: self, userInfo: userInfo)
-            
+
             AccountsManager.shared.updateCurrentAccountFromNetwork()
         }
     }
 }
-
 
 // Globals Helper
 extension AccountsManager {

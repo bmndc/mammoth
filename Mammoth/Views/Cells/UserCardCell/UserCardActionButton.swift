@@ -9,7 +9,6 @@
 import UIKit
 
 final class UserCardActionButton: UIButton {
-    
     enum ButtonType {
         case block
         case unblock
@@ -17,7 +16,7 @@ final class UserCardActionButton: UIButton {
         case unmute
         case addToList
         case removeFromList
-        
+
         var title: String {
             switch self {
             case .mute:
@@ -35,11 +34,11 @@ final class UserCardActionButton: UIButton {
             }
         }
     }
-    
+
     enum ButtonSize {
         case small
         case big
-        
+
         var fontSize: CGFloat {
             switch self {
             case .small:
@@ -48,7 +47,7 @@ final class UserCardActionButton: UIButton {
                 return 15
             }
         }
-        
+
         var cornerRadius: CGFloat {
             switch self {
             case .small:
@@ -59,78 +58,80 @@ final class UserCardActionButton: UIButton {
         }
     }
 
-    public var user: UserCardModel
-    
+    var user: UserCardModel
+
     private var type: ButtonType {
         didSet {
-            self.updateButton(user: user)
+            updateButton(user: user)
         }
     }
-    
-    public var onPress: PostCardButtonCallback?
-    
+
+    var onPress: PostCardButtonCallback?
+
     init(user: UserCardModel, type: ButtonType, size: ButtonSize = .small) {
         self.user = user
         self.type = type
         super.init(frame: .zero)
-        self.setupUI(type: type, size: size)
+        setupUI(type: type, size: size)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func setupUI(type: ButtonType, size: ButtonSize) {
-        self.layer.cornerRadius = size.cornerRadius
-        self.clipsToBounds = true
-        self.layer.cornerCurve = .continuous
-        self.backgroundColor = .custom.followButtonBG
-        self.setTitleColor(.custom.active, for: .normal)
-        self.contentEdgeInsets = UIEdgeInsets(top: 4.5, left: 11, bottom: 3.5, right: 11)
-        self.titleLabel?.font = UIFont.systemFont(ofSize: size.fontSize, weight: .semibold)
-        self.setTitle(type.title, for: .normal)
-        
-        self.setContentCompressionResistancePriority(.required, for: .horizontal)
-        self.setContentHuggingPriority(.defaultHigh, for: .horizontal)
-        
-        self.setContentCompressionResistancePriority(.required, for: .vertical)
-        self.setContentHuggingPriority(.defaultHigh, for: .vertical)
-        
-        self.addTarget(self, action: #selector(self.onTapped), for: .touchUpInside)
-        
+        layer.cornerRadius = size.cornerRadius
+        clipsToBounds = true
+        layer.cornerCurve = .continuous
+        backgroundColor = .custom.followButtonBG
+        setTitleColor(.custom.active, for: .normal)
+        contentEdgeInsets = UIEdgeInsets(top: 4.5, left: 11, bottom: 3.5, right: 11)
+        titleLabel?.font = UIFont.systemFont(ofSize: size.fontSize, weight: .semibold)
+        setTitle(type.title, for: .normal)
+
+        setContentCompressionResistancePriority(.required, for: .horizontal)
+        setContentHuggingPriority(.defaultHigh, for: .horizontal)
+
+        setContentCompressionResistancePriority(.required, for: .vertical)
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
+
+        addTarget(self, action: #selector(onTapped), for: .touchUpInside)
+
         if #available(iOS 15.0, *) {
             self.tintColor = .custom.baseTint
         }
     }
-    
-    func updateButton(user: UserCardModel) {
-        self.setTitle(type.title, for: .normal)
+
+    func updateButton(user _: UserCardModel) {
+        setTitle(type.title, for: .normal)
     }
 }
 
 // MARK: Actions
-internal extension UserCardActionButton {
+
+extension UserCardActionButton {
     @objc func onTapped() {
         triggerHapticImpact(style: .light)
-        switch self.type {
+        switch type {
         case .block:
-            self.onPress?(.block, true, Optional.none)
-            self.type = .unblock
+            onPress?(.block, true, Optional.none)
+            type = .unblock
         case .unblock:
-            self.onPress?(.unblock, true, Optional.none)
-            self.type = .block
+            onPress?(.unblock, true, Optional.none)
+            type = .block
         case .mute:
-            self.onPress?(.muteForever, true, Optional.none)
-            self.type = .unmute
+            onPress?(.muteForever, true, Optional.none)
+            type = .unmute
         case .unmute:
-            self.onPress?(.unmute, true, Optional.none)
-            self.type = .mute
+            onPress?(.unmute, true, Optional.none)
+            type = .mute
         case .addToList:
-            self.onPress?(.addToList, true, Optional.none)
-            self.type = .removeFromList
+            onPress?(.addToList, true, Optional.none)
+            type = .removeFromList
         case .removeFromList:
-            self.onPress?(.removeFromList, true, Optional.none)
-            self.type = .addToList
+            onPress?(.removeFromList, true, Optional.none)
+            type = .addToList
         }
     }
 }

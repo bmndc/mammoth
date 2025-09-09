@@ -5,14 +5,13 @@
 //  Created by Akram Hussein on 08/09/2017.
 //
 
-import Foundation
 import AudioToolbox
+import Foundation
 import UIKit
 
 @objcMembers
 public class Mute: NSObject {
-
-    public typealias MuteNotificationCompletion = ((_ mute: Bool) -> Void)
+    public typealias MuteNotificationCompletion = (_ mute: Bool) -> Void
 
     // MARK: Properties
 
@@ -42,8 +41,8 @@ public class Mute: NSObject {
     /// State of detection - paused when in background
     public var isPaused = false {
         didSet {
-            if !self.isPaused && oldValue && !self.isPlaying {
-                self.schedulePlaySound()
+            if !isPaused, oldValue, !isPlaying {
+                schedulePlaySound()
             }
         }
     }
@@ -51,9 +50,9 @@ public class Mute: NSObject {
     /// How frequently to check (seconds), minimum = 0.5
     public var checkInterval = 1.0 {
         didSet {
-            if self.checkInterval < 0.5 {
+            if checkInterval < 0.5 {
                 print("MUTE: checkInterval cannot be less than 0.5s, setting to 0.5")
-                self.checkInterval = 0.5
+                checkInterval = 0.5
             }
         }
     }
@@ -82,23 +81,23 @@ public class Mute: NSObject {
     // MARK: Init
 
     /// private init
-    private override init() {
+    override private init() {
         super.init()
 
-        self.soundId = 1
+        soundId = 1
 
-        if AudioServicesCreateSystemSoundID(self.soundUrl as CFURL, &self.soundId) == kAudioServicesNoError {
+        if AudioServicesCreateSystemSoundID(soundUrl as CFURL, &soundId) == kAudioServicesNoError {
             var yes: UInt32 = 1
             AudioServicesSetProperty(kAudioServicesPropertyIsUISound,
-                                     UInt32(MemoryLayout.size(ofValue: self.soundId)),
-                                     &self.soundId,
+                                     UInt32(MemoryLayout.size(ofValue: soundId)),
+                                     &soundId,
                                      UInt32(MemoryLayout.size(ofValue: yes)),
                                      &yes)
 
-            self.schedulePlaySound()
+            schedulePlaySound()
         } else {
             print("Failed to setup sound player")
-            self.soundId = 0
+            soundId = 0
         }
 
         // Notifications
@@ -124,30 +123,30 @@ public class Mute: NSObject {
     // MARK: Notification Handlers
 
     /// Selector called when app enters background
-    @objc private func didEnterBackground(_ sender: Any) {
-        self.isPaused = true
+    @objc private func didEnterBackground(_: Any) {
+        isPaused = true
     }
 
     /// Selector called when app will enter foreground
-    @objc private func willEnterForeground(_ sender: Any) {
-        self.isPaused = false
+    @objc private func willEnterForeground(_: Any) {
+        isPaused = false
     }
 
     // MARK: Methods
 
     /// Starts a mute check outside the `checkInterval`
     public func check() {
-        self.playSound()
+        playSound()
     }
 
     /// Schedules mute sound to be played at `checkInterval`
     private func schedulePlaySound() {
         /// Don't schedule a new one if we already have one queued
-        if self.isScheduled { return }
+        if isScheduled { return }
 
-        self.isScheduled = true
+        isScheduled = true
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + self.checkInterval) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + checkInterval) {
             self.isScheduled = false
 
             /// Don't play if we're paused
@@ -161,10 +160,10 @@ public class Mute: NSObject {
 
     /// If not paused, playes mute sound
     private func playSound() {
-        if !self.isPaused && !self.isPlaying {
-            self.interval = Date.timeIntervalSinceReferenceDate
-            self.isPlaying = true
-            AudioServicesPlaySystemSoundWithCompletion(self.soundId) { [weak self] in
+        if !isPaused, !isPlaying {
+            interval = Date.timeIntervalSinceReferenceDate
+            isPlaying = true
+            AudioServicesPlaySystemSoundWithCompletion(soundId) { [weak self] in
                 self?.soundFinishedPlaying()
             }
         }
@@ -172,17 +171,17 @@ public class Mute: NSObject {
 
     /// Called when AudioService finished playing sound
     private func soundFinishedPlaying() {
-        self.isPlaying = false
+        isPlaying = false
 
-        let elapsed = Date.timeIntervalSinceReferenceDate - self.interval
+        let elapsed = Date.timeIntervalSinceReferenceDate - interval
         let isMute = elapsed < 0.1
 
-        if self.isMute != isMute || self.alwaysNotify {
+        if self.isMute != isMute || alwaysNotify {
             self.isMute = isMute
             DispatchQueue.main.async {
                 self.notify?(isMute)
             }
         }
-        self.schedulePlaySound()
+        schedulePlaySound()
     }
 }

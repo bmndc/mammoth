@@ -8,7 +8,6 @@
 
 import UIKit
 
-
 func settingsFontAwesomeImage(_ char: String) -> UIImage {
     let image = FontAwesome.image(fromChar: char)
     return settingsImage(image)
@@ -28,18 +27,17 @@ func settingsImage(_ glyph: UIImage) -> UIImage {
     }
     let imageSize = CGSize(width: settingsIconWidth, height: glyph.size.height)
     let settingsImage = UIGraphicsImageRenderer(size: imageSize).image { _ in
-        
         // Red background for testing
         #if false
-        let context = UIGraphicsGetCurrentContext()!
-        let clipPath: CGPath = UIBezierPath(rect: CGRect(x: 0, y: 0, width: settingsIconWidth, height: glyph.size.height)).cgPath
-        context.addPath(clipPath)
-        context.setFillColor(UIColor.red.cgColor)
-        context.closePath()
-        context.fillPath()
+            let context = UIGraphicsGetCurrentContext()!
+            let clipPath: CGPath = UIBezierPath(rect: CGRect(x: 0, y: 0, width: settingsIconWidth, height: glyph.size.height)).cgPath
+            context.addPath(clipPath)
+            context.setFillColor(UIColor.red.cgColor)
+            context.closePath()
+            context.fillPath()
         #endif
-        
-        glyph.draw(at: CGPoint(x: (imageSize.width - glyph.size.width) / 2.0, y:0))
+
+        glyph.draw(at: CGPoint(x: (imageSize.width - glyph.size.width) / 2.0, y: 0))
     }
     return settingsImage.withTintColor(.custom.mediumContrast, renderingMode: .alwaysOriginal)
 }

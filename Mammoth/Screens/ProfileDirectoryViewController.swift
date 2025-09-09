@@ -6,38 +6,36 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
+import AVFoundation
 import Foundation
-import UIKit
+import MobileCoreServices
 import NaturalLanguage
 import SafariServices
-import AVFoundation
-import MobileCoreServices
+import UIKit
 
 // swiftlint:disable:next type_body_length
 class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSource, UIContextMenuInteractionDelegate, UITableViewDragDelegate {
-    
-    var currentUserID: String? = nil
-    var client: Client? = nil
+    var currentUserID: String?
+    var client: Client?
     let loadingIndicator = UIActivityIndicatorView()
     var tableView = UITableView()
     let refreshControl = UIRefreshControl()
     var currentSegment: Int = 0
     var fromSuggestions: Bool = false
     var id: String = ""
-    var nBounds: CGRect = CGRect.zero
-    var nBar: UINavigationBar = UINavigationBar()
+    var nBounds: CGRect = .zero
+    var nBar: UINavigationBar = .init()
     var statusesAll: [Account] = []
-    var statusesAllNext: RequestRange? = nil
-    var statusesAllPrev: RequestRange? = nil
-    
+    var statusesAllNext: RequestRange?
+    var statusesAllPrev: RequestRange?
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? ProfileCell {
                 cell.profileIcon.layer.borderColor = UIColor.custom.baseTint.cgColor
             }
-            
+
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -51,13 +49,13 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
             } else {
                 UIColor.custom.mainTextColor2 = .secondaryLabel
             }
-            
+
             if !self.statusesAll.isEmpty {
-                self.statusesAll = self.statusesAll.filter { $0.id != GlobalStruct.idToDelete}
+                self.statusesAll = self.statusesAll.filter { $0.id != GlobalStruct.idToDelete }
                 self.tableView.reloadData()
                 self.saveToDisk()
             }
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -77,9 +75,9 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
             }
         }
     }
-    
+
     // LiveTableViewController
-    override func dataForLiveTableView(_ table: UITableView) -> [AnyObject] {
+    override func dataForLiveTableView(_: UITableView) -> [AnyObject] {
         return statusesAll
     }
 
@@ -89,100 +87,98 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
         if let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? ProfileCell {
             cell.profileIcon.layer.borderColor = UIColor.custom.baseTint.cgColor
         }
         tableView.tableHeaderView?.frame.size.height = 60
-        
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.currentUserID = AccountsManager.shared.currentUser()?.id
-        self.client = AccountsManager.shared.currentAccountClient
-        self.view.backgroundColor = .custom.backgroundTint
-        if self.fromSuggestions {
-            self.navigationItem.title = "Follow Suggestions"
+        currentUserID = AccountsManager.shared.currentUser()?.id
+        client = AccountsManager.shared.currentAccountClient
+        view.backgroundColor = .custom.backgroundTint
+        if fromSuggestions {
+            navigationItem.title = "Follow Suggestions"
         } else {
-            self.navigationItem.title = "Profile Directory"
+            navigationItem.title = "Profile Directory"
         }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
-        
+
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+
         loadingIndicator.startAnimating()
         loadingIndicator.hidesWhenStopped = true
-        loadingIndicator.center = self.view.center
-        self.view.addSubview(loadingIndicator)
-        
-        self.setupNav()
-        self.setupTable()
-        
-        self.fetchAllTimelines()
+        loadingIndicator.center = view.center
+        view.addSubview(loadingIndicator)
+
+        setupNav()
+        setupTable()
+
+        fetchAllTimelines()
     }
-    
-    func saveToDisk() {
-        
-    }
-    
+
+    func saveToDisk() {}
+
     func setupNav() {
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
-        
-        if let navBar = self.navigationController?.navigationBar {
-            self.nBounds = navBar.bounds
-            self.nBar = navBar
+
+        if let navBar = navigationController?.navigationBar {
+            nBounds = navBar.bounds
+            nBar = navBar
         }
     }
-    
+
     func fetchAllTimelines() {
         fetchTimelines1()
     }
-    
+
     @objc func prevRefresh1() {
         Sound().playSound(named: "soundSuction", withVolume: 1)
-        self.fetchTimelines1(true, nextBatch: false)
+        fetchTimelines1(true, nextBatch: false)
     }
-    
+
     func fetchTimelines1(_ prevBatch: Bool = false, nextBatch: Bool = false) {
         // moth.social user recommendations API
-        if self.fromSuggestions {
-            let request3 = Accounts.followRecommendations(self.currentUserID ?? "")
-            self.client!.run(request3) { (statuses) in
+        if fromSuggestions {
+            let request3 = Accounts.followRecommendations(currentUserID ?? "")
+            client!.run(request3) { statuses in
                 if let error = statuses.error {
                     log.error("Failed to fetch follow recommendations: \(error)")
                     DispatchQueue.main.async {
                         log.error("error fetching moth.social recommendations, fetch default suggestions instead")
                         let request2 = Accounts.followSuggestions()
-                        self.client!.run(request2) { (statuses) in
+                        self.client!.run(request2) { statuses in
                             if let stat = (statuses.value) {
                                 self.statusesAll = stat
                                 DispatchQueue.main.async {
@@ -204,22 +200,22 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
                 }
             }
         } else {
-            var canLoad: Bool = true
+            var canLoad = true
             var request2 = ProfileDirectory.all()
             if prevBatch {
-                if let ra = self.statusesAllPrev {
+                if let ra = statusesAllPrev {
                     request2 = ProfileDirectory.all(range: ra)
                 }
             }
             if nextBatch {
-                if let ra = self.statusesAllNext {
+                if let ra = statusesAllNext {
                     request2 = ProfileDirectory.all(range: ra)
                 } else {
                     canLoad = false
                 }
             }
             if canLoad {
-                self.client!.run(request2) { (statuses) in
+                client!.run(request2) { statuses in
                     self.statusesAllNext = statuses.pagination?.next
                     self.statusesAllPrev = statuses.pagination?.previous
                     if let stat = (statuses.value) {
@@ -246,7 +242,7 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
             }
         }
     }
-    
+
     func setupTable() {
         tableView.register(UserCell.self, forCellReuseIdentifier: "UserCell")
         tableView.alpha = 1
@@ -256,20 +252,20 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
         tableView.layer.masksToBounds = true
         tableView.rowHeight = UITableView.automaticDimension
         tableView.tableFooterView = UIView(frame: .zero)
-        tableView.refreshControl = self.refreshControl
+        tableView.refreshControl = refreshControl
         tableView.dragDelegate = self
         tableView.dragInteractionEnabled = true
-        refreshControl.addTarget(self, action: #selector(self.prevRefresh1), for: .valueChanged)
+        refreshControl.addTarget(self, action: #selector(prevRefresh1), for: .valueChanged)
         view.addSubview(tableView)
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.statusesAll.count
+
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
+        return statusesAll.count
     }
-    
-    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        let stat: Account? = self.statusesAll[indexPath.row]
-        
+
+    func tableView(_: UITableView, itemsForBeginning _: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        let stat: Account? = statusesAll[indexPath.row]
+
         let string = "\(stat?.url ?? "")"
         guard let data = string.data(using: .utf8) else { return [] }
         let provider = NSItemProvider(item: data as NSData, typeIdentifier: kUTTypeURL as String)
@@ -277,28 +273,28 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
         item.localObject = string
         return [item]
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "UserCell", for: indexPath) as! UserCell
-        
+
         cell.userName.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold)
         cell.userTag.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .light)
         cell.bioText.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
-        
-        let tmpData = self.statusesAll[indexPath.row]
-        
+
+        let tmpData = statusesAll[indexPath.row]
+
         if let ur = URL(string: tmpData.avatar) {
             cell.profileIcon.sd_setImage(with: ur, for: .normal)
         }
 
         cell.profileIcon.tag = indexPath.row
-        cell.profileIcon.addTarget(self, action: #selector(self.profileTap), for: .touchUpInside)
+        cell.profileIcon.addTarget(self, action: #selector(profileTap), for: .touchUpInside)
         //
         let interaction = UIContextMenuInteraction(delegate: self)
         cell.profileIcon.addInteraction(interaction)
         //
         cell.profileIcon.tag = indexPath.row
-        
+
         cell.userName.text = tmpData.displayName
         cell.userTag.text = "@\(tmpData.acct)"
         cell.bioText.text = tmpData.note.stripHTML()
@@ -306,12 +302,12 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
             cell.bioText.text = (cell.bioText.text ?? "").replacingOccurrences(of: "\n", with: " ")
             cell.bioText.numberOfLines = 2
         }
-        
+
         cell.bioText.mentionColor = .custom.baseTint
         cell.bioText.hashtagColor = .custom.baseTint
         cell.bioText.URLColor = .custom.baseTint
         cell.bioText.emailColor = .custom.baseTint
-        
+
         if tmpData.locked == false {
             cell.lockedBadge.alpha = 0
             cell.lockedBackground.alpha = 0
@@ -322,11 +318,11 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
             cell.lockedBackground.alpha = 1
             cell.lockedBackground.backgroundColor = .custom.backgroundTint
         }
-        
+
         cell.setupConstraints(tmpData)
-        
+
         // tap items
-        cell.bioText.handleMentionTap { (str) in
+        cell.bioText.handleMentionTap { str in
             triggerHapticImpact(style: .light)
             let note = tmpData.note
             let sliced = "~\(note.slice(from: "<a href=\"", to: "</span></a>") ?? "")~"
@@ -338,76 +334,75 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
                 }
             }
         }
-        cell.bioText.handleHashtagTap { (str) in
+        cell.bioText.handleHashtagTap { str in
             triggerHapticImpact(style: .light)
             let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: str, url: ""))))
-            
+
             if vc.isBeingPresented {} else {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }
-        cell.bioText.handleURLTap { (str) in
+        cell.bioText.handleURLTap { str in
             triggerHapticImpact(style: .light)
             PostActions.openLink(str)
         }
-        cell.bioText.handleEmailTap { (str) in
-            
+        cell.bioText.handleEmailTap { _ in
         }
-        
+
         cell.separatorInset = .zero
         let bgColorView = UIView()
         bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
         cell.selectedBackgroundView = bgColorView
         cell.backgroundColor = .custom.backgroundTint
-        
-        if self.fromSuggestions {} else {
-            var minusDiff: Int = 3
-            if self.statusesAll.count < 4 {
+
+        if fromSuggestions {} else {
+            var minusDiff = 3
+            if statusesAll.count < 4 {
                 minusDiff = 1
             }
-            if indexPath.row == self.statusesAll.count - minusDiff {
-                self.fetchTimelines1(false, nextBatch: true)
+            if indexPath.row == statusesAll.count - minusDiff {
+                fetchTimelines1(false, nextBatch: true)
             }
         }
-        
+
         return cell
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        let stat: Account? = self.statusesAll[indexPath.row]
+        let stat: Account? = statusesAll[indexPath.row]
         if let account = stat {
             let vc = ProfileViewController(user: UserCardModel(account: account), screenType: .others)
             if vc.isBeingPresented {} else {
-                self.navigationController?.pushViewController(vc, animated: true)
+                navigationController?.pushViewController(vc, animated: true)
             }
         }
     }
-    
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+
+    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
         var acc: Account? = nil
-        acc = self.statusesAll[interaction.view?.tag ?? 0]
-        if acc?.id ?? "" == self.currentUserID ?? "" {
+        acc = statusesAll[interaction.view?.tag ?? 0]
+        if acc?.id ?? "" == currentUserID ?? "" {
             return nil
         } else {
             return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: {
-                suggestedActions in
-                return self.makeContextProfileMain(interaction.view?.tag ?? 0)
+                _ in
+                self.makeContextProfileMain(interaction.view?.tag ?? 0)
             })
         }
     }
-    
+
     func makeContextProfileMain(_ index: Int) -> UIMenu {
         var acc: Account? = nil
-        acc = self.statusesAll[index]
-        let op0 = UIAction(title: NSLocalizedString("profile.mention", comment: ""), image: UIImage(systemName: "at"), identifier: nil) { action in
+        acc = statusesAll[index]
+        let op0 = UIAction(title: NSLocalizedString("profile.mention", comment: ""), image: UIImage(systemName: "at"), identifier: nil) { _ in
             let vc = NewPostViewController()
             vc.isModalInPresentation = true
             vc.fromPro = true
             vc.proText = "@\(acc?.acct ?? "") "
             self.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
         }
-        let op00 = UIAction(title: "Message", image: UIImage(systemName: "tray.full"), identifier: nil) { action in
+        let op00 = UIAction(title: "Message", image: UIImage(systemName: "tray.full"), identifier: nil) { _ in
             let vc = NewPostViewController()
             vc.isModalInPresentation = true
             vc.fromPro = true
@@ -419,22 +414,22 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
         if #available(iOS 16.0, *) {
             mentionMenu.preferredElementSize = .medium
         }
-        
-        let op000 = UIAction(title: "Recent Media", image: UIImage(systemName: "photo.on.rectangle"), identifier: nil) { action in
+
+        let op000 = UIAction(title: "Recent Media", image: UIImage(systemName: "photo.on.rectangle"), identifier: nil) { _ in
             let vc = GalleryViewController()
             vc.otherUserId = acc?.id ?? ""
             if vc.isBeingPresented {} else {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }
-        
-        var opVIP = UIAction(title: "Add to Top Friends", image: UIImage(systemName: "star"), identifier: nil) { action in
+
+        var opVIP = UIAction(title: "Add to Top Friends", image: UIImage(systemName: "star"), identifier: nil) { _ in
             if GlobalStruct.displayingVIPLists == 0 {
                 let userInfoDict = (acc == nil) ? nil : ["Account": acc!]
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "createVIPListPrompt"), object: nil, userInfo: userInfoDict)
             } else {
                 let request2 = Lists.add(accountIDs: [acc?.id ?? ""], toList: GlobalStruct.VIPListID)
-                self.client!.run(request2) { (statuses) in
+                self.client!.run(request2) { statuses in
                     if let error = statuses.error {
                         log.error("Failed to add to list: \(error)")
                         DispatchQueue.main.async {
@@ -445,7 +440,7 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
                                 }
                             } else {
                                 let userInfoDict = (acc == nil) ? nil : ["Account": acc!]
-                                NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo:  userInfoDict)
+                                NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo: userInfoDict)
                             }
                         }
                     }
@@ -474,18 +469,18 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
         if GlobalStruct.topAccounts.contains(where: { x in
             x.id == acc?.id ?? ""
         }) {
-            opVIP = UIAction(title: "Remove from Top Friends", image: UIImage(systemName: "star.slash"), identifier: nil) { action in
+            opVIP = UIAction(title: "Remove from Top Friends", image: UIImage(systemName: "star.slash"), identifier: nil) { _ in
                 let request2 = Lists.remove(accountIDs: [acc?.id ?? ""], fromList: GlobalStruct.VIPListID)
-                self.client!.run(request2) { (statuses) in
+                self.client!.run(request2) { statuses in
                     if let _ = (statuses.value) {
                         DispatchQueue.main.async {
                             // added
                             print("removed users from VIP list")
                             NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadThisExplore"), object: nil)
                             if let x = acc {
-                                GlobalStruct.topAccounts = GlobalStruct.topAccounts.filter({ y in
+                                GlobalStruct.topAccounts = GlobalStruct.topAccounts.filter { y in
                                     y != x
-                                })
+                                }
                                 NotificationCenter.default.post(name: Notification.Name(rawValue: "fetchAllTimelinesLikedBy"), object: nil)
                                 if let x = self.currentUserID {
                                     do {
@@ -504,16 +499,16 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
         if GlobalStruct.displayingVIPLists == 2 {
             opVIP.attributes = .hidden
         }
-        
+
         var listAct1: [UIAction] = []
         for x in ListManager.shared.allLists(includeTopFriends: false) {
-            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { action in
+            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { _ in
                 ListManager.shared.addToList(accountID: acc?.id ?? "", listID: x.id) { success in
                     if !success {
                         log.error("Failed to add to list")
                         DispatchQueue.main.async {
                             let userInfoDict = (acc == nil) ? nil : ["Account": acc!, "List": x.id]
-                            NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo:  userInfoDict)
+                            NotificationCenter.default.post(name: Notification.Name(rawValue: "followAndAddToTopFriends"), object: nil, userInfo: userInfoDict)
                         }
                     } else {
                         DispatchQueue.main.async {
@@ -528,7 +523,7 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
         let list1 = UIMenu(title: "Add to List", image: UIImage(systemName: "plus"), options: [], children: listAct1)
         var listAct2: [UIAction] = []
         for x in ListManager.shared.allLists(includeTopFriends: false) {
-            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { action in
+            let op1 = UIAction(title: x.title, image: UIImage(systemName: "list.bullet"), identifier: nil) { _ in
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "postUnVIP"), object: nil)
                 ListManager.shared.removeFromList(accountID: acc?.id ?? "", listID: x.id) { success in
                     if success {
@@ -542,12 +537,12 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
         }
         let list2 = UIMenu(title: "Remove from List", image: UIImage(systemName: "minus"), options: [], children: listAct2)
         let op3 = UIMenu(title: "Manage Lists", image: UIImage(systemName: "list.bullet"), options: [], children: [list1, list2])
-        
-        let trans = UIAction(title: "Translate Bio", image: UIImage(systemName: "globe"), identifier: nil) {_ in
+
+        let trans = UIAction(title: "Translate Bio", image: UIImage(systemName: "globe"), identifier: nil) { _ in
             PostActions.translateString(acc?.note.stripHTML() ?? "")
         }
-        
-        let share = UIAction(title: "Share Profile", image: FontAwesome.image(fromChar: "\u{e09a}"), identifier: nil) { action in
+
+        let share = UIAction(title: "Share Profile", image: FontAwesome.image(fromChar: "\u{e09a}"), identifier: nil) { _ in
             let text = URL(string: "\(acc?.url ?? "")")!
             let textToShare = [text]
             let activityViewController = UIActivityViewController(activityItems: textToShare, applicationActivities: nil)
@@ -555,24 +550,23 @@ class ProfileDirectoryViewController: LiveTableViewController, UITableViewDataSo
             self.present(activityViewController, animated: true, completion: nil)
         }
         let shareMenu = UIMenu(title: "", options: [.displayInline], children: [share])
-        
+
         return UIMenu(title: "", options: [], children: [mentionMenu, op000, opVIP, op3, trans, shareMenu])
     }
-    
+
     @objc func profileTap(_ sender: UIButton) {
         triggerHapticImpact(style: .light)
         // tap user profile pics
         var stat: Account? = nil
-        if sender.tag < self.statusesAll.count {
-            stat = self.statusesAll[sender.tag]
+        if sender.tag < statusesAll.count {
+            stat = statusesAll[sender.tag]
         }
         // default profile pics
         if let account = stat {
             let vc = ProfileViewController(user: UserCardModel(account: account), screenType: .others)
             if vc.isBeingPresented {} else {
-                self.navigationController?.pushViewController(vc, animated: true)
+                navigationController?.pushViewController(vc, animated: true)
             }
         }
     }
-    
 }

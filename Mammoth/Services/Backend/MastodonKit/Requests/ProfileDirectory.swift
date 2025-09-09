@@ -8,14 +8,15 @@
 
 import Foundation
 
-public struct ProfileDirectory {
+public enum ProfileDirectory {
     public static func all(local: Bool? = nil,
-                                order: String? = nil,
-                                range: RequestRange = .default) -> Request<[Account]> {
+                           order: String? = nil,
+                           range: RequestRange = .default) -> Request<[Account]>
+    {
         let rangeParameters = range.parameters(limit: between(1, and: 40, default: 20)) ?? []
         let parameters = rangeParameters + [
             Parameter(name: "local", value: local.flatMap(trueOrNil)),
-            Parameter(name: "order", value: order)
+            Parameter(name: "order", value: order),
         ]
 
         let method = HTTPMethod.get(.parameters(parameters))

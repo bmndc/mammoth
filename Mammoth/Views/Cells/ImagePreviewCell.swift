@@ -9,29 +9,28 @@
 import Foundation
 
 class ImagePreviewCell: UITableViewCell {
-    
     var image = UIImageView()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
+
         image.translatesAutoresizingMaskIntoConstraints = false
         image.contentMode = .scaleAspectFill
         contentView.addSubview(image)
-        
+
         contentView.layer.masksToBounds = false
-        
+
         let viewsDict = [
-            "image" : image,
+            "image": image,
         ]
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[image]-0-|", options: [], metrics: nil, views: viewsDict))
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[image(280)]-0-|", options: [], metrics: nil, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[image]-0-|", options: [], metrics: nil, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[image(280)]-0-|", options: [], metrics: nil, views: viewsDict))
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }

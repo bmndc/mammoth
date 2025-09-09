@@ -26,7 +26,7 @@ public class Emoji: Codable {
 extension Emoji: Equatable {
     public static func == (lhs: Emoji, rhs: Emoji) -> Bool {
         return lhs.shortcode == rhs.shortcode &&
-        lhs.staticURL == rhs.staticURL &&
-        lhs.url == rhs.url
+            lhs.staticURL == rhs.staticURL &&
+            lhs.url == rhs.url
     }
 }

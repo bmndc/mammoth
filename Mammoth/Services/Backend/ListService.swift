@@ -8,23 +8,22 @@
 
 import Foundation
 
-struct ListService {
-    
+enum ListService {
     @discardableResult
     static func add(accountID: String, listID: String) async throws -> Empty {
         let request = Lists.add(accountIDs: [accountID], toList: listID)
         let result = try await ClientService.runRequest(request: request)
         return result
     }
-    
+
     @discardableResult
     static func remove(accountID: String, listID: String) async throws -> Empty {
         let request = Lists.remove(accountIDs: [accountID], fromList: listID)
         let result = try await ClientService.runRequest(request: request)
         return result
     }
-    
-    static func accounts(listID: String, range: RequestRange = .default) async throws -> ([Account], Pagination?) {
+
+    static func accounts(listID: String, range _: RequestRange = .default) async throws -> ([Account], Pagination?) {
         let request = Lists.accounts(id: listID)
         let result = try await ClientService.runPaginatedRequest(request: request)
         return result

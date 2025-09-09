@@ -50,7 +50,7 @@ func trueOrNil(_ flag: Bool) -> String? {
 func trim(left: Character, right: Character) -> (String) -> String {
     return { string in
         guard string.hasPrefix("\(left)"), string.hasSuffix("\(right)") else { return string }
-        return String(string[string.index(after: string.startIndex)..<string.index(before: string.endIndex)])
+        return String(string[string.index(after: string.startIndex) ..< string.index(before: string.endIndex)])
     }
 }
 

@@ -1,5 +1,5 @@
 //
-//  StatusParams.swift
+//  StatusPara.swift
 //  Mammoth
 //
 //  Created by Shihab Mehboob on 27/01/2019.
@@ -25,7 +25,7 @@ public class StatusPara: Codable {
 //    public let scheduledAt: String?
 //    /// Application from which the status was posted.
 //    public let applicationID: String
-    
+
     private enum CodingKeys: String, CodingKey {
         case text
 //        case inReplyToID = "in_reply_to_id"
@@ -37,4 +37,3 @@ public class StatusPara: Codable {
 //        case applicationID = "application_id"
     }
 }
-

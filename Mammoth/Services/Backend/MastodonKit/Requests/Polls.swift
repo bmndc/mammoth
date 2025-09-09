@@ -8,8 +8,7 @@
 
 import Foundation
 
-public struct Polls {
-    
+public enum Polls {
     /// Gets a single poll.
     ///
     /// - Parameter id: The poll id.
@@ -17,7 +16,7 @@ public struct Polls {
     public static func poll(id: String) -> Request<Poll> {
         return Request<Poll>(path: "/api/v1/polls/\(id)")
     }
-    
+
     /// Vote on a poll.
     ///
     /// - Parameter id: The notification id.
@@ -25,7 +24,7 @@ public struct Polls {
     public static func vote(id: String, choices: [Int]) -> Request<Poll> {
         let parameter = choices.map(toArrayOfParameters(withName: "choices"))
         let method = HTTPMethod.post(.parameters(parameter))
-        
+
         return Request<Poll>(path: "/api/v1/polls/\(id)/votes", method: method)
     }
 }

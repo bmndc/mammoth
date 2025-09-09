@@ -8,13 +8,13 @@
 
 import SDWebImage
 
-class ScaleDownTransformer : NSObject, SDImageTransformer {
+class ScaleDownTransformer: NSObject, SDImageTransformer {
     var transformerKey: String = "ScaleDownTransformer"
-    
-    func transformedImage(with image: UIImage, forKey key: String) -> UIImage? {
+
+    func transformedImage(with image: UIImage, forKey _: String) -> UIImage? {
         /// scale down to the device scale factor
         let ratio = image.scale / UIScreen.main.scale
-        
+
         if ratio > 1 {
             let newSize = CGSize(width: image.size.width / ratio, height: image.size.height / ratio)
             let newImage = image.sd_resizedImage(with: newSize, scaleMode: .fill)

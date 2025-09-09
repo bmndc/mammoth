@@ -8,14 +8,14 @@
 
 import Foundation
 
-internal enum NewsFeedSections {
+enum NewsFeedSections {
     case main
     case loader
     case empty
 }
 
 // swiftlint:disable:next type_body_length
-internal struct NewsFeedListData {
+struct NewsFeedListData {
     var forYou: [NewsFeedListItem]?
     var following: [NewsFeedListItem]?
     var federated: [NewsFeedListItem]?
@@ -33,96 +33,96 @@ internal struct NewsFeedListData {
     let empty = NewsFeedListItem.empty
     let loadMore = NewsFeedListItem.loadMore
     let error = NewsFeedListItem.error
-    
+
     func forType(type: NewsFeedTypes) -> [NewsFeedListItem]? {
         switch type {
         case .forYou:
-            return self.forYou
+            return forYou
         case .following:
-            return self.following
+            return following
         case .federated:
-            return self.federated
-        case .community(let name):
-            return self.community[name]
-        case .trending(let name):
-            return self.trending[name]
-        case .hashtag(let tag):
-            return self.hashtag[tag.name]
-        case .list(let list):
+            return federated
+        case let .community(name):
+            return community[name]
+        case let .trending(name):
+            return trending[name]
+        case let .hashtag(tag):
+            return hashtag[tag.name]
+        case let .list(list):
             return self.list[list.id]
         case .likes:
-            return self.likes
+            return likes
         case .bookmarks:
-            return self.bookmarks
+            return bookmarks
         case .mentionsIn:
-            return self.mentionsIn
+            return mentionsIn
         case .mentionsOut:
-            return self.mentionsOut
-        case .activity(let type):
-            return self.activity[type?.rawValue ?? "all"]
-        case .channel(let channel):
+            return mentionsOut
+        case let .activity(type):
+            return activity[type?.rawValue ?? "all"]
+        case let .channel(channel):
             return self.channel[channel.id]
         }
     }
-    
+
     mutating func set(items: [NewsFeedListItem], forType type: NewsFeedTypes) {
         switch type {
         case .forYou:
-            self.forYou = items
+            forYou = items
         case .following:
-            self.following = items
+            following = items
         case .federated:
-            self.federated = items
-        case .community(let name):
-            self.community[name] = items
-        case .trending(let name):
-            self.trending[name] = items
-        case .hashtag(let tag):
-            self.hashtag[tag.name] = items
-        case .list(let list):
+            federated = items
+        case let .community(name):
+            community[name] = items
+        case let .trending(name):
+            trending[name] = items
+        case let .hashtag(tag):
+            hashtag[tag.name] = items
+        case let .list(list):
             self.list[list.id] = items
         case .likes:
-            self.likes = items
+            likes = items
         case .bookmarks:
-            self.bookmarks = items
+            bookmarks = items
         case .mentionsIn:
-            self.mentionsIn = items
+            mentionsIn = items
         case .mentionsOut:
-            self.mentionsOut = items
-        case .activity(let type):
-            self.activity[type?.rawValue ?? "all"] = items
-        case .channel(let channel):
+            mentionsOut = items
+        case let .activity(type):
+            activity[type?.rawValue ?? "all"] = items
+        case let .channel(channel):
             self.channel[channel.id] = items
         }
     }
-    
+
     mutating func clear(forType type: NewsFeedTypes) {
         switch type {
         case .forYou:
-            self.forYou = []
+            forYou = []
         case .following:
-            self.following = []
+            following = []
         case .federated:
-            self.federated = []
-        case .community(let name):
-            self.community[name] = []
-        case .trending(let name):
-            self.trending[name] = []
-        case .hashtag(let tag):
-            self.hashtag[tag.name] = []
-        case .list(let list):
+            federated = []
+        case let .community(name):
+            community[name] = []
+        case let .trending(name):
+            trending[name] = []
+        case let .hashtag(tag):
+            hashtag[tag.name] = []
+        case let .list(list):
             self.list[list.id] = []
         case .likes:
-            self.likes = []
+            likes = []
         case .bookmarks:
-            self.bookmarks = []
+            bookmarks = []
         case .mentionsIn:
-            self.mentionsIn = []
+            mentionsIn = []
         case .mentionsOut:
-            self.mentionsOut = []
-        case .activity(let type):
-            self.activity[type?.rawValue ?? "all"]  = []
-        case .channel(let channel):
+            mentionsOut = []
+        case let .activity(type):
+            activity[type?.rawValue ?? "all"] = []
+        case let .channel(channel):
             self.channel[channel.id] = []
         }
     }
@@ -130,302 +130,305 @@ internal struct NewsFeedListData {
     mutating func insert(items: [NewsFeedListItem], forType type: NewsFeedTypes, after: NewsFeedListItem) {
         switch type {
         case .forYou:
-            let index = self.forYou?.firstIndex(where: {$0 == after})
-            var copy = self.forYou
-            copy?.insert(contentsOf: items, at: index ?? self.forYou?.count ?? 0)
-            self.forYou = copy
-            
+            let index = forYou?.firstIndex(where: { $0 == after })
+            var copy = forYou
+            copy?.insert(contentsOf: items, at: index ?? forYou?.count ?? 0)
+            forYou = copy
+
         case .following:
-            let index = self.following?.firstIndex(where: {$0 == after})
-            var copy = self.following
-            copy?.insert(contentsOf: items, at: index ?? self.following?.count ?? 0)
-            self.following = copy
-            
+            let index = following?.firstIndex(where: { $0 == after })
+            var copy = following
+            copy?.insert(contentsOf: items, at: index ?? following?.count ?? 0)
+            following = copy
+
         case .federated:
-            let index = self.federated?.firstIndex(where: {$0 == after})
-            var copy = self.federated
-            copy?.insert(contentsOf: items, at: index ?? self.federated?.count ?? 0)
-            self.federated = copy
-            
-        case .community(let name):
-            let index = self.community[name]?.firstIndex(where: {$0 == after})
-            var copy = self.community[name]
-            copy?.insert(contentsOf: items, at: index ?? self.community[name]?.count ?? 0)
-            self.community[name] = copy
-            
-        case .trending(let name):
-            let index = self.trending[name]?.firstIndex(where: {$0 == after})
-            var copy = self.trending[name]
-            copy?.insert(contentsOf: items, at: index ?? self.trending[name]?.count ?? 0)
-            self.trending[name] = copy
-            
-        case .hashtag(let tag):
-            let index = self.hashtag[tag.name]?.firstIndex(where: {$0 == after})
-            var copy = self.hashtag[tag.name]
-            copy?.insert(contentsOf: items, at: index ?? self.hashtag[tag.name]?.count ?? 0)
-            self.hashtag[tag.name] = copy
-            
-        case .list(let list):
-            let index = self.list[list.id]?.firstIndex(where: {$0 == after})
+            let index = federated?.firstIndex(where: { $0 == after })
+            var copy = federated
+            copy?.insert(contentsOf: items, at: index ?? federated?.count ?? 0)
+            federated = copy
+
+        case let .community(name):
+            let index = community[name]?.firstIndex(where: { $0 == after })
+            var copy = community[name]
+            copy?.insert(contentsOf: items, at: index ?? community[name]?.count ?? 0)
+            community[name] = copy
+
+        case let .trending(name):
+            let index = trending[name]?.firstIndex(where: { $0 == after })
+            var copy = trending[name]
+            copy?.insert(contentsOf: items, at: index ?? trending[name]?.count ?? 0)
+            trending[name] = copy
+
+        case let .hashtag(tag):
+            let index = hashtag[tag.name]?.firstIndex(where: { $0 == after })
+            var copy = hashtag[tag.name]
+            copy?.insert(contentsOf: items, at: index ?? hashtag[tag.name]?.count ?? 0)
+            hashtag[tag.name] = copy
+
+        case let .list(list):
+            let index = self.list[list.id]?.firstIndex(where: { $0 == after })
             var copy = self.list[list.id]
             copy?.insert(contentsOf: items, at: index ?? self.list[list.id]?.count ?? 0)
             self.list[list.id] = copy
-        
-        case .likes:
-            let index = self.likes?.firstIndex(where: {$0 == after})
-            var copy = self.likes
-            copy?.insert(contentsOf: items, at: index ?? self.likes?.count ?? 0)
-            self.likes = copy
-            
-        case .bookmarks:
-            let index = self.bookmarks?.firstIndex(where: {$0 == after})
-            var copy = self.bookmarks
-            copy?.insert(contentsOf: items, at: index ?? self.bookmarks?.count ?? 0)
-            self.bookmarks = copy
-            
-        case .mentionsIn:
-            let index = self.mentionsIn?.firstIndex(where: {$0 == after})
-            var copy = self.mentionsIn
-            copy?.insert(contentsOf: items, at: index ?? self.mentionsIn?.count ?? 0)
-            self.mentionsIn = copy
-            
-        case .mentionsOut:
-            let index = self.mentionsOut?.firstIndex(where: {$0 == after})
-            var copy = self.mentionsOut
-            copy?.insert(contentsOf: items, at: index ?? self.mentionsOut?.count ?? 0)
-            self.mentionsOut = copy
-            
-        case .activity(let type):
-            let key = type?.rawValue ?? "all"
-            let index = self.activity[key]?.firstIndex(where: {$0 == after})
-            var copy = self.activity[key]
-            copy?.insert(contentsOf: items, at: index ?? self.activity[key]?.count ?? 0)
-            self.activity[key] = copy
 
-        case .channel(let channel):
-            let index = self.channel[channel.id]?.firstIndex(where: {$0 == after})
+        case .likes:
+            let index = likes?.firstIndex(where: { $0 == after })
+            var copy = likes
+            copy?.insert(contentsOf: items, at: index ?? likes?.count ?? 0)
+            likes = copy
+
+        case .bookmarks:
+            let index = bookmarks?.firstIndex(where: { $0 == after })
+            var copy = bookmarks
+            copy?.insert(contentsOf: items, at: index ?? bookmarks?.count ?? 0)
+            bookmarks = copy
+
+        case .mentionsIn:
+            let index = mentionsIn?.firstIndex(where: { $0 == after })
+            var copy = mentionsIn
+            copy?.insert(contentsOf: items, at: index ?? mentionsIn?.count ?? 0)
+            mentionsIn = copy
+
+        case .mentionsOut:
+            let index = mentionsOut?.firstIndex(where: { $0 == after })
+            var copy = mentionsOut
+            copy?.insert(contentsOf: items, at: index ?? mentionsOut?.count ?? 0)
+            mentionsOut = copy
+
+        case let .activity(type):
+            let key = type?.rawValue ?? "all"
+            let index = activity[key]?.firstIndex(where: { $0 == after })
+            var copy = activity[key]
+            copy?.insert(contentsOf: items, at: index ?? activity[key]?.count ?? 0)
+            activity[key] = copy
+
+        case let .channel(channel):
+            let index = self.channel[channel.id]?.firstIndex(where: { $0 == after })
             var copy = self.channel[channel.id]
             copy?.insert(contentsOf: items, at: index ?? self.channel[channel.id]?.count ?? 0)
             self.channel[channel.id] = copy
         }
     }
-    
+
     mutating func update(item: NewsFeedListItem) {
-        NewsFeedTypes.allCases.forEach { feedType in
-            switch(feedType) {
+        for feedType in NewsFeedTypes.allCases {
+            switch feedType {
             case .forYou:
-                if let index = self.forYou?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.update(item: item, atIndex: index, forType: feedType)
+                if let index = forYou?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    update(item: item, atIndex: index, forType: feedType)
                 }
+
             case .following:
-                if let index = self.following?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.update(item: item, atIndex: index, forType: feedType)
+                if let index = following?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    update(item: item, atIndex: index, forType: feedType)
                 }
+
             case .federated:
-                if let index = self.federated?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.update(item: item, atIndex: index, forType: feedType)
+                if let index = federated?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    update(item: item, atIndex: index, forType: feedType)
                 }
+
             case .community:
-                self.community.forEach { (key, community) in
-                    if let index = community.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                        self.update(item: item, atIndex: index, forType: .community(key))
+                for (key, community) in community {
+                    if let index = community.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        update(item: item, atIndex: index, forType: .community(key))
                     }
                 }
+
             case .trending:
-                self.trending.forEach { (key, trending) in
-                    if let index = trending.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                        self.update(item: item, atIndex: index, forType: .trending(key))
+                for (key, trending) in trending {
+                    if let index = trending.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        update(item: item, atIndex: index, forType: .trending(key))
                     }
                 }
+
             case .hashtag:
-                self.hashtag.forEach { (key, hashtag) in
-                    if let index = hashtag.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                        self.update(item: item, atIndex: index, forType: .hashtag(Tag(name: key, url: "")))
+                for (key, hashtag) in hashtag {
+                    if let index = hashtag.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        update(item: item, atIndex: index, forType: .hashtag(Tag(name: key, url: "")))
                     }
                 }
+
             case .list:
-                self.list.forEach { (key, list) in
-                    if let index = list.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                        self.update(item: item, atIndex: index, forType: .list(List(id: key, title: "")))
+                for (key, list) in list {
+                    if let index = list.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        update(item: item, atIndex: index, forType: .list(List(id: key, title: "")))
                     }
                 }
-                
+
             case .likes:
-                if let index = self.likes?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.update(item: item, atIndex: index, forType: feedType)
+                if let index = likes?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    update(item: item, atIndex: index, forType: feedType)
                 }
-                
+
             case .bookmarks:
-                if let index = self.bookmarks?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.update(item: item, atIndex: index, forType: feedType)
+                if let index = bookmarks?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    update(item: item, atIndex: index, forType: feedType)
                 }
-                
+
             case .mentionsIn:
-                if let index = self.mentionsIn?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.update(item: item, atIndex: index, forType: feedType)
+                if let index = mentionsIn?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    update(item: item, atIndex: index, forType: feedType)
                 }
-                
+
             case .mentionsOut:
-                if let index = self.mentionsOut?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.update(item: item, atIndex: index, forType: feedType)
+                if let index = mentionsOut?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    update(item: item, atIndex: index, forType: feedType)
                 }
-                
-            case .activity(_):
-                self.activity.forEach { (key, activities) in
+
+            case .activity:
+                for (key, activities) in activity {
                     let activityType: NotificationType? = key == "all" ? nil : NotificationType(rawValue: key)
-                    if let index = activities.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                        self.update(item: item, atIndex: index, forType: .activity(activityType))
-                    } else if let index = activities.firstIndex(where: {$0.extractPostCard()?.uniqueId == item.uniqueId()}){
+                    if let index = activities.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        update(item: item, atIndex: index, forType: .activity(activityType))
+                    } else if let index = activities.firstIndex(where: { $0.extractPostCard()?.uniqueId == item.uniqueId() }) {
                         // update the postcard in the activity
-                        if case .activity(let activity) = activities[index] {
+                        if case let .activity(activity) = activities[index] {
                             activity.postCard = item.extractPostCard()
-                            self.update(item: .activity(activity), atIndex: index, forType: .activity(activityType))
+                            update(item: .activity(activity), atIndex: index, forType: .activity(activityType))
                         }
                     }
                 }
 
             case .channel:
-                self.channel.forEach { (key, channel) in
-                    if let index = channel.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                        self.update(item: item, atIndex: index, forType: .channel(Channel(id: key, title: "", owner: ChannelOwner())))
+                for (key, channel) in channel {
+                    if let index = channel.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        update(item: item, atIndex: index, forType: .channel(Channel(id: key, title: "", owner: ChannelOwner())))
                     }
                 }
             }
         }
     }
-    
+
     mutating func update(item: NewsFeedListItem, atIndex index: Int, forType type: NewsFeedTypes) {
         switch type {
         case .forYou:
-            self.forYou?[index] = item
+            forYou?[index] = item
         case .following:
-            self.following?[index] = item
+            following?[index] = item
         case .federated:
-            self.federated?[index] = item
-        case .community(let name):
-            self.community[name]?[index] = item
-        case .trending(let name):
-            self.trending[name]?[index] = item
-        case .hashtag(let tag):
-            self.hashtag[tag.name]?[index] = item
-        case .list(let list):
+            federated?[index] = item
+        case let .community(name):
+            community[name]?[index] = item
+        case let .trending(name):
+            trending[name]?[index] = item
+        case let .hashtag(tag):
+            hashtag[tag.name]?[index] = item
+        case let .list(list):
             self.list[list.id]?[index] = item
         case .likes:
-            self.likes?[index] = item
+            likes?[index] = item
         case .bookmarks:
-            self.bookmarks?[index] = item
+            bookmarks?[index] = item
         case .mentionsIn:
-            self.mentionsIn?[index] = item
+            mentionsIn?[index] = item
         case .mentionsOut:
-            self.mentionsOut?[index] = item
-        case .activity(let type):
-            self.activity[type?.rawValue ?? "all"]?[index] = item
-        case .channel(let channel):
+            mentionsOut?[index] = item
+        case let .activity(type):
+            activity[type?.rawValue ?? "all"]?[index] = item
+        case let .channel(channel):
             self.channel[channel.id]?[index] = item
         }
     }
-    
+
     @discardableResult
     mutating func remove(atIndex index: Int, forType type: NewsFeedTypes) -> NewsFeedListItem? {
         switch type {
         case .forYou:
-            return self.forYou?.remove(at: index)
+            return forYou?.remove(at: index)
         case .following:
-            return self.following?.remove(at: index)
+            return following?.remove(at: index)
         case .federated:
-            return self.federated?.remove(at: index)
-        case .community(let name):
-            return self.community[name]?.remove(at: index)
-        case .trending(let name):
-            return self.trending[name]?.remove(at: index)
-        case .hashtag(let tag):
-            return self.hashtag[tag.name]?.remove(at: index)
-        case .list(let list):
+            return federated?.remove(at: index)
+        case let .community(name):
+            return community[name]?.remove(at: index)
+        case let .trending(name):
+            return trending[name]?.remove(at: index)
+        case let .hashtag(tag):
+            return hashtag[tag.name]?.remove(at: index)
+        case let .list(list):
             return self.list[list.id]?.remove(at: index)
         case .likes:
-            return self.likes?.remove(at: index)
+            return likes?.remove(at: index)
         case .bookmarks:
-            return self.bookmarks?.remove(at: index)
+            return bookmarks?.remove(at: index)
         case .mentionsIn:
-            return self.mentionsIn?.remove(at: index)
+            return mentionsIn?.remove(at: index)
         case .mentionsOut:
-            return self.mentionsOut?.remove(at: index)
-        case .activity(let type):
-            return self.activity[type?.rawValue ?? "all"]?.remove(at: index)
-        case .channel(let channel):
+            return mentionsOut?.remove(at: index)
+        case let .activity(type):
+            return activity[type?.rawValue ?? "all"]?.remove(at: index)
+        case let .channel(channel):
             return self.channel[channel.id]?.remove(at: index)
         }
     }
-    
+
     mutating func remove(item: NewsFeedListItem) {
-        NewsFeedTypes.allCases.forEach { feedType in
-            switch(feedType) {
+        for feedType in NewsFeedTypes.allCases {
+            switch feedType {
             case .forYou:
-                if let index = self.forYou?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}){
-                    self.remove(atIndex: index, forType: feedType)
+                if let index = forYou?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    remove(atIndex: index, forType: feedType)
                 }
             case .following:
-                if let index = self.following?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                    self.remove(atIndex: index, forType: feedType)
+                if let index = following?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    remove(atIndex: index, forType: feedType)
                 }
             case .federated:
-                if let index = self.federated?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                    self.remove(atIndex: index, forType: feedType)
+                if let index = federated?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    remove(atIndex: index, forType: feedType)
                 }
             case .community:
-                self.community.forEach { (key, community) in
-                    if let index = community.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                        self.remove(atIndex: index, forType: .community(key))
+                for (key, community) in community {
+                    if let index = community.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        remove(atIndex: index, forType: .community(key))
                     }
                 }
             case .trending:
-                self.trending.forEach { (key, trending) in
-                    if let index = trending.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                        self.remove(atIndex: index, forType: .trending(key))
+                for (key, trending) in trending {
+                    if let index = trending.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        remove(atIndex: index, forType: .trending(key))
                     }
                 }
             case .hashtag:
-                self.hashtag.forEach { (key, hashtag) in
-                    if let index = hashtag.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                        self.remove(atIndex: index, forType: .hashtag(Tag(name: key, url: "")))
+                for (key, hashtag) in hashtag {
+                    if let index = hashtag.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        remove(atIndex: index, forType: .hashtag(Tag(name: key, url: "")))
                     }
                 }
             case .list:
-                self.list.forEach { (key, list) in
-                    if let index = list.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                        self.remove(atIndex: index, forType: .list(List(id: key, title: "")))
+                for (key, list) in list {
+                    if let index = list.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        remove(atIndex: index, forType: .list(List(id: key, title: "")))
                     }
                 }
             case .likes:
-                if let index = self.likes?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                    self.remove(atIndex: index, forType: feedType)
+                if let index = likes?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    remove(atIndex: index, forType: feedType)
                 }
             case .bookmarks:
-                if let index = self.bookmarks?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                    self.remove(atIndex: index, forType: feedType)
+                if let index = bookmarks?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    remove(atIndex: index, forType: feedType)
                 }
             case .mentionsIn:
-                if let index = self.mentionsIn?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                    self.remove(atIndex: index, forType: feedType)
+                if let index = mentionsIn?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    remove(atIndex: index, forType: feedType)
                 }
-                
             case .mentionsOut:
-                if let index = self.mentionsOut?.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                    self.remove(atIndex: index, forType: feedType)
+                if let index = mentionsOut?.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                    remove(atIndex: index, forType: feedType)
                 }
-                
-            case .activity(_):
-                self.activity.forEach { (key, activities) in
-                    if let index = activities.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
+            case .activity:
+                for (key, activities) in activity {
+                    if let index = activities.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
                         let activityType: NotificationType? = key == "all" ? nil : NotificationType(rawValue: key)
-                        self.remove(atIndex: index, forType: .activity(activityType))
+                        remove(atIndex: index, forType: .activity(activityType))
                     }
                 }
-                
             case .channel:
-                self.channel.forEach { (key, channel) in
-                    if let index = channel.firstIndex(where: {$0.uniqueId() == item.uniqueId()}) {
-                        self.remove(atIndex: index, forType: .channel(Channel(id: key, title: "", owner: ChannelOwner())))
+                for (key, channel) in channel {
+                    if let index = channel.firstIndex(where: { $0.uniqueId() == item.uniqueId() }) {
+                        remove(atIndex: index, forType: .channel(Channel(id: key, title: "", owner: ChannelOwner())))
                     }
                 }
             }
@@ -434,25 +437,25 @@ internal struct NewsFeedListData {
 }
 
 // MARK: - Data source accessors & mutators
+
 extension NewsFeedViewModel {
-    
     // MARK: - Set
-    
+
     func syncDataSource(type: NewsFeedTypes? = nil, completed: (() -> Void)? = nil) {
         let feedType = type ?? self.type
-        let cards = self.listData.forType(type: feedType)?.removingDuplicates().removeMutesAndBlocks().removeFiltered() ?? []
-        
+        let cards = listData.forType(type: feedType)?.removingDuplicates().removeMutesAndBlocks().removeFiltered() ?? []
+
         if cards.isEmpty {
             // Retrieve cards and scroll position from disk
-            self.clearSnapshot()
-            self.state = .loading
-            self.delegate?.showLoader(enabled: true)
-            self.hydrateCache(forFeedType: feedType) { [weak self] retrievedItems, retrievedPosition in
+            clearSnapshot()
+            state = .loading
+            delegate?.showLoader(enabled: true)
+            hydrateCache(forFeedType: feedType) { [weak self] retrievedItems, retrievedPosition in
                 guard let self else { return }
-                
+
                 self.snapshot.deleteSections([.main])
                 self.snapshot = self.appendMainSectionToSnapshot(snapshot: self.snapshot)
-                
+
                 guard retrievedItems != nil else {
                     self.state = .success
                     completed?()
@@ -471,272 +474,274 @@ extension NewsFeedViewModel {
             }
         } else {
             // Retrieve cards and scroll position from memory
-            self.state = .loading
-            self.snapshot.deleteSections([.main])
-            self.snapshot.appendSections([.main])
-            
-            self.snapshot.appendItems(cards, toSection: .main)
+            state = .loading
+            snapshot.deleteSections([.main])
+            snapshot.appendSections([.main])
+
+            snapshot.appendItems(cards, toSection: .main)
             if !cards.isEmpty {
-                self.snapshot.deleteSections([.main])
+                snapshot.deleteSections([.main])
             }
-            self.isLoadMoreEnabled = true
-            self.state = .success
+            isLoadMoreEnabled = true
+            state = .success
 
-            self.delegate?.didUpdateSnapshot(self.snapshot,
-                                             feedType: feedType,
-                                             updateType: .hydrate,
-                                             scrollPosition: nil,
-                                             onCompleted: completed)
+            delegate?.didUpdateSnapshot(snapshot,
+                                        feedType: feedType,
+                                        updateType: .hydrate,
+                                        scrollPosition: nil,
+                                        onCompleted: completed)
         }
     }
-    
+
     func set(withCards cards: [PostCardModel], forType type: NewsFeedTypes) {
-        self.set(withItems: toListCardItems(cards), forType: type)
+        set(withItems: toListCardItems(cards), forType: type)
     }
-    
+
     func set(withItems items: [NewsFeedListItem], forType type: NewsFeedTypes, silently: Bool = false) {
-        self.listData.set(items: items.removingDuplicates(), forType: type)
+        listData.set(items: items.removingDuplicates(), forType: type)
 
         // Don't update data source if this feed is not currently viewed
         guard type == self.type else { return }
 
-        self.snapshot.deleteSections([.main])
-        self.snapshot.appendSections([.main])
-        
-        self.snapshot.appendItems(items.removingDuplicates(), toSection: .main)
-        
+        snapshot.deleteSections([.main])
+        snapshot.appendSections([.main])
+
+        snapshot.appendItems(items.removingDuplicates(), toSection: .main)
+
         if !silently {
-            self.delegate?.didUpdateSnapshot(self.snapshot,
-                                             feedType: type,
-                                             updateType: .replaceAll,
-                                             scrollPosition: nil,
-                                             onCompleted: nil)
+            delegate?.didUpdateSnapshot(snapshot,
+                                        feedType: type,
+                                        updateType: .replaceAll,
+                                        scrollPosition: nil,
+                                        onCompleted: nil)
         }
     }
-    
+
     // MARK: - Update
-    
+
     func update(with item: NewsFeedListItem, forType type: NewsFeedTypes, silently: Bool = false) {
-        self.listData.update(item: item)
-        
+        listData.update(item: item)
+
         // Don't update data source if this feed is not currently viewed
         guard type == self.type else { return }
-        guard let _ = self.listData.forType(type: type)?.first(where: { $0.uniqueId() == item.uniqueId() }) else { return }
-        
-        if self.snapshot.indexOfItem(item) != nil {
+        guard let _ = listData.forType(type: type)?.first(where: { $0.uniqueId() == item.uniqueId() }) else { return }
+
+        if snapshot.indexOfItem(item) != nil {
             if #available(iOS 15.0, *) {
                 self.snapshot.reconfigureItems([item])
             } else {
-                self.snapshot.reloadItems([item])
+                snapshot.reloadItems([item])
             }
-            
+
             if !silently {
-                self.delegate?.didUpdateSnapshot(self.snapshot,
-                                                 feedType: type,
-                                                 updateType: .update,
-                                                 scrollPosition: nil,
-                                                 onCompleted: nil)
+                delegate?.didUpdateSnapshot(snapshot,
+                                            feedType: type,
+                                            updateType: .update,
+                                            scrollPosition: nil,
+                                            onCompleted: nil)
             }
         } else {
             // This might happen when the view is not in the view hierarchy
             log.debug("updating 1 item but can not find it (replaceAll instead)")
-            let allItems = self.listData.forType(type: type)?.removingDuplicates()
-            self.set(withItems: allItems ?? [], forType: type, silently: silently)
+            let allItems = listData.forType(type: type)?.removingDuplicates()
+            set(withItems: allItems ?? [], forType: type, silently: silently)
         }
     }
-    
+
     func updateFollowStatusForPosts(fromAccount fullAcct: String) {
         var didUpdateSnapshot = false
-        self.snapshot.itemIdentifiers.forEach({
-            if let postCard = $0.extractPostCard(),
-                let postCardFullAccount = postCard.user?.account?.fullAcct,
-                postCardFullAccount == fullAcct {
+        for itemIdentifier in snapshot.itemIdentifiers {
+            if let postCard = itemIdentifier.extractPostCard(),
+               let postCardFullAccount = postCard.user?.account?.fullAcct,
+               postCardFullAccount == fullAcct
+            {
                 postCard.user?.syncFollowStatus(.none)
                 let item = NewsFeedListItem.postCard(postCard)
-                
-                if self.snapshot.indexOfItem(item) != nil {
+
+                if snapshot.indexOfItem(item) != nil {
                     if #available(iOS 15.0, *) {
                         self.snapshot.reconfigureItems([item])
                     } else {
-                        self.snapshot.reloadItems([item])
+                        snapshot.reloadItems([item])
                     }
-                    
+
                     didUpdateSnapshot = true
                 }
             }
-        })
-        
+        }
+
         if didUpdateSnapshot {
-            self.delegate?.didUpdateSnapshot(self.snapshot,
-                                             feedType: type,
-                                             updateType: .update,
-                                             scrollPosition: nil,
-                                             onCompleted: nil)
+            delegate?.didUpdateSnapshot(snapshot,
+                                        feedType: type,
+                                        updateType: .update,
+                                        scrollPosition: nil,
+                                        onCompleted: nil)
         }
     }
-    
+
     // MARK: - Insert
-    
+
     func append(items: [NewsFeedListItem], forType type: NewsFeedTypes, after: NewsFeedListItem? = nil) {
-        guard let _ = self.snapshot.indexOfSection(.main) else { return }
-                    
-        let current = self.snapshot.itemIdentifiers(inSection: .main)
-        
+        guard let _ = snapshot.indexOfSection(.main) else { return }
+
+        let current = snapshot.itemIdentifiers(inSection: .main)
+
         if let after {
-            self.listData.insert(items: items, forType: type, after: after)
+            listData.insert(items: items, forType: type, after: after)
         } else {
-            self.listData.set(items: current + items, forType: type)
+            listData.set(items: current + items, forType: type)
         }
-        
+
         // Don't update data source if this feed is not currently viewed
         guard type == self.type else { return }
 
-        self.snapshot = self.appendMainSectionToSnapshot(snapshot: self.snapshot)
-        
-        let uniques = items.filter({ !self.snapshot.itemIdentifiers(inSection: .main).contains($0)})
+        snapshot = appendMainSectionToSnapshot(snapshot: snapshot)
+
+        let uniques = items.filter { !self.snapshot.itemIdentifiers(inSection: .main).contains($0) }
         if !uniques.isEmpty {
-            if let after, self.snapshot.itemIdentifiers.contains(after) {
-                self.snapshot.insertItems(uniques, afterItem: after)
-                self.delegate?.didUpdateSnapshot(self.snapshot,
-                                                    feedType: type,
-                                                    updateType: .inject,
-                                                    scrollPosition: nil,
-                                                    onCompleted: nil)
+            if let after, snapshot.itemIdentifiers.contains(after) {
+                snapshot.insertItems(uniques, afterItem: after)
+                delegate?.didUpdateSnapshot(snapshot,
+                                            feedType: type,
+                                            updateType: .inject,
+                                            scrollPosition: nil,
+                                            onCompleted: nil)
             } else {
-                self.snapshot.appendItems(uniques, toSection: .main)
-                self.delegate?.didUpdateSnapshot(self.snapshot,
-                                                    feedType: type,
-                                                    updateType: .append,
-                                                    scrollPosition: nil,
-                                                    onCompleted: nil)
+                snapshot.appendItems(uniques, toSection: .main)
+                delegate?.didUpdateSnapshot(snapshot,
+                                            feedType: type,
+                                            updateType: .append,
+                                            scrollPosition: nil,
+                                            onCompleted: nil)
             }
         } else {
             // Trying to append 0 items after another element means we need to remove the "load more" button
             if let _ = after {
-                self.hideLoadMore(feedType: type)
-                self.delegate?.didUpdateSnapshot(self.snapshot,
-                                                    feedType: type,
-                                                    updateType: .remove,
-                                                    scrollPosition: nil,
-                                                    onCompleted: nil)
+                hideLoadMore(feedType: type)
+                delegate?.didUpdateSnapshot(snapshot,
+                                            feedType: type,
+                                            updateType: .remove,
+                                            scrollPosition: nil,
+                                            onCompleted: nil)
             }
         }
     }
-    
+
     func insert(items: [NewsFeedListItem], forType type: NewsFeedTypes) {
-        let current = self.listData.forType(type: type) ?? []
-        self.listData.set(items: items + current, forType: type)
+        let current = listData.forType(type: type) ?? []
+        listData.set(items: items + current, forType: type)
 
         // Don't update data source if this feed is not currently viewed
         guard type == self.type else { return }
 
-        if !self.snapshot.sectionIdentifiers.contains(.main) {
-            self.snapshot.appendSections([.main])
-        }
-        
-        if let firstItem = self.snapshot.itemIdentifiers(inSection: .main).first {
-            self.snapshot.insertItems(items, beforeItem: firstItem)
-        } else {
-            self.snapshot.appendItems(items, toSection: .main)
+        if !snapshot.sectionIdentifiers.contains(.main) {
+            snapshot.appendSections([.main])
         }
 
-        self.delegate?.didUpdateSnapshot(self.snapshot,
-                                            feedType: type,
-                                            updateType: .insert,
-                                         scrollPosition: nil) { [weak self] in
+        if let firstItem = snapshot.itemIdentifiers(inSection: .main).first {
+            snapshot.insertItems(items, beforeItem: firstItem)
+        } else {
+            snapshot.appendItems(items, toSection: .main)
+        }
+
+        delegate?.didUpdateSnapshot(snapshot,
+                                    feedType: type,
+                                    updateType: .insert,
+                                    scrollPosition: nil)
+        { [weak self] in
             guard let self else { return }
-            self.insertUnreadIds(ids: items.map({$0.uniqueId()}), forFeed: type)
+            self.insertUnreadIds(ids: items.map { $0.uniqueId() }, forFeed: type)
             self.delegate?.didUpdateUnreadState(type: type)
         }
     }
-    
+
     func appendMainSectionToSnapshot(snapshot: NewsFeedSnapshot) -> NewsFeedSnapshot {
         var snapshot = snapshot
         if !snapshot.sectionIdentifiers.contains(.main) {
             snapshot.appendSections([.main])
         }
-        
+
         return snapshot
     }
-    
+
     func insertNewest(items: [NewsFeedListItem], includeLoadMore: Bool, forType type: NewsFeedTypes) {
         // don't update data source if this feed is not currently viewed
         guard type == self.type else { return }
-        
+
         // append main section if needed
-        self.snapshot = self.appendMainSectionToSnapshot(snapshot: self.snapshot)
-        let numberOfItemsPreUpdate = self.snapshot.numberOfItems(inSection: .main)
-        
-        if let isReadingNewest = self.isReadingNewest(forType: type) {
+        snapshot = appendMainSectionToSnapshot(snapshot: snapshot)
+        let numberOfItemsPreUpdate = snapshot.numberOfItems(inSection: .main)
+
+        if let isReadingNewest = isReadingNewest(forType: type) {
             if isReadingNewest {
                 // if the user is reading the newest posts remove old items at the bottom
-                self.removeOldFromSnapshot(forType: type)
+                removeOldFromSnapshot(forType: type)
             } else {
                 // if the user is NOT reading the newest posts remove newest items at the top
-                self.removeNewestFromSnapshot(forType: type)
+                removeNewestFromSnapshot(forType: type)
             }
         }
-        
+
         // insert new cards at the top
-        if let firstItem = self.snapshot.itemIdentifiers(inSection: .main).first {
-            self.snapshot.insertItems(items.removingDuplicates(), beforeItem: firstItem)
+        if let firstItem = snapshot.itemIdentifiers(inSection: .main).first {
+            snapshot.insertItems(items.removingDuplicates(), beforeItem: firstItem)
         } else {
-            self.snapshot.appendItems(items.removingDuplicates(), toSection: .main)
+            snapshot.appendItems(items.removingDuplicates(), toSection: .main)
         }
-        
+
         // optionally add a "read more" button
         if includeLoadMore, let lastItem = items.last {
-            self.displayLoadMore(after: lastItem, feedType: type)
+            displayLoadMore(after: lastItem, feedType: type)
         }
 
         // update in-memory cache
-        self.listData.set(items: self.snapshot.itemIdentifiers(inSection: .main), forType: type)
+        listData.set(items: snapshot.itemIdentifiers(inSection: .main), forType: type)
 
         if numberOfItemsPreUpdate == 0 {
-            self.setUnreadEnabled(enabled: false, forFeed: type)
-            self.hideLoader(forType: type)
+            setUnreadEnabled(enabled: false, forFeed: type)
+            hideLoader(forType: type)
         }
-        
-        if self.snapshot.numberOfItems(inSection: .main) == 0 {
-            self.showEmpty(forType: type)
+
+        if snapshot.numberOfItems(inSection: .main) == 0 {
+            showEmpty(forType: type)
         } else {
-            self.delegate?.didUpdateSnapshot(self.snapshot,
-                                             feedType: type,
-                                             updateType: .insert,
-                                             scrollPosition: nil) {
-                
+            delegate?.didUpdateSnapshot(snapshot,
+                                        feedType: type,
+                                        updateType: .insert,
+                                        scrollPosition: nil)
+            {
                 // Set the unread state after updating the data source.
                 // This will show the unread pill/indicator
                 if GlobalStruct.feedReadDirection == .topDown {
                     if NewsFeedTypes.allActivityTypes.contains(type) || [.mentionsIn, .mentionsOut].contains(type) {
-                        self.insertUnreadIds(ids: items.map({$0.uniqueId()}), forFeed: type)
+                        self.insertUnreadIds(ids: items.map { $0.uniqueId() }, forFeed: type)
                         self.setUnreadEnabled(enabled: true, forFeed: type)
                     } else {
-                        if items.count >= 5 && numberOfItemsPreUpdate > 0 {
-                            self.insertUnreadIds(ids: items.map({$0.uniqueId()}), forFeed: type)
+                        if items.count >= 5, numberOfItemsPreUpdate > 0 {
+                            self.insertUnreadIds(ids: items.map { $0.uniqueId() }, forFeed: type)
                             self.setUnreadEnabled(enabled: true, forFeed: type)
                         } else {
-                            self.insertUnreadIds(ids: items.map({$0.uniqueId()}), forFeed: type)
+                            self.insertUnreadIds(ids: items.map { $0.uniqueId() }, forFeed: type)
                             self.setUnreadEnabled(enabled: false, forFeed: type)
                         }
                     }
                 } else {
-                    self.insertUnreadIds(ids: items.map({$0.uniqueId()}), forFeed: type)
+                    self.insertUnreadIds(ids: items.map { $0.uniqueId() }, forFeed: type)
                     self.setUnreadEnabled(enabled: true, forFeed: type)
                     self.delegate?.didUpdateUnreadState(type: type)
                 }
             }
         }
     }
-    
+
     // MARK: - Remove
-    
+
     // When scrolled to the top we slice the feed to only keep the items above the "load more" button
     func removeOldItems(forType type: NewsFeedTypes) {
         DispatchQueue.main.async {
             // Don't update data source if this feed is not currently viewed
             guard type == self.type else { return }
-            
+
             let didRemove = self.removeOldFromSnapshot(forType: self.type)
             if didRemove {
                 self.delegate?.didUpdateSnapshot(self.snapshot,
@@ -747,38 +752,40 @@ extension NewsFeedViewModel {
             }
         }
     }
-    
+
     func removeNewestFromSnapshot(forType type: NewsFeedTypes) {
-        guard let _ = self.snapshot.indexOfSection(.main) else { return }
-        let current = self.snapshot.itemIdentifiers(inSection: .main)
-        if let lastNewItem = self.lastItemOfTheNewestItems(forType: type),
-           let index = current.firstIndex(of: lastNewItem) {
-            let newest = Array(current[0...index])
+        guard let _ = snapshot.indexOfSection(.main) else { return }
+        let current = snapshot.itemIdentifiers(inSection: .main)
+        if let lastNewItem = lastItemOfTheNewestItems(forType: type),
+           let index = current.firstIndex(of: lastNewItem)
+        {
+            let newest = Array(current[0 ... index])
             log.debug("deleting \(newest.count) new items to be replaced")
-            self.snapshot.deleteItems(newest)
+            snapshot.deleteItems(newest)
         }
     }
-    
+
     @discardableResult
     func removeOldFromSnapshot(forType type: NewsFeedTypes) -> Bool {
-        guard let _ = self.snapshot.indexOfSection(.main) else  { return false }
-        let current = self.snapshot.itemIdentifiers(inSection: .main)
-        if let lastNewItem = self.lastItemOfTheNewestItems(forType: type),
-           let index = current.firstIndex(of: lastNewItem) {
-            let old = Array(current[min((index+1), current.count-1)...])
-            self.snapshot.deleteItems(old)
-            self.snapshot.deleteItems([.loadMore])
+        guard let _ = snapshot.indexOfSection(.main) else { return false }
+        let current = snapshot.itemIdentifiers(inSection: .main)
+        if let lastNewItem = lastItemOfTheNewestItems(forType: type),
+           let index = current.firstIndex(of: lastNewItem)
+        {
+            let old = Array(current[min(index + 1, current.count - 1)...])
+            snapshot.deleteItems(old)
+            snapshot.deleteItems([.loadMore])
             log.debug("deleting \(old.count) old items + the LoadMore btn")
             return true
         }
-        
+
         return false
     }
-    
+
     func remove(card: PostCardModel, forType type: NewsFeedTypes) {
         DispatchQueue.main.async {
             self.listData.remove(item: .loadMore)
-            
+
             // Don't update data source if this feed is not currently viewed
             guard type == self.type else { return }
             let item = NewsFeedListItem.postCard(card)
@@ -792,186 +799,189 @@ extension NewsFeedViewModel {
             }
         }
     }
-    
+
     func removePostsFromUsers(userIDs: [String]) {
         DispatchQueue.main.async {
             let itemsToDelete = self.snapshot.itemIdentifiers.filter { item in
                 switch item {
-                case .postCard(let postCardModel):
+                case let .postCard(postCardModel):
                     let isByUser = userIDs.contains(postCardModel.user?.id ?? "")
                     let isRebloggedByUser = userIDs.contains(postCardModel.rebloggerID ?? "")
                     return isByUser || isRebloggedByUser
-                    
+
                 default:
                     return false
                 }
             }
-            
+
             guard !itemsToDelete.isEmpty else { return }
-            
+
             self.snapshot.deleteItems(itemsToDelete)
-            
+
             self.delegate?.didUpdateSnapshot(
                 self.snapshot,
                 feedType: self.type,
                 updateType: .remove,
                 scrollPosition: nil,
-                onCompleted: nil)
+                onCompleted: nil
+            )
         }
     }
-    
+
     func refreshSnapshot() {
         log.debug("[NewsFeedViewModel] Refresh snapshot")
-        let feedType = self.type
-        let cards = self.listData.forType(type: feedType)?
+        let feedType = type
+        let cards = listData.forType(type: feedType)?
             .removingDuplicates()
             .removeMutesAndBlocks()
             .removeFiltered() ?? []
-        
-        if !self.snapshot.itemIdentifiers.isEmpty && !self.snapshot.sectionIdentifiers.isEmpty {
-            self.snapshot.deleteAllItems()
-        }
-        self.snapshot = self.appendMainSectionToSnapshot(snapshot: self.snapshot)
-        self.snapshot.appendItems(cards, toSection: .main)
-        self.isLoadMoreEnabled = true
-        self.state = .success
 
-        self.delegate?.didUpdateSnapshot(self.snapshot,
-                                         feedType: feedType,
-                                         updateType: .replaceAll,
-                                         scrollPosition: nil,
-                                         onCompleted: nil)
+        if !snapshot.itemIdentifiers.isEmpty, !snapshot.sectionIdentifiers.isEmpty {
+            snapshot.deleteAllItems()
+        }
+        snapshot = appendMainSectionToSnapshot(snapshot: snapshot)
+        snapshot.appendItems(cards, toSection: .main)
+        isLoadMoreEnabled = true
+        state = .success
+
+        delegate?.didUpdateSnapshot(snapshot,
+                                    feedType: feedType,
+                                    updateType: .replaceAll,
+                                    scrollPosition: nil,
+                                    onCompleted: nil)
     }
-    
+
     func clearSnapshot() {
         log.debug("[NewsFeedViewModel] Clear snapshot")
-        guard !self.snapshot.sectionIdentifiers.isEmpty else { return }
-        self.snapshot.deleteAllItems()
-        self.delegate?.didUpdateSnapshot(
-            self.snapshot,
+        guard !snapshot.sectionIdentifiers.isEmpty else { return }
+        snapshot.deleteAllItems()
+        delegate?.didUpdateSnapshot(
+            snapshot,
             feedType: type,
             updateType: .removeAll,
             scrollPosition: nil,
-            onCompleted: nil)
+            onCompleted: nil
+        )
     }
-    
+
     func removeAll(type: NewsFeedTypes, clearScrollPosition: Bool = true) {
         guard type == self.type else { return }
-        
+
         log.debug("[NewsFeedViewModel] Remove All")
-        
-        self.listData.clear(forType: type)
-        self.clearAllUnreadIds(forFeed: type)
+
+        listData.clear(forType: type)
+        clearAllUnreadIds(forFeed: type)
         if clearScrollPosition {
-            self.setScrollPosition(model: nil, offset: 0, forFeed: type)
+            setScrollPosition(model: nil, offset: 0, forFeed: type)
         }
-        
-        guard !self.snapshot.sectionIdentifiers.isEmpty else { return }
-        self.snapshot.deleteAllItems()
-        
-        self.delegate?.didUpdateSnapshot(
-            self.snapshot,
+
+        guard !snapshot.sectionIdentifiers.isEmpty else { return }
+        snapshot.deleteAllItems()
+
+        delegate?.didUpdateSnapshot(
+            snapshot,
             feedType: type,
             updateType: .removeAll,
             scrollPosition: nil,
-            onCompleted: nil)
+            onCompleted: nil
+        )
     }
-    
+
     func clearAllHeights(forType type: NewsFeedTypes) {
-        if let current = self.listData.forType(type: type) {
-            let updated = current.compactMap({
-                if case .postCard(let postCard) = $0 {
+        if let current = listData.forType(type: type) {
+            let updated = current.compactMap {
+                if case let .postCard(postCard) = $0 {
                     postCard.cellHeight = 0
                     return NewsFeedListItem.postCard(postCard)
                 }
 
                 return nil
-            })
-            self.listData.set(items: updated, forType: type)
+            }
+            listData.set(items: updated, forType: type)
         }
     }
-    
+
     // MARK: - Loader
-    
+
     func displayLoader(forType type: NewsFeedTypes) {
         // Don't show loader if this feed is not currently viewed
         guard type == self.type else { return }
-        self.delegate?.showLoader(enabled: true)
+        delegate?.showLoader(enabled: true)
     }
-    
+
     func hideLoader(forType type: NewsFeedTypes) {
         // Don't hide loader if this feed is not currently viewed
         guard type == self.type else { return }
-        self.delegate?.showLoader(enabled: false)
+        delegate?.showLoader(enabled: false)
     }
-    
+
     // MARK: - Load more
-    
+
     func displayLoadMore(after item: NewsFeedListItem, feedType: NewsFeedTypes) {
         // Don't update data source if this feed is not currently viewed
-        guard feedType == self.type else { return }
-        
-        if self.snapshot.indexOfItem(.loadMore) == nil {
-            self.snapshot.appendItems([.loadMore], toSection: .main)
-            self.snapshot.moveItem(.loadMore, afterItem: item)
+        guard feedType == type else { return }
+
+        if snapshot.indexOfItem(.loadMore) == nil {
+            snapshot.appendItems([.loadMore], toSection: .main)
+            snapshot.moveItem(.loadMore, afterItem: item)
         } else {
-            self.snapshot.moveItem(.loadMore, afterItem: item)
+            snapshot.moveItem(.loadMore, afterItem: item)
         }
     }
-    
-    func hideLoadMore(feedType: NewsFeedTypes) {
+
+    func hideLoadMore(feedType _: NewsFeedTypes) {
         // Don't update data source if this feed is not currently viewed
-        guard type == self.type else { return }
-        guard let _ = self.snapshot.indexOfItem(.loadMore) else { return }
-        self.snapshot.deleteItems([.loadMore])
+        guard type == type else { return }
+        guard let _ = snapshot.indexOfItem(.loadMore) else { return }
+        snapshot.deleteItems([.loadMore])
     }
 
     // MARK: - Error item
-    
+
     func displayError(feedType: NewsFeedTypes) {
         // Don't update data source if this feed is not currently viewed
-        guard feedType == self.type else { return }
-        if self.snapshot.indexOfSection(.main) == nil {
-            self.snapshot = self.appendMainSectionToSnapshot(snapshot: self.snapshot)
+        guard feedType == type else { return }
+        if snapshot.indexOfSection(.main) == nil {
+            snapshot = appendMainSectionToSnapshot(snapshot: snapshot)
         }
-        
-        if self.snapshot.indexOfItem(.error) == nil {
-            self.snapshot.appendItems([.error], toSection: .main)
-            
-            self.delegate?.didUpdateSnapshot(self.snapshot,
-                                             feedType: type,
-                                             updateType: .append,
-                                             scrollPosition: nil,
-                                             onCompleted: nil)
+
+        if snapshot.indexOfItem(.error) == nil {
+            snapshot.appendItems([.error], toSection: .main)
+
+            delegate?.didUpdateSnapshot(snapshot,
+                                        feedType: type,
+                                        updateType: .append,
+                                        scrollPosition: nil,
+                                        onCompleted: nil)
         }
     }
-    
-    func hideError(feedType: NewsFeedTypes) {
+
+    func hideError(feedType _: NewsFeedTypes) {
         // Don't update data source if this feed is not currently viewed
-        guard type == self.type else { return }
-        
-        if self.snapshot.indexOfSection(.main) == nil {
-            self.snapshot = self.appendMainSectionToSnapshot(snapshot: self.snapshot)
+        guard type == type else { return }
+
+        if snapshot.indexOfSection(.main) == nil {
+            snapshot = appendMainSectionToSnapshot(snapshot: snapshot)
         }
-        
-        guard let _ = self.snapshot.indexOfItem(.error) else { return }
-        self.snapshot.deleteItems([.error])
-        
-        self.delegate?.didUpdateSnapshot(self.snapshot,
-                                         feedType: type,
-                                         updateType: .append,
-                                         scrollPosition: nil,
-                                         onCompleted: nil)
+
+        guard let _ = snapshot.indexOfItem(.error) else { return }
+        snapshot.deleteItems([.error])
+
+        delegate?.didUpdateSnapshot(snapshot,
+                                    feedType: type,
+                                    updateType: .append,
+                                    scrollPosition: nil,
+                                    onCompleted: nil)
     }
-    
+
     // MARK: - Empty
-    
+
     func showEmpty(forType type: NewsFeedTypes) {
         guard type == self.type else { return }
-        
+
         DispatchQueue.main.async {
             guard self.snapshot.indexOfSection(.empty) == nil else { return }
-        
+
             self.snapshot.appendSections([.empty])
             if self.snapshot.indexOfItem(self.listData.empty) == nil {
                 self.snapshot.appendItems([self.listData.empty], toSection: .empty)
@@ -983,7 +993,7 @@ extension NewsFeedViewModel {
                                              onCompleted: nil)
         }
     }
-    
+
     func hideEmpty(forType type: NewsFeedTypes) {
         guard type == self.type else { return }
         DispatchQueue.main.async {
@@ -996,193 +1006,196 @@ extension NewsFeedViewModel {
                                              onCompleted: nil)
         }
     }
-    
+
     // MARK: - Index paths
-    
+
     func getIndexPathForItem(item: NewsFeedListItem) -> IndexPath? {
-        return self.getIndexPathForItem(snapshot: self.snapshot, item: item)
+        return getIndexPathForItem(snapshot: snapshot, item: item)
     }
-    
+
     func getIndexPathForItem(snapshot: NewsFeedSnapshot, item: NewsFeedListItem) -> IndexPath? {
         // For postcards find item based on uniqueId
-        if case .postCard(let postCard) = item {
+        if case let .postCard(postCard) = item {
             guard let _ = snapshot.indexOfSection(.main) else { return nil }
             let index = snapshot.itemIdentifiers(inSection: .main).firstIndex(where: {
-                if case .postCard(let currentPostCard) = $0, currentPostCard.uniqueId == postCard.uniqueId {
+                if case let .postCard(currentPostCard) = $0, currentPostCard.uniqueId == postCard.uniqueId {
                     return true
                 }
                 return false
             })
-            
+
             if let index, let sectionIndex = self.snapshot.indexOfSection(.main) {
                 return IndexPath(row: index, section: sectionIndex)
             }
-            
+
             return nil
-        
-        // Find item based on `indexOfItem`
+
+            // Find item based on `indexOfItem`
         } else {
             if let index = snapshot.indexOfItem(item),
                let section = snapshot.sectionIdentifier(containingItem: item),
-               let sectionIndex = snapshot.indexOfSection(section) {
+               let sectionIndex = snapshot.indexOfSection(section)
+            {
                 return IndexPath(row: index, section: sectionIndex)
             }
         }
-        
+
         return nil
     }
-    
+
     func getItemForIndexPath(_ indexPath: IndexPath) -> NewsFeedListItem? {
-        return self.dataSource?.itemIdentifier(for: indexPath)
+        return dataSource?.itemIdentifier(for: indexPath)
     }
-    
+
     // MARK: - Helpers
-    
+
     func isItemInSnapshot(_ item: NewsFeedListItem) -> Bool {
-        return self.getIndexPathForItem(item: item) != nil
+        return getIndexPathForItem(item: item) != nil
     }
-    
+
     // First item id in the feed
-    func newestItemId(forType type: NewsFeedTypes) -> String? {
-        guard let _ = self.snapshot.indexOfSection(.main) else { return nil }
-        if case .postCard(let postCard) = self.snapshot.itemIdentifiers(inSection: .main).filter({ $0.extractPostCard() != nil }).first {
+    func newestItemId(forType _: NewsFeedTypes) -> String? {
+        guard let _ = snapshot.indexOfSection(.main) else { return nil }
+        if case let .postCard(postCard) = snapshot.itemIdentifiers(inSection: .main).filter({ $0.extractPostCard() != nil }).first {
             return postCard.cursorId
         }
-        
-        if case .activity(let activity) = self.snapshot.itemIdentifiers(inSection: .main).first {
+
+        if case let .activity(activity) = snapshot.itemIdentifiers(inSection: .main).first {
             return activity.cursorId
         }
         return nil
     }
-    
+
     // Last item id in the feed
-    func oldestItemId(forType type: NewsFeedTypes) -> String? {
-        guard let _ = self.snapshot.indexOfSection(.main) else { return nil }
-        
-        if self.cursorId != nil {
-            return self.cursorId
+    func oldestItemId(forType _: NewsFeedTypes) -> String? {
+        guard let _ = snapshot.indexOfSection(.main) else { return nil }
+
+        if cursorId != nil {
+            return cursorId
         }
-        
-        if case .postCard(let postCard) = self.snapshot.itemIdentifiers(inSection: .main).last {
+
+        if case let .postCard(postCard) = snapshot.itemIdentifiers(inSection: .main).last {
             return postCard.cursorId
         }
-        
-        if case .activity(let activity) = self.snapshot.itemIdentifiers(inSection: .main).last {
+
+        if case let .activity(activity) = snapshot.itemIdentifiers(inSection: .main).last {
             return activity.cursorId
         }
         return nil
     }
-    
+
     // Last item id before the "load more" button
     func lastOfTheNewestItemsId(forType type: NewsFeedTypes) -> String? {
-        if let item = self.lastItemOfTheNewestItems(forType: type) {
-            if case .postCard(let postCard) = item {
+        if let item = lastItemOfTheNewestItems(forType: type) {
+            if case let .postCard(postCard) = item {
                 return postCard.cursorId
             }
-            
-            if case .activity(let activity) = item {
+
+            if case let .activity(activity) = item {
                 return activity.cursorId
             }
         }
-        
+
         return nil
     }
-    
+
     // Last item before the "load more" button
-    func lastItemOfTheNewestItems(forType type: NewsFeedTypes) -> NewsFeedListItem? {
-        if let loadMoreIndexPath = self.getIndexPathForItem(item: .loadMore) {
-            let lastItemIndexPath = IndexPath(row: loadMoreIndexPath.row-1, section: loadMoreIndexPath.section)
-            let item = self.getItemForIndexPath(lastItemIndexPath)
+    func lastItemOfTheNewestItems(forType _: NewsFeedTypes) -> NewsFeedListItem? {
+        if let loadMoreIndexPath = getIndexPathForItem(item: .loadMore) {
+            let lastItemIndexPath = IndexPath(row: loadMoreIndexPath.row - 1, section: loadMoreIndexPath.section)
+            let item = getItemForIndexPath(lastItemIndexPath)
             return item
         }
-        
+
         return nil
     }
-    
+
     // First item id after the "load more" button
     func firstOfTheOlderItemsId(forType type: NewsFeedTypes) -> String? {
-        if let item = self.firstOfTheOlderItems(forType: type) {
-            if case .postCard(let postCard) = item {
+        if let item = firstOfTheOlderItems(forType: type) {
+            if case let .postCard(postCard) = item {
                 return postCard.cursorId
             }
-            
-            if case .activity(let activity) = item {
+
+            if case let .activity(activity) = item {
                 return activity.cursorId
             }
         }
-        
+
         return nil
     }
-    
+
     // First item after the "load more" button
-    func firstOfTheOlderItems(forType type: NewsFeedTypes) -> NewsFeedListItem? {
+    func firstOfTheOlderItems(forType _: NewsFeedTypes) -> NewsFeedListItem? {
         // if there's no "load more" return the top item in the feed
-        guard let _ = self.snapshot.indexOfItem(.loadMore),
-              let _ = self.snapshot.indexOfSection(.main) else {
-            return self.snapshot.itemIdentifiers(inSection: .main).first
+        guard let _ = snapshot.indexOfItem(.loadMore),
+              let _ = snapshot.indexOfSection(.main)
+        else {
+            return snapshot.itemIdentifiers(inSection: .main).first
         }
-        
-        if let loadMoreIndexPath = self.getIndexPathForItem(item: .loadMore) {
-            let firstItemIndexPath = IndexPath(row: loadMoreIndexPath.row+1, section: loadMoreIndexPath.section)
-            let item = self.getItemForIndexPath(firstItemIndexPath)
+
+        if let loadMoreIndexPath = getIndexPathForItem(item: .loadMore) {
+            let firstItemIndexPath = IndexPath(row: loadMoreIndexPath.row + 1, section: loadMoreIndexPath.section)
+            let item = getItemForIndexPath(firstItemIndexPath)
             return item
         }
-        
+
         return nil
     }
-    
+
     // Is the cached scroll position higher than the "load more" button
     func isReadingNewest(forType type: NewsFeedTypes) -> Bool? {
-        let scrollPosition = self.getScrollPosition(forFeed: type)
-        
+        let scrollPosition = getScrollPosition(forFeed: type)
+
         // if there's no "load more" button we don't know
-        guard let _ = self.snapshot.indexOfItem(.loadMore) else {
+        guard let _ = snapshot.indexOfItem(.loadMore) else {
             return nil
         }
-        
+
         if let visibleItem = scrollPosition.model,
-            let scrollPositionIndexPath = self.getIndexPathForItem(item: visibleItem),
-            let lastNewItem = self.lastItemOfTheNewestItems(forType: type),
-            let lastNewItemIndexPath = self.getIndexPathForItem(item: lastNewItem) {
+           let scrollPositionIndexPath = getIndexPathForItem(item: visibleItem),
+           let lastNewItem = lastItemOfTheNewestItems(forType: type),
+           let lastNewItemIndexPath = getIndexPathForItem(item: lastNewItem)
+        {
             if lastNewItemIndexPath.row >= scrollPositionIndexPath.row {
                 return true
             }
         }
-        
+
         return false
     }
-    
-    func isLoadMoreButtonInView(forType type: NewsFeedTypes) async -> Bool {
+
+    func isLoadMoreButtonInView(forType _: NewsFeedTypes) async -> Bool {
         // if there's no "load more" button we don't know
-        guard let _ = self.snapshot.indexOfItem(.loadMore) else {
+        guard let _ = snapshot.indexOfItem(.loadMore) else {
             return false
         }
-        
-        if let visibleIndexPaths = await self.delegate?.getVisibleIndexPaths() {
+
+        if let visibleIndexPaths = await delegate?.getVisibleIndexPaths() {
             for indexPath in visibleIndexPaths {
-                if let item = self.getItemForIndexPath(indexPath) {
+                if let item = getItemForIndexPath(indexPath) {
                     if case .loadMore = item {
                         return true
                     }
                 }
             }
         }
-        
+
         return false
     }
-    
+
     func numberOfItems(forSection section: NewsFeedSections) -> Int {
-        if self.snapshot.indexOfSection(.main) != nil {
-            return self.snapshot.itemIdentifiers(inSection: section).count
+        if snapshot.indexOfSection(.main) != nil {
+            return snapshot.itemIdentifiers(inSection: section).count
         }
         return 0
     }
-    
+
     func isNewestItemOlderThen(targetDate: Date) -> Bool? {
-        if self.snapshot.indexOfSection(.main) != nil {
-            if let firstItem = self.snapshot.itemIdentifiers(inSection: .main).first {
+        if snapshot.indexOfSection(.main) != nil {
+            if let firstItem = snapshot.itemIdentifiers(inSection: .main).first {
                 switch firstItem {
-                case .postCard(let postCard):
+                case let .postCard(postCard):
                     let postDate = postCard.createdAt
                     return targetDate > postDate
                 default:
@@ -1190,21 +1203,21 @@ extension NewsFeedViewModel {
                 }
             }
         }
-        
+
         return nil
     }
-    
+
     // MARK: - Prefetching
-    
+
     func shouldFetchNext(prefetchRowsAt indexPaths: [IndexPath]) -> Bool {
-        if !self.isLoadMoreEnabled {
+        if !isLoadMoreEnabled {
             return false
         }
-        
-        switch(self.state) {
+
+        switch state {
         case .loading:
             return false // Dont fetch next items if already loading
-        case .error(_):
+        case .error:
             fallthrough
         case .success:
             let highest = indexPaths.reduce(0) {
@@ -1214,15 +1227,14 @@ extension NewsFeedViewModel {
                     return $1.row
                 }
             }
-            
-            let total = self.numberOfItems(forSection: .main)
-            
+
+            let total = numberOfItems(forSection: .main)
+
             if highest > total - 13 {
                 return true
             } else {
                 return false
             }
-            
         default:
             return false
         }

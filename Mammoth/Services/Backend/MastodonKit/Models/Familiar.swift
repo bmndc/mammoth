@@ -17,4 +17,3 @@ public class Familiar: Codable {
         case accounts
     }
 }
-

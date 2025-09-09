@@ -39,7 +39,7 @@ public extension Disk {
             throw error
         }
     }
-    
+
     /// Retrieve data from disk
     ///
     /// - Parameters:
@@ -48,7 +48,7 @@ public extension Disk {
     ///   - type: here for Swifty generics magic, use Data.self
     /// - Returns: Data retrieved from disk
     /// - Throws: Error if there were any issues retrieving the specified file's data
-    static func retrieve(_ path: String, from directory: Directory, as type: Data.Type) throws -> Data {
+    static func retrieve(_ path: String, from directory: Directory, as _: Data.Type) throws -> Data {
         do {
             let url = try getExistingFileURL(for: path, in: directory)
             let data = try Data(contentsOf: url)
@@ -58,4 +58,3 @@ public extension Disk {
         }
     }
 }
-

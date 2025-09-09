@@ -6,24 +6,23 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import UIKit
 import AVFoundation
 import AVKit
-import Vision
-import MobileCoreServices
-import Photos
-import NaturalLanguage
-import LinkPresentation
+import Foundation
 import Kingfisher
+import LinkPresentation
+import MobileCoreServices
+import NaturalLanguage
+import Photos
+import UIKit
+import Vision
 
 extension UIButton {
     // Returns the first superview that is a UITableViewCell
     func parentCell() -> UITableViewCell? {
         var parentCell: UITableViewCell? = nil
         var parentView: UIView? = self
-        repeat
-        {
+        repeat {
             parentView = parentView?.superview
             if let parentViewAsCell = parentView as? UITableViewCell {
                 parentCell = parentViewAsCell
@@ -37,9 +36,8 @@ extension UIGestureRecognizer {
     // Returns the first superview that is a UITableViewCell
     func parentCell() -> UITableViewCell? {
         var parentCell: UITableViewCell? = nil
-        var parentView: UIView? = self.view
-        repeat
-        {
+        var parentView: UIView? = view
+        repeat {
             parentView = parentView?.superview
             if let parentViewAsCell = parentView as? UITableViewCell {
                 parentCell = parentViewAsCell
@@ -49,15 +47,14 @@ extension UIGestureRecognizer {
     }
 }
 
-protocol PostCellDelegate : AnyObject {
+protocol PostCellDelegate: AnyObject {
     func statusForCell(_ cell: UITableViewCell) -> Status?
     func notificationForCell(_ cell: UITableViewCell) -> Notificationt?
 }
 
 // swiftlint:disable:next type_body_length
 class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SKPhotoBrowserDelegate, AVPlayerViewControllerDelegate, UIContextMenuInteractionDelegate, UICollectionViewDragDelegate, UIDragInteractionDelegate, UIActivityItemSource {
-    
-    weak var delegate: PostCellDelegate? = nil
+    weak var delegate: PostCellDelegate?
     var profileIcon21 = UIButton()
     var profileIcon22 = UIButton()
     var pipView = UIPiPView()
@@ -82,7 +79,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
     let linkStackViewHorizontal = UIStackView()
     let linkUsername = UILabel()
     let linkUsertag = UILabel()
-    let linkPost = ActiveLabel()           // this is the body of the above
+    let linkPost = ActiveLabel() // this is the body of the above
     let linkStackView0 = UIStackView()
     let linkStackView = UIStackView()
     var linkCollectionView1: UICollectionView!
@@ -141,31 +138,31 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
     let countButton2 = UIButton()
 
     func prepareForReuse() {
-        self.player.isMuted = true
+        player.isMuted = true
 
-        self.playButton.isHidden = true
-        self.playButtonQ.isHidden = true
+        playButton.isHidden = true
+        playButtonQ.isHidden = true
 
-        self.lpImage.image = UIImage()
+        lpImage.image = UIImage()
 
-        self.linkUsername.text = ""
-        self.linkUsertag.text = ""
-        self.linkPost.text = ""
+        linkUsername.text = ""
+        linkUsertag.text = ""
+        linkPost.text = ""
 
-        self.images = []
-        self.images2 = []
-        self.images3 = []
+        images = []
+        images2 = []
+        images3 = []
 
-        self.linkCountButtonBG.alpha = 0
-        self.linkImages = []
-        self.linkImages2 = []
-        self.linkImages3 = []
+        linkCountButtonBG.alpha = 0
+        linkImages = []
+        linkImages2 = []
+        linkImages3 = []
 
-        self.playerController.view.isHidden = true
-        self.playerControllerQ.view.isHidden = true
-        
-        self.quotePostHostView.updateForQuotePost(nil)
-        
+        playerController.view.isHidden = true
+        playerControllerQ.view.isHidden = true
+
+        quotePostHostView.updateForQuotePost(nil)
+
         NotificationCenter.default.removeObserver(self)
     }
 
@@ -178,13 +175,11 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         super.init(frame: frame)
         commonInit()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         commonInit()
     }
-    
-    
 
     func commonInit() {
         NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: nil)
@@ -194,18 +189,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
 //        })
 
         pipView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(pipView)
+        addSubview(pipView)
 
-        self.topThreadDot.alpha = 0
-        self.topThreadLine.alpha = 0
-        self.bottomThreadLine.alpha = 0
-        self.bottomThreadLine2.alpha = 0
+        topThreadDot.alpha = 0
+        topThreadLine.alpha = 0
+        bottomThreadLine.alpha = 0
+        bottomThreadLine2.alpha = 0
 
-        self.player.automaticallyWaitsToMinimizeStalling = false
-        self.player.isMuted = true
-        self.playerController.allowsPictureInPicturePlayback = true
-        self.playerController.videoGravity = .resizeAspectFill
-        self.playerController.showsPlaybackControls = false
+        player.automaticallyWaitsToMinimizeStalling = false
+        player.isMuted = true
+        playerController.allowsPictureInPicturePlayback = true
+        playerController.videoGravity = .resizeAspectFill
+        playerController.showsPlaybackControls = false
 
         highlightBG.translatesAutoresizingMaskIntoConstraints = false
         pipView.addSubview(highlightBG)
@@ -255,7 +250,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         pipView.addSubview(postText)
 
         // thread lines
-        
+
         topThreadDot.translatesAutoresizingMaskIntoConstraints = false
         topThreadDot.backgroundColor = .custom.quoteTint
         topThreadDot.layer.cornerRadius = 1
@@ -274,7 +269,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         bottomThreadLine.alpha = 0
         bottomThreadLine.accessibilityIdentifier = "bottomThreadLine"
         pipView.addSubview(bottomThreadLine)
-        
+
         bottomThreadLine2.translatesAutoresizingMaskIntoConstraints = false
         bottomThreadLine2.backgroundColor = .custom.quoteTint
         bottomThreadLine2.layer.cornerRadius = 2
@@ -306,9 +301,9 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 collectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(GlobalStruct.padColWidth), height: CGFloat(220)), collectionViewLayout: layout0)
             } else {
                 #if targetEnvironment(macCatalyst)
-                collectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(GlobalStruct.padColWidth), height: CGFloat(220)), collectionViewLayout: layout0)
+                    collectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(GlobalStruct.padColWidth), height: CGFloat(220)), collectionViewLayout: layout0)
                 #else
-                collectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width), height: CGFloat(220)), collectionViewLayout: layout0)
+                    collectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width), height: CGFloat(220)), collectionViewLayout: layout0)
                 #endif
             }
         }
@@ -329,9 +324,9 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         pipView.addSubview(collectionView1)
 
         if GlobalStruct.smallImages {
-            conI1 = self.collectionView1.heightAnchor.constraint(equalToConstant: 66)
+            conI1 = collectionView1.heightAnchor.constraint(equalToConstant: 66)
         } else {
-            conI1 = self.collectionView1.heightAnchor.constraint(equalToConstant: 220)
+            conI1 = collectionView1.heightAnchor.constraint(equalToConstant: 220)
         }
         conI1?.priority = UILayoutPriority(rawValue: 999)
         conI1?.isActive = true
@@ -350,10 +345,9 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         countButtonBG.accessibilityIdentifier = "countButtonBG"
         pipView.addSubview(countButtonBG)
 
-       
         pipView.addSubview(repostView)
 
-        conS1 = self.repostView.heightAnchor.constraint(equalToConstant: 20)
+        conS1 = repostView.heightAnchor.constraint(equalToConstant: 20)
         conS1?.priority = UILayoutPriority(rawValue: 999)
         conS1?.isActive = true
 
@@ -417,9 +411,9 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             linkCollectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(GlobalStruct.padColWidth), height: CGFloat(190)), collectionViewLayout: layout)
         } else {
             #if targetEnvironment(macCatalyst)
-            linkCollectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(GlobalStruct.padColWidth), height: CGFloat(190)), collectionViewLayout: layout)
+                linkCollectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(GlobalStruct.padColWidth), height: CGFloat(190)), collectionViewLayout: layout)
             #else
-            linkCollectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width), height: CGFloat(190)), collectionViewLayout: layout)
+                linkCollectionView1 = UICollectionView(frame: CGRect(x: CGFloat(0), y: CGFloat(0), width: CGFloat(UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width), height: CGFloat(190)), collectionViewLayout: layout)
             #endif
         }
         linkCollectionView1.translatesAutoresizingMaskIntoConstraints = false
@@ -433,17 +427,17 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         linkCollectionView1.register(CollectionImageCell3.self, forCellWithReuseIdentifier: "CollectionImageCell3")
         linkCollectionView1.accessibilityIdentifier = "linkCollectionView1"
 
-        conQ1 = self.linkCollectionView1.heightAnchor.constraint(equalToConstant: 190)
+        conQ1 = linkCollectionView1.heightAnchor.constraint(equalToConstant: 190)
         conQ1?.priority = UILayoutPriority(rawValue: 999)
         conQ1?.isActive = true
-        
+
         linkUsername.setContentCompressionResistancePriority(.required, for: .vertical)
 
         linkStackView0.addArrangedSubview(linkStackViewHorizontal)
         linkStackView0.addArrangedSubview(linkPost)
-        
+
         linkStackView0.addArrangedSubview(quotePostHostView)
-        
+
         linkStackView0.axis = .vertical
         linkStackView0.distribution = .fill
         linkStackView0.spacing = 0
@@ -455,16 +449,16 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         linkStackView0.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         linkStackView0.accessibilityIdentifier = "linkStackView0"
         pipView.addSubview(linkStackView0)
-        
+
         lpImage.image = UIImage()
         lpImage.translatesAutoresizingMaskIntoConstraints = false
-        conLP1 = self.lpImage.heightAnchor.constraint(equalToConstant: 130)
-        conLP2 = self.lpImage.heightAnchor.constraint(equalToConstant: 65)
+        conLP1 = lpImage.heightAnchor.constraint(equalToConstant: 130)
+        conLP2 = lpImage.heightAnchor.constraint(equalToConstant: 65)
         lpImage.backgroundColor = .custom.quoteTint
         lpImage.contentMode = .scaleAspectFill
         pipView.addSubview(lpImage)
         conLP1?.isActive = true
-        
+
         linkStackView.translatesAutoresizingMaskIntoConstraints = false
         linkStackView.addArrangedSubview(lpImage)
         linkStackView.addArrangedSubview(linkStackView0)
@@ -480,8 +474,8 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         linkStackView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner, .layerMinXMinYCorner, .layerMaxXMinYCorner]
         linkStackView.accessibilityIdentifier = "linkStackView"
         pipView.addSubview(linkStackView)
-        
-        let qGesture = UITapGestureRecognizer(target: self, action: #selector(self.linkTapped))
+
+        let qGesture = UITapGestureRecognizer(target: self, action: #selector(linkTapped))
         linkStackView.addGestureRecognizer(qGesture)
 
         let dragInteraction = UIDragInteraction(delegate: self)
@@ -548,14 +542,14 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         repostsStack.isAccessibilityElement = false
         repostsStack.translatesAutoresizingMaskIntoConstraints = false
         repostsB.addSubview(repostsStack)
-                
+
         // Line up the edges of the button with the stack inside it
         repostsB.translatesAutoresizingMaskIntoConstraints = false
-        repostsB.addConstraints( [
+        repostsB.addConstraints([
             repostsB.leftAnchor.constraint(equalTo: repostsStack.leftAnchor),
             repostsB.topAnchor.constraint(equalTo: repostsStack.topAnchor),
             repostsB.bottomAnchor.constraint(equalTo: repostsStack.bottomAnchor),
-            repostsB.rightAnchor.constraint(equalTo: repostsStack.rightAnchor)
+            repostsB.rightAnchor.constraint(equalTo: repostsStack.rightAnchor),
         ])
 
         // likes
@@ -605,7 +599,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         profileIcon.contentMode = .scaleAspectFill
         profileIcon.accessibilityLabel = "profileIcon"
         pipView.addSubview(profileIcon)
-        
+
         activityIndicator.translatesAutoresizingMaskIntoConstraints = false
         activityIndicator.backgroundColor = .custom.quoteTint
         activityIndicator.contentMode = .scaleAspectFill
@@ -617,9 +611,9 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         activityIndicator.layer.cornerRadius = 13
         activityIndicator.isUserInteractionEnabled = false
         pipView.addSubview(activityIndicator)
-        
+
         // create 2 user group
-        
+
         profileIcon21.frame = CGRect(x: -1, y: -1, width: 28, height: 28)
         profileIcon21.backgroundColor = .custom.quoteTint
         profileIcon21.contentMode = .scaleAspectFill
@@ -629,7 +623,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         profileIcon21.accessibilityLabel = NSLocalizedString("navigator.profile", comment: "")
         profileIcon21.alpha = 0
         profileIcon.addSubview(profileIcon21)
-        
+
         profileIcon22.frame = CGRect(x: 26, y: 26, width: 28, height: 28)
         profileIcon22.backgroundColor = .custom.quoteTint
         profileIcon22.contentMode = .scaleAspectFill
@@ -653,7 +647,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         lockedBackground.layer.cornerRadius = 6
         lockedBackground.alpha = 0
         lockedBackground.accessibilityIdentifier = "lockedBackground"
-        self.pipView.insertSubview(lockedBackground, belowSubview: lockedBadge)
+        pipView.insertSubview(lockedBackground, belowSubview: lockedBadge)
 
         dateTime.setContentCompressionResistancePriority(.required, for: .horizontal)
         dateTime.setContentCompressionResistancePriority(.required, for: .vertical)
@@ -670,7 +664,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         shareAsImageText.accessibilityIdentifier = "shareAsImageText"
         shareAsImageText.isHidden = true
         pipView.addSubview(shareAsImageText)
-        
+
         cwOverlay.translatesAutoresizingMaskIntoConstraints = false
         cwOverlay.backgroundColor = .custom.quoteTint
         cwOverlay.layer.cornerRadius = 8
@@ -678,7 +672,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         cwOverlay.setTitleColor(.secondaryLabel, for: .normal)
         cwOverlay.titleLabel?.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .regular)
         cwOverlay.setTitle("Sensitive Content", for: .normal)
-        cwOverlay.addTarget(self, action: #selector(self.cwTap), for: .touchUpInside)
+        cwOverlay.addTarget(self, action: #selector(cwTap), for: .touchUpInside)
         cwOverlay.titleLabel?.numberOfLines = 0
         cwOverlay.alpha = 0
         cwOverlay.contentEdgeInsets = UIEdgeInsets(top: 8, left: 12, bottom: 8, right: 12)
@@ -687,160 +681,159 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         pipView.addSubview(cwOverlay)
 
         let viewsDict = [
-            "pipView" : pipView,
-            "highlightBG" : highlightBG,
-            "activityIndicator" : activityIndicator,
-            "profileIcon" : profileIcon,
-            "lockedBadge" : lockedBadge,
-            "userName" : userName,
-            "userTag" : userTag,
-            "indicator" : indicator,
-            "dateTime" : dateTime,
-            "postText" : postText,
-            "collectionView1" : collectionView1!,
-            "countButtonBG" : countButtonBG,
-            "repostView" : repostView,
-            "linkStackView" : linkStackView,
-            "stackViewB" : stackViewB,
-            "topThreadDot" : topThreadDot,
-            "topThreadLine" : topThreadLine,
-            "bottomThreadLine" : bottomThreadLine,
-            "bottomThreadLine2" : bottomThreadLine2,
-            "shareAsImageText" : shareAsImageText,
-            "cwOverlay" : cwOverlay,
-        ] as [String : Any]
+            "pipView": pipView,
+            "highlightBG": highlightBG,
+            "activityIndicator": activityIndicator,
+            "profileIcon": profileIcon,
+            "lockedBadge": lockedBadge,
+            "userName": userName,
+            "userTag": userTag,
+            "indicator": indicator,
+            "dateTime": dateTime,
+            "postText": postText,
+            "collectionView1": collectionView1!,
+            "countButtonBG": countButtonBG,
+            "repostView": repostView,
+            "linkStackView": linkStackView,
+            "stackViewB": stackViewB,
+            "topThreadDot": topThreadDot,
+            "topThreadLine": topThreadLine,
+            "bottomThreadLine": bottomThreadLine,
+            "bottomThreadLine2": bottomThreadLine2,
+            "shareAsImageText": shareAsImageText,
+            "cwOverlay": cwOverlay,
+        ] as [String: Any]
         let metricsDict = [
-            "smallHeight" : GlobalStruct.smallerFontSize,
-            "usernameHeight" : UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize,
-            "padCo" : CGFloat(GlobalStruct.padColWidth - 92)
+            "smallHeight": GlobalStruct.smallerFontSize,
+            "usernameHeight": UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize,
+            "padCo": CGFloat(GlobalStruct.padColWidth - 92),
         ]
 
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[shareAsImageText]-0-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[shareAsImageText]-0-|", options: [], metrics: nil, views: viewsDict))
 
         constraintsW = NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict)
-#if targetEnvironment(macCatalyst)
-        if GlobalStruct.singleColumn {
-            constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-20-[pipView]-20-|", options: [], metrics: nil, views: viewsDict)
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView(padCo)]-(>=20)-|", options: [], metrics: metricsDict, views: viewsDict))
-        } else {
-            constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict)
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView]-20-|", options: [], metrics: nil, views: viewsDict))
-        }
-#elseif !targetEnvironment(macCatalyst)
-        if UIDevice.current.userInterfaceIdiom == .pad && GlobalStruct.singleColumn && self.window?.traitCollection.horizontalSizeClass != .compact {
-            constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[pipView]-10-|", options: [], metrics: nil, views: viewsDict)
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView(padCo)]-(>=20)-|", options: [], metrics: metricsDict, views: viewsDict))
-        } else {
-            constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict)
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView]-20-|", options: [], metrics: nil, views: viewsDict))
-        }
-#endif
+        #if targetEnvironment(macCatalyst)
+            if GlobalStruct.singleColumn {
+                constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-20-[pipView]-20-|", options: [], metrics: nil, views: viewsDict)
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView(padCo)]-(>=20)-|", options: [], metrics: metricsDict, views: viewsDict))
+            } else {
+                constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict)
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView]-20-|", options: [], metrics: nil, views: viewsDict))
+            }
+        #elseif !targetEnvironment(macCatalyst)
+            if UIDevice.current.userInterfaceIdiom == .pad, GlobalStruct.singleColumn, window?.traitCollection.horizontalSizeClass != .compact {
+                constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[pipView]-10-|", options: [], metrics: nil, views: viewsDict)
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView(padCo)]-(>=20)-|", options: [], metrics: metricsDict, views: viewsDict))
+            } else {
+                constraintsW2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict)
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[linkStackView]-20-|", options: [], metrics: nil, views: viewsDict))
+            }
+        #endif
 
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[topThreadDot(2)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[topThreadLine(2)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-5-[topThreadDot(18)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[topThreadLine(18)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[bottomThreadLine(2)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[bottomThreadLine2(2)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-30-[bottomThreadLine]-0-|", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-25-[bottomThreadLine2]-8-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[topThreadDot(2)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[topThreadLine(2)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-5-[topThreadDot(18)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[topThreadLine(18)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[bottomThreadLine(2)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[bottomThreadLine2(2)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-30-[bottomThreadLine]-0-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-25-[bottomThreadLine2]-8-|", options: [], metrics: nil, views: viewsDict))
 
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[highlightBG]-0-|", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[highlightBG]-0-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[highlightBG]-0-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[highlightBG]-0-|", options: [], metrics: nil, views: viewsDict))
 
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-52-[lockedBadge(20)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-46-[lockedBadge(20)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-52-[lockedBadge(20)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-46-[lockedBadge(20)]", options: [], metrics: nil, views: viewsDict))
 
         // horizontal
         if GlobalStruct.smallImages {
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(>=85)-[countButtonBG]-47-|", options: [], metrics: nil, views: viewsDict))
+            addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(>=85)-[countButtonBG]-47-|", options: [], metrics: nil, views: viewsDict))
         } else {
             constraintsC2 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-85-[countButtonBG]", options: [], metrics: nil, views: viewsDict)
         }
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[repostView]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[stackViewB]-28-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[repostView]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[stackViewB]-28-|", options: [], metrics: nil, views: viewsDict))
 
         // vertical
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[profileIcon(50)]-(>=14)-|", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[indicator(smallHeight)]", options: [], metrics: metricsDict, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]", options: [], metrics: metricsDict, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[dateTime(usernameHeight)]", options: [], metrics: metricsDict, views: viewsDict))
-        
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[profileIcon(50)]-(>=14)-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[indicator(smallHeight)]", options: [], metrics: metricsDict, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]", options: [], metrics: metricsDict, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[dateTime(usernameHeight)]", options: [], metrics: metricsDict, views: viewsDict))
+
         // activity
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[activityIndicator(26)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[activityIndicator(26)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-10-[activityIndicator(26)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-10-[activityIndicator(26)]", options: [], metrics: nil, views: viewsDict))
 
         // images
         if GlobalStruct.smallImages {
-
         } else {
             constraintsC1 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[collectionView1]-0-|", options: [], metrics: nil, views: viewsDict)
         }
 
-        let _ = self.constraintsW.map ({ x in
+        _ = constraintsW.map { x in
             x.isActive = true
-        })
-        let _ = self.constraintsW2.map ({ x in
+        }
+        _ = constraintsW2.map { x in
             x.isActive = true
-        })
-        let _ = self.constraintsC1.map ({ x in
+        }
+        _ = constraintsC1.map { x in
             x.isActive = true
-        })
-        let _ = self.constraintsC2.map ({ x in
+        }
+        _ = constraintsC2.map { x in
             x.isActive = true
-        })
+        }
 
         pipView.backgroundColor = .clear
-        
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-76-[cwOverlay]-10-|", options: [], metrics: nil, views: viewsDict))
+
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-76-[cwOverlay]-10-|", options: [], metrics: nil, views: viewsDict))
     }
-    
+
     @objc func cwTap() {
         triggerHapticImpact(style: .light)
-        self.cwOverlay.alpha = 0
-        GlobalStruct.allCW.append(self.theStat?.id ?? "")
+        cwOverlay.alpha = 0
+        GlobalStruct.allCW.append(theStat?.id ?? "")
     }
-    
+
     func setupActivityIndicator(_ show: Bool = false, type: Int = 0) {
-        self.activityIndicator.imageEdgeInsets = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
-        self.activityIndicator.contentEdgeInsets = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+        activityIndicator.imageEdgeInsets = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
+        activityIndicator.contentEdgeInsets = UIEdgeInsets(top: 3, left: 3, bottom: 3, right: 3)
         if show {
-            self.activityIndicator.alpha = 1
+            activityIndicator.alpha = 1
             let symbolConfig2 = UIImage.SymbolConfiguration(pointSize: 20, weight: .bold)
             if type == 0 {
-                self.activityIndicator.backgroundColor = UIColor.systemBlue
-                self.activityIndicator.setImage(UIImage(systemName: "person.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
-                self.activityIndicator.imageEdgeInsets = UIEdgeInsets(top: 2.5, left: 3, bottom: 3.5, right: 3)
-                self.activityIndicator.contentEdgeInsets = UIEdgeInsets(top: 2.5, left: 3, bottom: 3.5, right: 3)
+                activityIndicator.backgroundColor = UIColor.systemBlue
+                activityIndicator.setImage(UIImage(systemName: "person.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
+                activityIndicator.imageEdgeInsets = UIEdgeInsets(top: 2.5, left: 3, bottom: 3.5, right: 3)
+                activityIndicator.contentEdgeInsets = UIEdgeInsets(top: 2.5, left: 3, bottom: 3.5, right: 3)
             }
             if type == 1 {
-                self.activityIndicator.backgroundColor = UIColor.systemPink
-                self.activityIndicator.setImage(UIImage(systemName: "heart.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
+                activityIndicator.backgroundColor = UIColor.systemPink
+                activityIndicator.setImage(UIImage(systemName: "heart.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
             }
             if type == 2 {
-                self.activityIndicator.backgroundColor = UIColor(red: 63/255, green: 180/255, blue: 78/255, alpha: 1)
-                self.activityIndicator.setImage(UIImage(systemName: "arrow.2.squarepath", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
+                activityIndicator.backgroundColor = UIColor(red: 63 / 255, green: 180 / 255, blue: 78 / 255, alpha: 1)
+                activityIndicator.setImage(UIImage(systemName: "arrow.2.squarepath", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
             }
             if type == 3 {
-                self.activityIndicator.backgroundColor = UIColor.systemPurple
-                self.activityIndicator.setImage(UIImage(systemName: "person.fill.questionmark", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
+                activityIndicator.backgroundColor = UIColor.systemPurple
+                activityIndicator.setImage(UIImage(systemName: "person.fill.questionmark", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
             }
             if type == 4 {
-                self.activityIndicator.backgroundColor = UIColor.systemIndigo
-                self.activityIndicator.setImage(UIImage(systemName: "chart.pie.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
+                activityIndicator.backgroundColor = UIColor.systemIndigo
+                activityIndicator.setImage(UIImage(systemName: "chart.pie.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
             }
             if type == 5 {
-                self.activityIndicator.backgroundColor = UIColor(red: 248/255, green: 115/255, blue: 65/255, alpha: 1)
-                self.activityIndicator.setImage(UIImage(systemName: "heart.text.square.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
-                self.activityIndicator.imageEdgeInsets = UIEdgeInsets(top: 3, left: 2.5, bottom: 3, right: 3.5)
-                self.activityIndicator.contentEdgeInsets = UIEdgeInsets(top: 3, left: 2.5, bottom: 3, right: 3.5)
+                activityIndicator.backgroundColor = UIColor(red: 248 / 255, green: 115 / 255, blue: 65 / 255, alpha: 1)
+                activityIndicator.setImage(UIImage(systemName: "heart.text.square.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
+                activityIndicator.imageEdgeInsets = UIEdgeInsets(top: 3, left: 2.5, bottom: 3, right: 3.5)
+                activityIndicator.contentEdgeInsets = UIEdgeInsets(top: 3, left: 2.5, bottom: 3, right: 3.5)
             }
             if type == 6 {
-                self.activityIndicator.backgroundColor = UIColor.systemYellow
-                self.activityIndicator.setImage(UIImage(systemName: "pencil.circle.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
+                activityIndicator.backgroundColor = UIColor.systemYellow
+                activityIndicator.setImage(UIImage(systemName: "pencil.circle.fill", withConfiguration: symbolConfig2)?.withTintColor(UIColor.white, renderingMode: .alwaysOriginal), for: .normal)
             }
         } else {
-            self.activityIndicator.alpha = 0
+            activityIndicator.alpha = 0
         }
     }
 
@@ -848,12 +841,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         super.layoutSubviews()
     }
 
-    var theStat: Status? = nil
-    func setupConstraints(containsImages: Bool, quotePostCard: Card?, containsRepost: Bool, imageHeight: CGFloat = 220, inDetail: Bool = false, containsPoll: Bool, pollOptions: Poll?, link: Card? = nil, showButtons: Bool = true, stat: Status? = nil, acc: Account? = nil, activity: Bool = false) {
+    var theStat: Status?
+    func setupConstraints(containsImages: Bool, quotePostCard: Card?, containsRepost: Bool, imageHeight _: CGFloat = 220, inDetail _: Bool = false, containsPoll: Bool, pollOptions: Poll?, link: Card? = nil, showButtons: Bool = true, stat: Status? = nil, acc: Account? = nil, activity: Bool = false) {
         var pollOptions = pollOptions
-        self.widthCo?.isActive = false
-        self.theStat = stat
-        
+        widthCo?.isActive = false
+        theStat = stat
+
         if GlobalStruct.circleProfiles {
             profileIcon.layer.cornerRadius = 25
             repostView.repostProfileIcon.layer.cornerRadius = 10
@@ -865,68 +858,66 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         repostsText.isHidden = false
         likesText.isHidden = false
 
-        if self.isHidden {} else {
-            self.userTag.sizeToFit()
+        if isHidden {} else {
+            userTag.sizeToFit()
 
             // remove spaces within posts
             if (postText.text ?? "").suffix(2) == "\n\n" {
                 postText.text = String(String((postText.text ?? "").dropLast()).dropLast())
             }
-            
-            if stat?.reblog?.emojis.isEmpty ?? stat?.emojis.isEmpty ?? false {
 
+            if stat?.reblog?.emojis.isEmpty ?? stat?.emojis.isEmpty ?? false {
             } else {
-                var attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.content.stripHTML() ?? stat?.content.stripHTML() ?? "")", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
+                var attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.content.stripHTML() ?? stat?.content.stripHTML() ?? "")", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
                 if activity {
-                    attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.content.stripHTML() ?? stat?.content.stripHTML() ?? "")", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.secondaryLabel])
+                    attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.content.stripHTML() ?? stat?.content.stripHTML() ?? "")", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.secondaryLabel])
                 }
                 if let z = stat?.reblog?.emojis ?? stat?.emojis {
-                    let _ = z.map({
+                    _ = z.map {
                         let textAttachment = NSTextAttachment()
-                        textAttachment.kf.setImage(with: $0.url, attributedView: self.postText, completionHandler:  { r in
+                        textAttachment.kf.setImage(with: $0.url, attributedView: self.postText, completionHandler: { _ in
                             self.postText.setNeedsDisplay()
                         })
-                        textAttachment.bounds = CGRect(x:0, y: Int(-2), width: Int(self.postText.font.lineHeight - 6), height: Int(self.postText.font.lineHeight - 6))
+                        textAttachment.bounds = CGRect(x: 0, y: Int(-2), width: Int(self.postText.font.lineHeight - 6), height: Int(self.postText.font.lineHeight - 6))
                         let attrStringWithImage = NSAttributedString(attachment: textAttachment)
                         while attributedString.mutableString.contains(":\($0.shortcode):") {
                             let range: NSRange = (attributedString.mutableString as NSString).range(of: ":\($0.shortcode):")
                             attributedString.replaceCharacters(in: range, with: attrStringWithImage)
                         }
-                    })
-#if !targetEnvironment(macCatalyst)
-                    self.postText.attributedText = attributedString
-#endif
+                    }
+                    #if !targetEnvironment(macCatalyst)
+                        postText.attributedText = attributedString
+                    #endif
                 }
             }
 
             if stat?.reblog?.account?.emojis.isEmpty ?? stat?.account?.emojis.isEmpty ?? false {
-
             } else {
-                let attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.account?.displayName ?? stat?.account?.displayName ?? "")", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
+                let attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.account?.displayName ?? stat?.account?.displayName ?? "")", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
                 if let z = stat?.reblog?.account?.emojis ?? stat?.account?.emojis {
-                    let _ = z.map({
+                    _ = z.map {
                         let textAttachment = NSTextAttachment()
-                        textAttachment.kf.setImage(with: $0.url, attributedView: self.userName, completionHandler:  { r in
+                        textAttachment.kf.setImage(with: $0.url, attributedView: self.userName, completionHandler: { _ in
                             self.userName.setNeedsDisplay()
                         })
-                        textAttachment.bounds = CGRect(x:0, y: Int(-2), width: Int(self.userName.font.lineHeight - 6), height: Int(self.userName.font.lineHeight - 6))
+                        textAttachment.bounds = CGRect(x: 0, y: Int(-2), width: Int(self.userName.font.lineHeight - 6), height: Int(self.userName.font.lineHeight - 6))
                         let attrStringWithImage = NSAttributedString(attachment: textAttachment)
                         while attributedString.mutableString.contains(":\($0.shortcode):") {
                             let range: NSRange = (attributedString.mutableString as NSString).range(of: ":\($0.shortcode):")
                             attributedString.replaceCharacters(in: range, with: attrStringWithImage)
                         }
-                    })
-#if !targetEnvironment(macCatalyst)
-                    self.userName.attributedText = attributedString
-#endif
+                    }
+                    #if !targetEnvironment(macCatalyst)
+                        userName.attributedText = attributedString
+                    #endif
                 }
             }
-            
+
             if let _ = stat?.reblog {
                 if let ur = URL(string: stat?.account?.avatar ?? "") {
                     repostView.repostProfileIcon.sd_setImage(with: ur)
                 }
-                
+
                 let myString = stat?.account?.displayName ?? ""
                 let regex = try? NSRegularExpression(pattern: "\\:(.*?)\\:", options: .caseInsensitive)
                 let range = NSMakeRange(0, myString.count)
@@ -937,111 +928,110 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     repostView.repostText.text = modString
                 }
             }
-            
-            if acc?.emojis.isEmpty ?? false {
 
+            if acc?.emojis.isEmpty ?? false {
             } else {
-                let attributedString = NSMutableAttributedString(string: "\(acc?.displayName ?? "")", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
+                let attributedString = NSMutableAttributedString(string: "\(acc?.displayName ?? "")", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
                 if let z = acc?.emojis {
-                    let _ = z.map({
+                    _ = z.map {
                         let textAttachment = NSTextAttachment()
-                        textAttachment.kf.setImage(with: $0.url, attributedView: self.userName, completionHandler:  { r in
+                        textAttachment.kf.setImage(with: $0.url, attributedView: self.userName, completionHandler: { _ in
                             self.userName.setNeedsDisplay()
                         })
-                        textAttachment.bounds = CGRect(x:0, y: Int(-2), width: Int(self.userName.font.lineHeight - 6), height: Int(self.userName.font.lineHeight - 6))
+                        textAttachment.bounds = CGRect(x: 0, y: Int(-2), width: Int(self.userName.font.lineHeight - 6), height: Int(self.userName.font.lineHeight - 6))
                         let attrStringWithImage = NSAttributedString(attachment: textAttachment)
                         while attributedString.mutableString.contains(":\($0.shortcode):") {
                             let range: NSRange = (attributedString.mutableString as NSString).range(of: ":\($0.shortcode):")
                             attributedString.replaceCharacters(in: range, with: attrStringWithImage)
                         }
-                    })
-#if !targetEnvironment(macCatalyst)
-                    self.userName.attributedText = attributedString
-#endif
+                    }
+                    #if !targetEnvironment(macCatalyst)
+                        userName.attributedText = attributedString
+                    #endif
                 }
             }
 
             let cust = GlobalStruct.customTextSize
 
             let viewsDict = [
-                "profileIcon" : profileIcon,
-                "userName" : userName,
-                "userTag" : userTag,
-                "indicator" : indicator,
-                "dateTime" : dateTime,
-                "postText" : postText,
-                "collectionView1" : collectionView1!,
-                "countButtonBG" : countButtonBG,
-                "repostView" : repostView,
-                "pollStack" : pollStack,
-                "linkStackView" : linkStackView,
-                "stackViewB" : stackViewB,
-                "cwOverlay" : cwOverlay,
-            ] as [String : Any]
+                "profileIcon": profileIcon,
+                "userName": userName,
+                "userTag": userTag,
+                "indicator": indicator,
+                "dateTime": dateTime,
+                "postText": postText,
+                "collectionView1": collectionView1!,
+                "countButtonBG": countButtonBG,
+                "repostView": repostView,
+                "pollStack": pollStack,
+                "linkStackView": linkStackView,
+                "stackViewB": stackViewB,
+                "cwOverlay": cwOverlay,
+            ] as [String: Any]
             let metricsDict = [
-                "smallHeight" : GlobalStruct.smallerFontSize,
-                "usernameHeight" : UIFont.preferredFont(forTextStyle: .body).pointSize + cust
+                "smallHeight": GlobalStruct.smallerFontSize,
+                "usernameHeight": UIFont.preferredFont(forTextStyle: .body).pointSize + cust,
             ]
 
             if showButtons {
-                self.stackViewB.isHidden = false
+                stackViewB.isHidden = false
             } else {
-                self.stackViewB.isHidden = true
+                stackViewB.isHidden = true
             }
 
             var tag1 = "[userName]-4-[userTag]"
-            
+
             if GlobalStruct.displayName == .full {
-                self.userName.isHidden = false
-                self.userTag.isHidden = false
-                self.linkUsername.isHidden = false
-                self.linkUsertag.isHidden = false
+                userName.isHidden = false
+                userTag.isHidden = false
+                linkUsername.isHidden = false
+                linkUsertag.isHidden = false
                 tag1 = "[userName]-4-[userTag]"
             } else if GlobalStruct.displayName == .usernameOnly {
-                self.userName.isHidden = false
-                self.userTag.isHidden = true
-                self.linkUsername.isHidden = false
-                self.linkUsertag.isHidden = true
+                userName.isHidden = false
+                userTag.isHidden = true
+                linkUsername.isHidden = false
+                linkUsertag.isHidden = true
                 tag1 = "[userName]-0-[userTag]"
             } else if GlobalStruct.displayName == .usertagOnly {
-                self.userName.text = ""
-                self.userName.isHidden = true
-                self.userTag.isHidden = false
-                self.linkUsername.text = ""
-                self.linkUsername.isHidden = true
-                self.linkUsertag.isHidden = false
+                userName.text = ""
+                userName.isHidden = true
+                userTag.isHidden = false
+                linkUsername.text = ""
+                linkUsername.isHidden = true
+                linkUsertag.isHidden = false
                 tag1 = "[userName]-0-[userTag]"
-            } else {    // .none
-                self.userName.isHidden = true
-                self.userTag.isHidden = true
-                self.linkUsername.isHidden = true
-                self.linkUsertag.isHidden = true
+            } else { // .none
+                userName.isHidden = true
+                userTag.isHidden = true
+                linkUsername.isHidden = true
+                linkUsertag.isHidden = true
                 tag1 = "[userName]-0-[userTag]"
             }
 
-            self.removeConstraints(constraintsOther)
-            self.removeConstraints(constraints0)
-            self.removeConstraints(constraints1)
-            self.removeConstraints(constraints2)
-            self.removeConstraints(constraintsS)
-            self.removeConstraints(constraintsS2)
-            
-            let _ = self.constraints0.map ({ x in
+            removeConstraints(constraintsOther)
+            removeConstraints(constraints0)
+            removeConstraints(constraints1)
+            removeConstraints(constraints2)
+            removeConstraints(constraintsS)
+            removeConstraints(constraintsS2)
+
+            _ = constraints0.map { x in
                 x.isActive = false
-            })
-            self.constraints0 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[profileIcon(50)]-12-\(tag1)-(>=5)-[indicator(smallHeight)]-2-[dateTime]-16-|", options: [], metrics: metricsDict, views: viewsDict)
-            let _ = self.constraints0.map ({ x in
+            }
+            constraints0 = NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[profileIcon(50)]-12-\(tag1)-(>=5)-[indicator(smallHeight)]-2-[dateTime]-16-|", options: [], metrics: metricsDict, views: viewsDict)
+            _ = constraints0.map { x in
                 x.isActive = true
-            })
-            self.addConstraints(constraints0)
+            }
+            addConstraints(constraints0)
 
             linkPost.numberOfLines = 0
-            self.linkStr = link
-            
+            linkStr = link
+
             if let link {
-                self.setupLinkPreview(link)
+                setupLinkPreview(link)
             } else if let quotePostCard {
-                self.setupQuotePostPreview(quotePostCard)
+                setupQuotePostPreview(quotePostCard)
             } else {
                 linkStackView.isHidden = true
             }
@@ -1049,7 +1039,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             var inlineDiff0 = "12"
             var inlineDiff = "12"
             var inlineDiff1 = ""
-            
+
             if showButtons {
                 inlineDiff0 = "12-[stackViewB]-10"
                 inlineDiff = "12-[stackViewB]-14"
@@ -1071,37 +1061,37 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 postTextDiff2s = "-(>=14)-"
             }
 
-            let _ = self.constraintsS.map ({ x in
+            _ = constraintsS.map { x in
                 x.isActive = false
-            })
-            let _ = self.constraintsS2.map ({ x in
+            }
+            _ = constraintsS2.map { x in
                 x.isActive = false
-            })
-            let _ = self.constraints1.map ({ x in
+            }
+            _ = constraints1.map { x in
                 x.isActive = false
-            })
-            let _ = self.constraints2.map ({ x in
+            }
+            _ = constraints2.map { x in
                 x.isActive = false
-            })
+            }
 
             pollStack.isHidden = true
 
             if GlobalStruct.hideMed {
-                self.linkCollectionView1.isHidden = true
-                self.conQ1 = self.linkCollectionView1.heightAnchor.constraint(equalToConstant: 0)
+                linkCollectionView1.isHidden = true
+                conQ1 = linkCollectionView1.heightAnchor.constraint(equalToConstant: 0)
             }
-                
-            if (containsImages && GlobalStruct.hideMed == false) {
+
+            if containsImages, GlobalStruct.hideMed == false {
                 if GlobalStruct.smallImages {
                     constraintsS = NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[profileIcon(50)]-12-[postText]-8-[collectionView1(66)]-16-|", options: [], metrics: nil, views: viewsDict)
-                    let _ = self.constraintsS.map ({ x in
+                    _ = constraintsS.map { x in
                         x.isActive = true
-                    })
+                    }
                 } else {
                     constraintsS = NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[profileIcon(50)]-12-[postText]-16-|", options: [], metrics: nil, views: viewsDict)
-                    let _ = self.constraintsS.map ({ x in
+                    _ = constraintsS.map { x in
                         x.isActive = true
-                    })
+                    }
                 }
                 if (quotePostCard != nil) || (link != nil) {
                     countButtonBG.isHidden = false
@@ -1109,47 +1099,47 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     if containsRepost {
                         let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraintsOther.append(contentsOf: constraints)
-                        self.addConstraints(constraints)
+                        addConstraints(constraints)
                         repostView.isHidden = false
                         if GlobalStruct.smallImages {
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiffs)[linkStackView]-\(inlineDiff0)-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraintsS2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-6-[collectionView1]-(>=12)-[linkStackView]", options: [], metrics: metricsDict, views: viewsDict)
-                            let _ = self.constraintsS2.map ({ x in
+                            _ = constraintsS2.map { x in
                                 x.isActive = true
-                            })
+                            }
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-11-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         } else {
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff)[collectionView1]-14-[linkStackView]-\(inlineDiff0)-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]\(postTextDiffb)[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         }
-                        let _ = self.constraints1.map ({ x in
+                        _ = constraints1.map { x in
                             x.isActive = true
-                        })
-                        let _ = self.constraints2.map ({ x in
+                        }
+                        _ = constraints2.map { x in
                             x.isActive = true
-                        })
+                        }
                     } else {
                         let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-10-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraintsOther.append(contentsOf: constraints)
-                        self.addConstraints(constraints)
+                        addConstraints(constraints)
                         repostView.isHidden = true
                         if GlobalStruct.smallImages {
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiffs)[linkStackView]-\(inlineDiff)-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraintsS2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-6-[collectionView1]-(>=12)-[linkStackView]", options: [], metrics: metricsDict, views: viewsDict)
-                            let _ = self.constraintsS2.map ({ x in
+                            _ = constraintsS2.map { x in
                                 x.isActive = true
-                            })
+                            }
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-11-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         } else {
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff)[collectionView1]-14-[linkStackView]-\(inlineDiff)-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]\(postTextDiffb)[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         }
-                        let _ = self.constraints1.map ({ x in
+                        _ = constraints1.map { x in
                             x.isActive = true
-                        })
-                        let _ = self.constraints2.map ({ x in
+                        }
+                        _ = constraints2.map { x in
                             x.isActive = true
-                        })
+                        }
                     }
                 } else {
                     countButtonBG.isHidden = false
@@ -1157,7 +1147,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     if containsRepost {
                         let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraintsOther.append(contentsOf: constraints)
-                        self.addConstraints(constraints)
+                        addConstraints(constraints)
                         repostView.isHidden = false
                         if GlobalStruct.smallImages {
                             var a1 = "V:|-14-[userName(usernameHeight)]\(postTextDiff2s)\(inlineDiff1)-[repostView(20)]-14-|"
@@ -1167,24 +1157,24 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                                 inlineDiff1 = "|"
                             }
                             constraintsS2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-6-[collectionView1]-(>=12)-\(inlineDiff1)", options: [], metrics: metricsDict, views: viewsDict)
-                            let _ = self.constraintsS2.map ({ x in
+                            _ = constraintsS2.map { x in
                                 x.isActive = true
-                            })
+                            }
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-11-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         } else {
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff2)[collectionView1]-\(inlineDiff0)-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]\(postTextDiff2b)[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         }
-                        let _ = self.constraints1.map ({ x in
+                        _ = constraints1.map { x in
                             x.isActive = true
-                        })
-                        let _ = self.constraints2.map ({ x in
+                        }
+                        _ = constraints2.map { x in
                             x.isActive = true
-                        })
+                        }
                     } else {
                         let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-10-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraintsOther.append(contentsOf: constraints)
-                        self.addConstraints(constraints)
+                        addConstraints(constraints)
                         repostView.isHidden = true
                         if GlobalStruct.smallImages {
                             var diffText = "V:|-14-[userName(usernameHeight)]\(postTextDiff2s)\(inlineDiff1)-10-|"
@@ -1194,71 +1184,71 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                                 inlineDiff1 = "|"
                             }
                             constraintsS2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-6-[collectionView1]-(>=12)-\(inlineDiff1)", options: [], metrics: metricsDict, views: viewsDict)
-                            let _ = self.constraintsS2.map ({ x in
+                            _ = constraintsS2.map { x in
                                 x.isActive = true
-                            })
+                            }
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]-11-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         } else {
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff2)[collectionView1]-\(inlineDiff)-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[userName(usernameHeight)]\(postTextDiff2b)[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
                         }
-                        let _ = self.constraints1.map ({ x in
+                        _ = constraints1.map { x in
                             x.isActive = true
-                        })
-                        let _ = self.constraints2.map ({ x in
+                        }
+                        _ = constraints2.map { x in
                             x.isActive = true
-                        })
+                        }
                     }
                 }
             } else {
                 constraintsS = NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[profileIcon(50)]-12-[postText]-16-|", options: [], metrics: nil, views: viewsDict)
-                let _ = self.constraintsS.map ({ x in
+                _ = constraintsS.map { x in
                     x.isActive = true
-                })
+                }
                 if (quotePostCard != nil) || (link != nil) {
                     countButtonBG.isHidden = true
                     collectionView1.isHidden = true
                     if containsRepost {
                         let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraintsOther.append(contentsOf: constraints)
-                        self.addConstraints(constraints)
+                        addConstraints(constraints)
                         repostView.isHidden = false
                         constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff)[linkStackView]-\(inlineDiff0)-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[linkStackView]-19-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
-                        let _ = self.constraints1.map ({ x in
+                        _ = constraints1.map { x in
                             x.isActive = true
-                        })
-                        let _ = self.constraints2.map ({ x in
+                        }
+                        _ = constraints2.map { x in
                             x.isActive = true
-                        })
+                        }
                     } else {
                         let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-10-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraintsOther.append(contentsOf: constraints)
-                        self.addConstraints(constraints)
+                        addConstraints(constraints)
                         repostView.isHidden = true
                         constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff)[linkStackView]-\(inlineDiff)-|", options: [], metrics: metricsDict, views: viewsDict)
                         constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[linkStackView]-19-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
-                        let _ = self.constraints1.map ({ x in
+                        _ = constraints1.map { x in
                             x.isActive = true
-                        })
-                        let _ = self.constraints2.map ({ x in
+                        }
+                        _ = constraints2.map { x in
                             x.isActive = true
-                        })
+                        }
                     }
                 } else {
                     countButtonBG.isHidden = true
                     collectionView1.isHidden = true
-                    
+
                     if containsPoll {
                         // poll
-                        if GlobalStruct.votedOnPolls[self.pollId] != nil {
-                            if pollOptions?.voted ?? false && (pollOptions?.id ?? "" == self.pollId) {
-                                pollOptions = GlobalStruct.votedOnPolls[self.pollId]
+                        if GlobalStruct.votedOnPolls[pollId] != nil {
+                            if pollOptions?.voted ?? false, pollOptions?.id ?? "" == pollId {
+                                pollOptions = GlobalStruct.votedOnPolls[pollId]
                             }
                         }
-                        
-                        self.pollId = pollOptions?.id ?? ""
-                        
+
+                        pollId = pollOptions?.id ?? ""
+
                         for x in pollStack.arrangedSubviews {
                             pollStack.removeArrangedSubview(x)
                         }
@@ -1269,9 +1259,9 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
 
                         if let pOp = pollOptions?.options {
                             var totalVotes = 0
-                            _ = pOp.map({ x in
+                            _ = pOp.map { x in
                                 totalVotes += x.votesCount ?? 0
-                            })
+                            }
 
                             // add poll end or ended time
 
@@ -1283,11 +1273,11 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             let date1 = pollOptions?.expiresAt ?? ""
                             var tText = "ends in"
                             var tText2 = ""
-                            
+
                             let dateFormatter = DateFormatter()
                             dateFormatter.dateFormat = GlobalStruct.dateFormat
                             let date = dateFormatter.date(from: date1)
-                            
+
                             var diff = getMinutesDifferenceFromTwoDates(start: Date(), end: date ?? Date())
                             var mVote = "\(diff) minutes"
                             if diff == 1 {
@@ -1329,10 +1319,10 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                                     }
                                 }
                             }
-                            
-                            for (c,x) in pOp.enumerated() {
+
+                            for (c, x) in pOp.enumerated() {
                                 let barText = UIButton()
-                                barText.frame = CGRect(x: 0, y: 0, width: self.bounds.width - 80, height: 40)
+                                barText.frame = CGRect(x: 0, y: 0, width: bounds.width - 80, height: 40)
                                 barText.backgroundColor = .clear
                                 barText.setTitle("  \(x.title)  ", for: .normal)
                                 barText.setTitleColor(.label, for: .normal)
@@ -1343,7 +1333,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                                 barText.layer.masksToBounds = true
                                 barText.tag = c
                                 if tText != "ended" {
-                                    let bGesture = UITapGestureRecognizer(target: self, action: #selector(self.pollOptionsTap(_:)))
+                                    let bGesture = UITapGestureRecognizer(target: self, action: #selector(pollOptionsTap(_:)))
                                     barText.addGestureRecognizer(bGesture)
                                 }
                                 barText.titleLabel?.lineBreakMode = .byTruncatingTail
@@ -1351,7 +1341,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                                 let underlay = UIView()
                                 underlay.layer.cornerRadius = 6
                                 underlay.layer.masksToBounds = true
-                                if (pollOptions?.voted ?? false) || (tText == "ended") || ((pollOptions?.voted ?? false) && GlobalStruct.votedOnPolls[self.pollId] != nil) {
+                                if (pollOptions?.voted ?? false) || (tText == "ended") || ((pollOptions?.voted ?? false) && GlobalStruct.votedOnPolls[pollId] != nil) {
                                     if let own = pollOptions?.ownVotes, own.contains(c) {
                                         underlay.backgroundColor = .custom.baseTint
                                     } else {
@@ -1360,12 +1350,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                                     if totalVotes == 0 {
                                         underlay.frame = CGRect(x: 0, y: 0, width: 0, height: 32)
                                     } else {
-                                        let diff = (Double(x.votesCount ?? 0)/Double(totalVotes))
+                                        let diff = (Double(x.votesCount ?? 0) / Double(totalVotes))
                                         var wid9 = UIScreen.main.bounds.size.width
                                         if GlobalStruct.isCompact || UIDevice.current.userInterfaceIdiom == .phone {} else {
                                             wid9 = CGFloat(GlobalStruct.padColWidth)
                                         }
-                                        underlay.frame = CGRect(x: 0, y: 0, width: CGFloat((((wid9 - 120) - 40) * (diff))), height: 32)
+                                        underlay.frame = CGRect(x: 0, y: 0, width: CGFloat(((wid9 - 120) - 40) * diff), height: 32)
                                     }
                                 } else {
                                     underlay.backgroundColor = .custom.backgroundTint
@@ -1384,7 +1374,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                                     if totalVotes == 0 {
                                         barDetail.text = "0%"
                                     } else {
-                                        let diff = Int((Double(x.votesCount ?? 0)/Double(totalVotes))*100)
+                                        let diff = Int((Double(x.votesCount ?? 0) / Double(totalVotes)) * 100)
                                         barDetail.text = "\(diff)%"
                                     }
                                 } else {
@@ -1413,7 +1403,6 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             endPoll.font = UIFont.systemFont(ofSize: 14, weight: .regular)
 
                             pollStack.addArrangedSubview(endPoll)
-
                         }
 
                         pollStack.translatesAutoresizingMaskIntoConstraints = false
@@ -1428,90 +1417,86 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                         pollStack.layer.masksToBounds = true
                         pollStack.layer.borderWidth = 0.4
                         pollStack.layer.borderColor = UIColor.label.withAlphaComponent(0.2).cgColor
-                        self.pipView.addSubview(pollStack)
-                        
-                        self.pipView.bringSubviewToFront(self.cwOverlay)
+                        pipView.addSubview(pollStack)
+
+                        pipView.bringSubviewToFront(cwOverlay)
 
                         pollStack.isHidden = false
                         let constraints = NSLayoutConstraint.constraints(withVisualFormat: "H:|-80-[pollStack]-20-|", options: [], metrics: nil, views: viewsDict)
                         constraintsOther.append(contentsOf: constraints)
-                        self.addConstraints(constraints)
+                        addConstraints(constraints)
 
                         if containsRepost {
                             let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraintsOther.append(contentsOf: constraints)
-                            self.addConstraints(constraints)
+                            addConstraints(constraints)
                             repostView.isHidden = false
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff)[pollStack]-\(inlineDiff0)-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-19-[countButtonBG]", options: [], metrics: nil, views: viewsDict)
-                            let _ = self.constraints1.map ({ x in
+                            _ = constraints1.map { x in
                                 x.isActive = true
-                            })
-                            let _ = self.constraints2.map ({ x in
+                            }
+                            _ = constraints2.map { x in
                                 x.isActive = true
-                            })
+                            }
                         } else {
                             let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-10-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraintsOther.append(contentsOf: constraints)
-                            self.addConstraints(constraints)
+                            addConstraints(constraints)
                             repostView.isHidden = true
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]\(postTextDiff)[pollStack]-\(inlineDiff)-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-19-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
-                            let _ = self.constraints1.map ({ x in
+                            _ = constraints1.map { x in
                                 x.isActive = true
-                            })
-                            let _ = self.constraints2.map ({ x in
+                            }
+                            _ = constraints2.map { x in
                                 x.isActive = true
-                            })
+                            }
                         }
-                        
+
                     } else {
-                        
                         if containsRepost {
                             let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraintsOther.append(contentsOf: constraints)
-                            self.addConstraints(constraints)
+                            addConstraints(constraints)
                             repostView.isHidden = false
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]-4-[postText]-\(inlineDiff0)-[repostView(20)]-14-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-19-[countButtonBG]", options: [], metrics: nil, views: viewsDict)
-                            let _ = self.constraints1.map ({ x in
+                            _ = constraints1.map { x in
                                 x.isActive = true
-                            })
-                            let _ = self.constraints2.map ({ x in
+                            }
+                            _ = constraints2.map { x in
                                 x.isActive = true
-                            })
+                            }
                         } else {
                             let constraints = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userTag(usernameHeight)]-4-[cwOverlay]-10-|", options: [], metrics: metricsDict, views: viewsDict)
                             constraintsOther.append(contentsOf: constraints)
-                            self.addConstraints(constraints)
+                            addConstraints(constraints)
                             repostView.isHidden = true
                             let dif = "-\(inlineDiff)-|"
                             constraints1 = NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName(usernameHeight)]-4-[postText]\(dif)", options: [], metrics: metricsDict, views: viewsDict)
                             constraints2 = NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-19-[countButtonBG]", options: [], metrics: metricsDict, views: viewsDict)
-                            let _ = self.constraints1.map ({ x in
+                            _ = constraints1.map { x in
                                 x.isActive = true
-                            })
-                            let _ = self.constraints2.map ({ x in
+                            }
+                            _ = constraints2.map { x in
                                 x.isActive = true
-                            })
+                            }
                         }
-                        
                     }
-
                 }
             }
         }
     }
-    
+
     var pollId: String = ""
     @objc func pollOptionsTap(_ sender: UITapGestureRecognizer) {
         triggerHapticImpact(style: .light)
         let alert = UIAlertController(title: "Vote for '\((sender.view as? UIButton)?.titleLabel?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")'?", message: "You cannot change your vote once you have voted.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Vote", style: .default , handler:{ (UIAlertAction) in
+        alert.addAction(UIAlertAction(title: "Vote", style: .default, handler: { _ in
             self.voteOnThis(sender.view?.tag ?? 0)
         }))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-            
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
         }))
         if let presenter = alert.popoverPresentationController {
             presenter.sourceView = getTopMostViewController()?.view
@@ -1519,17 +1504,16 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         }
         getTopMostViewController()?.present(alert, animated: true, completion: nil)
     }
-    
+
     func voteOnThis(_ sender: Int) {
-        let request = Polls.vote(id: self.pollId, choices: [sender])
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        let request = Polls.vote(id: pollId, choices: [sender])
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let err = statuses.error {
                 if "\(err)".contains("ended") {
                     DispatchQueue.main.async {
                         triggerHapticNotification(feedback: .warning)
                         let alert = UIAlertController(title: "Poll Ended", message: "You can't vote on this poll as it has already ended.", preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-                            
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
                         }))
                         if let presenter = alert.popoverPresentationController {
                             presenter.sourceView = getTopMostViewController()?.view
@@ -1542,8 +1526,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                         DispatchQueue.main.async {
                             triggerHapticNotification(feedback: .warning)
                             let alert = UIAlertController(title: "Already Voted", message: "You can't vote on this poll as you have already voted on it.", preferredStyle: .alert)
-                            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-                                
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
                             }))
                             if let presenter = alert.popoverPresentationController {
                                 presenter.sourceView = getTopMostViewController()?.view
@@ -1592,28 +1575,28 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
     let linkCountButtonBG = UIButton()
     let linkCountButton = UIButton()
 
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if collectionView == self.collectionView1 {
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection _: Int) -> Int {
+        if collectionView == collectionView1 {
             if dataImages.isEmpty {
-                return self.images.count
+                return images.count
             } else {
-                return self.dataImages.count
+                return dataImages.count
             }
         } else {
-            if self.lpImage != UIImage() {
+            if lpImage != UIImage() {
                 return 1
             } else {
                 if linkDataImages.isEmpty {
-                    return self.linkImages.count
+                    return linkImages.count
                 } else {
-                    return self.linkDataImages.count
+                    return linkDataImages.count
                 }
             }
         }
     }
 
-    func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        var image1: UIImage = UIImage()
+    func collectionView(_: UICollectionView, itemsForBeginning _: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        var image1 = UIImage()
         if GlobalStruct.smallImages {
             if let cell = collectionView1.cellForItem(at: indexPath) as? CollectionImageCellS {
                 image1 = cell.image.image ?? UIImage()
@@ -1639,7 +1622,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         return [UIDragItem(itemProvider: itemProvider)]
     }
 
-    func collectionView(_ collectionView: UICollectionView, dragPreviewParametersForItemAt indexPath: IndexPath) -> UIDragPreviewParameters? {
+    func collectionView(_: UICollectionView, dragPreviewParametersForItemAt _: IndexPath) -> UIDragPreviewParameters? {
         let previewParameters = UIDragPreviewParameters()
         previewParameters.backgroundColor = UIColor.clear
         if GlobalStruct.smallImages {
@@ -1649,9 +1632,9 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 previewParameters.visiblePath = UIBezierPath(roundedRect: CGRect(x: 80, y: 0, width: CGFloat(GlobalStruct.padColWidth - 100), height: 220), cornerRadius: 10)
             } else {
                 #if targetEnvironment(macCatalyst)
-                previewParameters.visiblePath = UIBezierPath(roundedRect: CGRect(x: 80, y: 0, width: CGFloat(GlobalStruct.padColWidth - 100), height: 220), cornerRadius: 10)
+                    previewParameters.visiblePath = UIBezierPath(roundedRect: CGRect(x: 80, y: 0, width: CGFloat(GlobalStruct.padColWidth - 100), height: 220), cornerRadius: 10)
                 #else
-                previewParameters.visiblePath = UIBezierPath(roundedRect: CGRect(x: 80, y: 0, width: (UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) - 100, height: 220), cornerRadius: 10)
+                    previewParameters.visiblePath = UIBezierPath(roundedRect: CGRect(x: 80, y: 0, width: (UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) - 100, height: 220), cornerRadius: 10)
                 #endif
             }
         }
@@ -1659,42 +1642,41 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if collectionView == self.collectionView1 {
+        if collectionView == collectionView1 {
             if inDetail {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollectionImageCell3", for: indexPath) as! CollectionImageCell3
-                if self.images.isEmpty {
-
+                if images.isEmpty {
                 } else {
                     cell.configure()
                     if indexPath.item == 0 {
-                        if self.altText.count > 0 && !self.altText[0].isEmpty {
+                        if altText.count > 0 && !altText[0].isEmpty {
                             cell.altTextButton.alpha = 1
-                            cell.image.accessibilityLabel = self.altText[0]
+                            cell.image.accessibilityLabel = altText[0]
                         }
                     }
                     if indexPath.item == 1 {
-                        if self.altText.count > 1 && !self.altText[1].isEmpty {
+                        if altText.count > 1 && !altText[1].isEmpty {
                             cell.altTextButton.alpha = 1
-                            cell.image.accessibilityLabel = self.altText[1]
+                            cell.image.accessibilityLabel = altText[1]
                         }
                     }
                     if indexPath.item == 2 {
-                        if self.altText.count > 2 && !self.altText[2].isEmpty {
+                        if altText.count > 2 && !altText[2].isEmpty {
                             cell.altTextButton.alpha = 1
-                            cell.image.accessibilityLabel = self.altText[2]
+                            cell.image.accessibilityLabel = altText[2]
                         }
                     }
                     if indexPath.item == 3 {
-                        if self.altText.count > 3 && !self.altText[3].isEmpty {
+                        if altText.count > 3 && !altText[3].isEmpty {
                             cell.altTextButton.alpha = 1
-                            cell.image.accessibilityLabel = self.altText[3]
+                            cell.image.accessibilityLabel = altText[3]
                         }
                     }
                     cell.altTextButton.tag = indexPath.item
-                    cell.altTextButton.addTarget(self, action: #selector(self.altTextTap), for: .touchUpInside)
+                    cell.altTextButton.addTarget(self, action: #selector(altTextTap), for: .touchUpInside)
                     cell.image.contentMode = .scaleAspectFill
-                    
-                    if let ur = URL(string: self.images[indexPath.item]) {
+
+                    if let ur = URL(string: images[indexPath.item]) {
                         cell.image.sd_setImage(with: ur)
                     }
                     cell.image.layer.masksToBounds = true
@@ -1703,7 +1685,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 for x in cell.image.subviews {
                     x.removeFromSuperview()
                 }
-                if (self.theStat?.reblog?.sensitive ?? self.theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
+                if (theStat?.reblog?.sensitive ?? theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
                     let blurEffect = UIBlurEffect(style: .regular)
                     var blurredEffectView = UIVisualEffectView()
                     blurredEffectView = UIVisualEffectView(effect: blurEffect)
@@ -1715,12 +1697,11 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             } else {
                 if GlobalStruct.smallImages {
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollectionImageCellS", for: indexPath) as! CollectionImageCellS
-                    if self.images.isEmpty {
-
+                    if images.isEmpty {
                     } else {
                         cell.configure()
                         cell.image.contentMode = .scaleAspectFill
-                        if let ur = URL(string: self.images[indexPath.item]) {
+                        if let ur = URL(string: images[indexPath.item]) {
                             cell.image.sd_setImage(with: ur)
                         }
                         cell.image.layer.masksToBounds = true
@@ -1729,7 +1710,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     for x in cell.image.subviews {
                         x.removeFromSuperview()
                     }
-                    if (self.theStat?.reblog?.sensitive ?? self.theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
+                    if (theStat?.reblog?.sensitive ?? theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
                         let blurEffect = UIBlurEffect(style: .regular)
                         var blurredEffectView = UIVisualEffectView()
                         blurredEffectView = UIVisualEffectView(effect: blurEffect)
@@ -1739,39 +1720,39 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     }
                     return cell
                 } else {
-                    if self.imageHeight == 220 {
+                    if imageHeight == 220 {
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollectionImageCell", for: indexPath) as! CollectionImageCell
-                        if self.images.isEmpty {} else {
+                        if images.isEmpty {} else {
                             cell.configure()
                             if indexPath.item == 0 {
-                                if self.altText.count > 0 && !self.altText[0].isEmpty {
+                                if altText.count > 0 && !altText[0].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[0]
+                                    cell.image.accessibilityLabel = altText[0]
                                 }
                             }
                             if indexPath.item == 1 {
-                                if self.altText.count > 1 && !self.altText[1].isEmpty {
+                                if altText.count > 1 && !altText[1].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[1]
+                                    cell.image.accessibilityLabel = altText[1]
                                 }
                             }
                             if indexPath.item == 2 {
-                                if self.altText.count > 2 && !self.altText[2].isEmpty {
+                                if altText.count > 2 && !altText[2].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[2]
+                                    cell.image.accessibilityLabel = altText[2]
                                 }
                             }
                             if indexPath.item == 3 {
-                                if self.altText.count > 3 && !self.altText[3].isEmpty {
+                                if altText.count > 3 && !altText[3].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[3]
+                                    cell.image.accessibilityLabel = altText[3]
                                 }
                             }
                             cell.altTextButton.tag = indexPath.item
-                            cell.altTextButton.addTarget(self, action: #selector(self.altTextTap), for: .touchUpInside)
+                            cell.altTextButton.addTarget(self, action: #selector(altTextTap), for: .touchUpInside)
                             cell.image.contentMode = .scaleAspectFill
                             if dataImages.isEmpty {
-                                if let ur = URL(string: self.images[indexPath.item]) ?? URL(string: "www.google.com") {
+                                if let ur = URL(string: images[indexPath.item]) ?? URL(string: "www.google.com") {
                                     cell.image.sd_setImage(with: ur)
                                 }
                             } else {
@@ -1783,7 +1764,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                         for x in cell.image.subviews {
                             x.removeFromSuperview()
                         }
-                        if (self.theStat?.reblog?.sensitive ?? self.theStat?.sensitive ?? false)  && GlobalStruct.blurSensitiveContent {
+                        if (theStat?.reblog?.sensitive ?? theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
                             let blurEffect = UIBlurEffect(style: .regular)
                             var blurredEffectView = UIVisualEffectView()
                             blurredEffectView = UIVisualEffectView(effect: blurEffect)
@@ -1794,38 +1775,37 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                         return cell
                     } else {
                         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollectionImageCell2", for: indexPath) as! CollectionImageCell2
-                        if self.images.isEmpty {
-
+                        if images.isEmpty {
                         } else {
                             cell.configure()
                             if indexPath.item == 0 {
-                                if self.altText.count > 0 && !self.altText[0].isEmpty {
+                                if altText.count > 0 && !altText[0].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[0]
+                                    cell.image.accessibilityLabel = altText[0]
                                 }
                             }
                             if indexPath.item == 1 {
-                                if self.altText.count > 1 && !self.altText[1].isEmpty {
+                                if altText.count > 1 && !altText[1].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[1]
+                                    cell.image.accessibilityLabel = altText[1]
                                 }
                             }
                             if indexPath.item == 2 {
-                                if self.altText.count > 2 && !self.altText[2].isEmpty {
+                                if altText.count > 2 && !altText[2].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[2]
+                                    cell.image.accessibilityLabel = altText[2]
                                 }
                             }
                             if indexPath.item == 3 {
-                                if self.altText.count > 3 && !self.altText[3].isEmpty {
+                                if altText.count > 3 && !altText[3].isEmpty {
                                     cell.altTextButton.alpha = 1
-                                    cell.image.accessibilityLabel = self.altText[3]
+                                    cell.image.accessibilityLabel = altText[3]
                                 }
                             }
                             cell.altTextButton.tag = indexPath.item
-                            cell.altTextButton.addTarget(self, action: #selector(self.altTextTap), for: .touchUpInside)
+                            cell.altTextButton.addTarget(self, action: #selector(altTextTap), for: .touchUpInside)
                             cell.image.contentMode = .scaleAspectFill
-                            if let ur = URL(string: self.images[indexPath.item]) {
+                            if let ur = URL(string: images[indexPath.item]) {
                                 cell.image.sd_setImage(with: ur)
                             }
                             cell.image.layer.masksToBounds = true
@@ -1834,7 +1814,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                         for x in cell.image.subviews {
                             x.removeFromSuperview()
                         }
-                        if (self.theStat?.reblog?.sensitive ?? self.theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
+                        if (theStat?.reblog?.sensitive ?? theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
                             let blurEffect = UIBlurEffect(style: .regular)
                             var blurredEffectView = UIVisualEffectView()
                             blurredEffectView = UIVisualEffectView(effect: blurEffect)
@@ -1848,11 +1828,11 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             }
         } else {
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "CollectionImageCell2", for: indexPath) as! CollectionImageCell2
-            if self.lpImage != UIImage() {} else {
-                if self.linkImages.isEmpty {} else {
+            if lpImage != UIImage() {} else {
+                if linkImages.isEmpty {} else {
                     cell.configure()
                     cell.image.contentMode = .scaleAspectFill
-                    if let ur = URL(string: self.linkImages[indexPath.item]) {
+                    if let ur = URL(string: linkImages[indexPath.item]) {
                         cell.image.sd_setImage(with: ur)
                     }
                     cell.image.layer.masksToBounds = true
@@ -1862,7 +1842,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             for x in cell.image.subviews {
                 x.removeFromSuperview()
             }
-            if (self.theStat?.reblog?.sensitive ?? self.theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
+            if (theStat?.reblog?.sensitive ?? theStat?.sensitive ?? false) && GlobalStruct.blurSensitiveContent {
                 let blurEffect = UIBlurEffect(style: .regular)
                 var blurredEffectView = UIVisualEffectView()
                 blurredEffectView = UIVisualEffectView(effect: blurEffect)
@@ -1876,18 +1856,17 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
 
     @objc func altTextTap(_ sender: UIButton) {
         triggerHapticImpact(style: .light)
-        let altTextPopup = self.altText[sender.tag]
+        let altTextPopup = altText[sender.tag]
         let alert = UIAlertController(title: nil, message: altTextPopup, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.copy", comment: ""), style: .default , handler:{ (UIAlertAction) in
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.copy", comment: ""), style: .default, handler: { _ in
             let pasteboard = UIPasteboard.general
             pasteboard.string = altTextPopup
         }))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
         }))
         if let presenter = alert.popoverPresentationController {
             presenter.sourceView = self
-            presenter.sourceRect = self.bounds
+            presenter.sourceRect = bounds
         }
         getTopMostViewController()?.present(alert, animated: true, completion: nil)
     }
@@ -1902,21 +1881,21 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         linkUsertag.text = ""
         linkPost.numberOfLines = 2
         linkUsername.numberOfLines = 2
-        
+
         if GlobalStruct.linkPreviewCardsLarge == false {
-            self.linkPost.isHidden = true
-            self.conLP1?.isActive = false
-            self.conLP2?.isActive = true
+            linkPost.isHidden = true
+            conLP1?.isActive = false
+            conLP2?.isActive = true
             lpImage.widthAnchor.constraint(equalToConstant: 65).isActive = true
             linkStackView.axis = .horizontal
         } else {
-            self.linkPost.isHidden = false
-            self.conLP1?.isActive = true
-            self.conLP2?.isActive = false
+            linkPost.isHidden = false
+            conLP1?.isActive = true
+            conLP2?.isActive = false
             lpImage.widthAnchor.constraint(equalToConstant: 65).isActive = false
             linkStackView.axis = .vertical
         }
-        
+
         if link2.title == "" {
             linkUsername.text = link2.authorName
         } else {
@@ -1930,24 +1909,24 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             linkPost.text = link2.description.replacingOccurrences(of: "\n", with: " ")
         }
         linkPost.URLColor = .secondaryLabel
-        if !self.images.isEmpty {
-            self.lpImage.isHidden = true
+        if !images.isEmpty {
+            lpImage.isHidden = true
         } else {
-            self.lpImage.isHidden = false
+            lpImage.isHidden = false
             if let x = link2.image?.absoluteString {
                 if let profileURL = URL(string: x) {
-                    self.lpImage.sd_setImage(with: profileURL, completed: nil)
+                    lpImage.sd_setImage(with: profileURL, completed: nil)
                 } else {
-                    self.lpImage.isHidden = true
+                    lpImage.isHidden = true
                 }
             } else {
-                self.lpImage.isHidden = true
+                lpImage.isHidden = true
             }
         }
-        self.linkCollectionView1.isHidden = true
-        self.conQ1 = self.linkCollectionView1.heightAnchor.constraint(equalToConstant: 0)
+        linkCollectionView1.isHidden = true
+        conQ1 = linkCollectionView1.heightAnchor.constraint(equalToConstant: 0)
     }
-    
+
     func setupQuotePostPreview(_ link2: Card) {
         // Only one of these two should be visible at any time
         quotePostHostView.isHidden = false
@@ -1960,17 +1939,14 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         linkUsertag.text = ""
         linkPost.numberOfLines = 0
         linkUsername.numberOfLines = 2
-        
 
-        self.linkPost.isHidden = true
-        
-        
-        self.conLP1?.isActive = false
-        self.conLP2?.isActive = false
+        linkPost.isHidden = true
+
+        conLP1?.isActive = false
+        conLP2?.isActive = false
         lpImage.widthAnchor.constraint(equalToConstant: 65).isActive = false
         linkStackView.axis = .vertical
 
-        
         if link2.title == "" {
             linkUsername.text = link2.authorName
         } else {
@@ -1984,55 +1960,55 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             linkPost.text = link2.description.replacingOccurrences(of: "\n", with: " ")
         }
         linkPost.URLColor = .secondaryLabel
-        if !self.images.isEmpty {
-            self.lpImage.isHidden = true
+        if !images.isEmpty {
+            lpImage.isHidden = true
         } else {
-            self.lpImage.isHidden = false
+            lpImage.isHidden = false
             if let x = link2.image?.absoluteString {
                 if let profileURL = URL(string: x) {
-                    self.lpImage.sd_setImage(with: profileURL, completed: nil)
+                    lpImage.sd_setImage(with: profileURL, completed: nil)
                 } else {
-                    self.lpImage.isHidden = true
+                    lpImage.isHidden = true
                 }
             } else {
-                self.lpImage.isHidden = true
+                lpImage.isHidden = true
             }
         }
-        self.linkCollectionView1.isHidden = true
-        self.conQ1 = self.linkCollectionView1.heightAnchor.constraint(equalToConstant: 0)
-        
+        linkCollectionView1.isHidden = true
+        conQ1 = linkCollectionView1.heightAnchor.constraint(equalToConstant: 0)
+
         // This is the important part for quote posts
         let cardURL = URL(string: link2.url ?? "")
-        self.quotePostHostView.updateForQuotePost(cardURL)
+        quotePostHostView.updateForQuotePost(cardURL)
     }
 
-    func dragInteraction(_ interaction: UIDragInteraction, itemsForBeginning session: UIDragSession) -> [UIDragItem] {
+    func dragInteraction(_: UIDragInteraction, itemsForBeginning _: UIDragSession) -> [UIDragItem] {
         return []
     }
 
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { suggestedActions in
-            return self.makeContextMenu()
+    func contextMenuInteraction(_: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { _ in
+            self.makeContextMenu()
         })
     }
 
     func makeContextMenu() -> UIMenu {
-        let openLink = UIAction(title: "Open Link", image: UIImage(systemName: "safari"), identifier: nil) { action in
+        let openLink = UIAction(title: "Open Link", image: UIImage(systemName: "safari"), identifier: nil) { _ in
             if let x = self.linkStr?.url {
                 if let ur = URL(string: x) {
                     PostActions.openLink(ur)
                 }
             }
         }
-        let copy = UIAction(title: NSLocalizedString("generic.copy", comment: ""), image: UIImage(systemName: "doc.on.doc"), identifier: nil) { action in
+        let copy = UIAction(title: NSLocalizedString("generic.copy", comment: ""), image: UIImage(systemName: "doc.on.doc"), identifier: nil) { _ in
             if let x = self.linkStr?.url {
                 UIPasteboard.general.string = x
             }
         }
-        let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { action in
+        let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { _ in
             if let x = self.linkStr?.url {
                 let linkToShare = [x]
-                let activityViewController = UIActivityViewController(activityItems: linkToShare,  applicationActivities: nil)
+                let activityViewController = UIActivityViewController(activityItems: linkToShare, applicationActivities: nil)
                 activityViewController.popoverPresentationController?.sourceView = self
                 activityViewController.popoverPresentationController?.sourceRect = self.bounds
                 getTopMostViewController()?.present(activityViewController, animated: true, completion: nil)
@@ -2043,7 +2019,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
 
     func collectionView(_ collectionView: UICollectionView, previewForHighlightingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
         guard let indexPath = configuration.identifier as? IndexPath else { return nil }
-        if collectionView == self.linkCollectionView1 {
+        if collectionView == linkCollectionView1 {
             return nil
         } else {
             if GlobalStruct.smallImages {
@@ -2072,7 +2048,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
 
     func collectionView(_ collectionView: UICollectionView, previewForDismissingContextMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
         guard let indexPath = configuration.identifier as? IndexPath else { return nil }
-        if collectionView == self.linkCollectionView1 {
+        if collectionView == linkCollectionView1 {
             return nil
         } else {
             if GlobalStruct.smallImages {
@@ -2099,7 +2075,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         }
     }
 
-    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point: CGPoint) -> UIContextMenuConfiguration? {
+    func collectionView(_ collectionView: UICollectionView, contextMenuConfigurationForItemAt indexPath: IndexPath, point _: CGPoint) -> UIContextMenuConfiguration? {
         return UIContextMenuConfiguration(identifier: indexPath as NSIndexPath, previewProvider: {
             if self.videoUrl != "" {
                 return self.makePreviewV()
@@ -2112,14 +2088,14 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     return self.makePreview2(0)
                 }
             }
-        }, actionProvider: { suggestedActions in
-            return self.makeContextMenu(indexPath.row, collectionView: collectionView)
+        }, actionProvider: { _ in
+            self.makeContextMenu(indexPath.row, collectionView: collectionView)
         })
     }
 
     func makePreviewV() -> UIViewController {
         let viewController = UIViewController()
-        let asset = AVAsset(url: URL(string: self.videoUrl)!)
+        let asset = AVAsset(url: URL(string: videoUrl)!)
         let playerItem = AVPlayerItem(asset: asset)
         let player = AVPlayer(playerItem: playerItem)
         player.play()
@@ -2127,12 +2103,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         let size = asset.videoSize ?? .zero
         var ratioS: CGFloat = 1
         if size.height == 0 {} else {
-            ratioS = size.width/size.height
+            ratioS = size.width / size.height
         }
         if size.height >= (size.width * 2) {
-            playerLayer.frame = CGRect(x: 0, y: 0, width: self.bounds.width/2, height: self.bounds.width/2/ratioS)
+            playerLayer.frame = CGRect(x: 0, y: 0, width: bounds.width / 2, height: bounds.width / 2 / ratioS)
         } else {
-            playerLayer.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+            playerLayer.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
         }
         playerLayer.videoGravity = .resizeAspectFill
         viewController.view.layer.addSublayer(playerLayer)
@@ -2142,7 +2118,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
 
     func makePreviewV2() -> UIViewController {
         let viewController = UIViewController()
-        let asset = AVAsset(url: URL(string: self.videoUrlQ)!)
+        let asset = AVAsset(url: URL(string: videoUrlQ)!)
         let playerItem = AVPlayerItem(asset: asset)
         let player = AVPlayer(playerItem: playerItem)
         player.play()
@@ -2150,12 +2126,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         let size = asset.videoSize ?? .zero
         var ratioS: CGFloat = 1
         if size.height == 0 {} else {
-            ratioS = size.width/size.height
+            ratioS = size.width / size.height
         }
         if size.height >= (size.width * 2) {
-            playerLayer.frame = CGRect(x: 0, y: 0, width: self.bounds.width/2, height: self.bounds.width/2/ratioS)
+            playerLayer.frame = CGRect(x: 0, y: 0, width: bounds.width / 2, height: bounds.width / 2 / ratioS)
         } else {
-            playerLayer.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+            playerLayer.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
         }
         playerLayer.videoGravity = .resizeAspectFill
         viewController.view.layer.addSublayer(playerLayer)
@@ -2171,12 +2147,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             viewController.view = imageView
             var ratioS: CGFloat = 1
             if theImage.size.height == 0 {} else {
-                ratioS = theImage.size.width/theImage.size.height
+                ratioS = theImage.size.width / theImage.size.height
             }
             if theImage == UIImage() {
                 imageView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
             } else {
-                imageView.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+                imageView.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
             }
             imageView.contentMode = .scaleAspectFit
             viewController.preferredContentSize = imageView.frame.size
@@ -2188,12 +2164,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             viewController.view = imageView
             var ratioS: CGFloat = 1
             if theImage.size.height == 0 {} else {
-                ratioS = theImage.size.width/theImage.size.height
+                ratioS = theImage.size.width / theImage.size.height
             }
             if theImage == UIImage() {
                 imageView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
             } else {
-                imageView.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+                imageView.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
             }
             imageView.contentMode = .scaleAspectFit
             viewController.preferredContentSize = imageView.frame.size
@@ -2205,12 +2181,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             viewController.view = imageView
             var ratioS: CGFloat = 1
             if theImage.size.height == 0 {} else {
-                ratioS = theImage.size.width/theImage.size.height
+                ratioS = theImage.size.width / theImage.size.height
             }
             if theImage == UIImage() {
                 imageView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
             } else {
-                imageView.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+                imageView.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
             }
             imageView.contentMode = .scaleAspectFit
             viewController.preferredContentSize = imageView.frame.size
@@ -2222,12 +2198,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             viewController.view = imageView
             var ratioS: CGFloat = 1
             if theImage.size.height == 0 {} else {
-                ratioS = theImage.size.width/theImage.size.height
+                ratioS = theImage.size.width / theImage.size.height
             }
             if theImage == UIImage() {
                 imageView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
             } else {
-                imageView.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+                imageView.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
             }
             imageView.contentMode = .scaleAspectFit
             viewController.preferredContentSize = imageView.frame.size
@@ -2239,12 +2215,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             viewController.view = imageView
             var ratioS: CGFloat = 1
             if theImage.size.height == 0 {} else {
-                ratioS = theImage.size.width/theImage.size.height
+                ratioS = theImage.size.width / theImage.size.height
             }
             if theImage == UIImage() {
                 imageView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
             } else {
-                imageView.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+                imageView.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
             }
             imageView.contentMode = .scaleAspectFit
             viewController.preferredContentSize = imageView.frame.size
@@ -2262,12 +2238,12 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             viewController.view = imageView
             var ratioS: CGFloat = 1
             if theImage.size.height == 0 {} else {
-                ratioS = theImage.size.width/theImage.size.height
+                ratioS = theImage.size.width / theImage.size.height
             }
             if theImage == UIImage() {
                 imageView.frame = CGRect(x: 0, y: 0, width: 0, height: 0)
             } else {
-                imageView.frame = CGRect(x: 0, y: 0, width: self.bounds.width, height: self.bounds.width/ratioS)
+                imageView.frame = CGRect(x: 0, y: 0, width: bounds.width, height: bounds.width / ratioS)
             }
             imageView.contentMode = .scaleAspectFit
             viewController.preferredContentSize = imageView.frame.size
@@ -2277,34 +2253,34 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         }
     }
 
-    public func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+    func activityViewControllerPlaceholderItem(_: UIActivityViewController) -> Any {
         return ""
     }
 
-    public func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
+    func activityViewController(_: UIActivityViewController, itemForActivityType _: UIActivity.ActivityType?) -> Any? {
         return nil
     }
 
-    public func activityViewControllerLinkMetadata(_ activityViewController: UIActivityViewController) -> LPLinkMetadata? {
-        var image1: UIImage = UIImage()
-        if self.tmpCollection == self.collectionView1 {
-            if let cell = collectionView1.cellForItem(at: IndexPath(item: self.tmpIndex, section: 0)) as? CollectionImageCellS {
+    func activityViewControllerLinkMetadata(_: UIActivityViewController) -> LPLinkMetadata? {
+        var image1 = UIImage()
+        if tmpCollection == collectionView1 {
+            if let cell = collectionView1.cellForItem(at: IndexPath(item: tmpIndex, section: 0)) as? CollectionImageCellS {
                 image1 = cell.image.image ?? UIImage()
             }
-            if let cell = collectionView1.cellForItem(at: IndexPath(item: self.tmpIndex, section: 0)) as? CollectionImageCell {
+            if let cell = collectionView1.cellForItem(at: IndexPath(item: tmpIndex, section: 0)) as? CollectionImageCell {
                 image1 = cell.image.image ?? UIImage()
             }
-            if let cell = collectionView1.cellForItem(at: IndexPath(item: self.tmpIndex, section: 0)) as? CollectionImageCellActivity {
+            if let cell = collectionView1.cellForItem(at: IndexPath(item: tmpIndex, section: 0)) as? CollectionImageCellActivity {
                 image1 = cell.image.image ?? UIImage()
             }
-            if let cell = collectionView1.cellForItem(at: IndexPath(item: self.tmpIndex, section: 0)) as? CollectionImageCell2 {
+            if let cell = collectionView1.cellForItem(at: IndexPath(item: tmpIndex, section: 0)) as? CollectionImageCell2 {
                 image1 = cell.image.image ?? UIImage()
             }
-            if let cell = collectionView1.cellForItem(at: IndexPath(item: self.tmpIndex, section: 0)) as? CollectionImageCell3 {
+            if let cell = collectionView1.cellForItem(at: IndexPath(item: tmpIndex, section: 0)) as? CollectionImageCell3 {
                 image1 = cell.image.image ?? UIImage()
             }
         } else {
-            if let cell = linkCollectionView1.cellForItem(at: IndexPath(item: self.tmpIndex, section: 0)) as? CollectionImageCell2 {
+            if let cell = linkCollectionView1.cellForItem(at: IndexPath(item: tmpIndex, section: 0)) as? CollectionImageCell2 {
                 image1 = cell.image.image ?? UIImage()
             }
         }
@@ -2316,10 +2292,10 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
     }
 
     func makeContextMenu(_ index: Int, collectionView: UICollectionView) -> UIMenu {
-        self.tmpCollection = collectionView
-        var image1: UIImage = UIImage()
-        if self.videoUrl != "" {
-            let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { action in
+        tmpCollection = collectionView
+        var image1 = UIImage()
+        if videoUrl != "" {
+            let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { _ in
                 if let videoURL = URL(string: self.videoUrl) {
                     let imageToShare = [videoURL]
                     let activityViewController = UIActivityViewController(activityItems: imageToShare, applicationActivities: nil)
@@ -2347,17 +2323,17 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     getTopMostViewController()?.present(activityViewController, animated: true, completion: nil)
                 }
             }
-            let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { action in
+            let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { _ in
                 if let videoURL = URL(string: self.videoUrl) {
                     DispatchQueue.global(qos: .background).async {
                         if let urlData = NSData(contentsOf: videoURL) {
                             let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-                            let filePath="\(documentsPath)/tempFile.mp4"
+                            let filePath = "\(documentsPath)/tempFile.mp4"
                             DispatchQueue.main.async {
                                 urlData.write(toFile: filePath, atomically: true)
                                 PHPhotoLibrary.shared().performChanges({
                                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: URL(fileURLWithPath: filePath))
-                                }) { completed, error in
+                                }) { completed, _ in
                                     if completed {
                                         print("Video is saved!")
                                     }
@@ -2368,8 +2344,8 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 }
             }
             return UIMenu(title: "", image: nil, identifier: nil, children: [share, save])
-        } else if self.videoUrlQ != "" {
-            let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { action in
+        } else if videoUrlQ != "" {
+            let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { _ in
                 if let videoURL = URL(string: self.videoUrlQ) {
                     let imageToShare = [videoURL]
                     let activityViewController = UIActivityViewController(activityItems: imageToShare, applicationActivities: nil)
@@ -2397,17 +2373,17 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     getTopMostViewController()?.present(activityViewController, animated: true, completion: nil)
                 }
             }
-            let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { action in
+            let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { _ in
                 if let videoURL = URL(string: self.videoUrlQ) {
                     DispatchQueue.global(qos: .background).async {
                         if let urlData = NSData(contentsOf: videoURL) {
                             let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-                            let filePath="\(documentsPath)/tempFile.mp4"
+                            let filePath = "\(documentsPath)/tempFile.mp4"
                             DispatchQueue.main.async {
                                 urlData.write(toFile: filePath, atomically: true)
                                 PHPhotoLibrary.shared().performChanges({
                                     PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: URL(fileURLWithPath: filePath))
-                                }) { completed, error in
+                                }) { completed, _ in
                                     if completed {
                                         print("Video is saved!")
                                     }
@@ -2419,7 +2395,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             }
             return UIMenu(title: "", image: nil, identifier: nil, children: [share, save])
         } else {
-            if collectionView == self.collectionView1 {
+            if collectionView == collectionView1 {
                 if let cell = collectionView1.cellForItem(at: IndexPath(item: index, section: 0)) as? CollectionImageCellS {
                     image1 = cell.image.image ?? UIImage()
                 }
@@ -2440,18 +2416,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     image1 = cell.image.image ?? UIImage()
                 }
             }
-            let copy = UIAction(title: NSLocalizedString("generic.copy", comment: ""), image: UIImage(systemName: "doc.on.doc"), identifier: nil) { action in
+            let copy = UIAction(title: NSLocalizedString("generic.copy", comment: ""), image: UIImage(systemName: "doc.on.doc"), identifier: nil) { _ in
                 UIPasteboard.general.image = image1
             }
-            let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { action in
+            let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { _ in
                 self.tmpIndex = index
                 let imToShare = [image1, self]
-                let activityViewController = UIActivityViewController(activityItems: imToShare,  applicationActivities: nil)
+                let activityViewController = UIActivityViewController(activityItems: imToShare, applicationActivities: nil)
                 activityViewController.popoverPresentationController?.sourceView = self
                 activityViewController.popoverPresentationController?.sourceRect = self.bounds
                 getTopMostViewController()?.present(activityViewController, animated: true, completion: nil)
             }
-            let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { action in
+            let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { _ in
                 UIImageWriteToSavedPhotosAlbum(image1, nil, nil, nil)
                 NotificationCenter.default.post(name: Notification.Name(rawValue: "savedImage"), object: nil)
             }
@@ -2460,15 +2436,15 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 actMenu.preferredElementSize = .small
             }
             var alt = ""
-            if index < self.altText.count {
-                alt = self.altText[index]
+            if index < altText.count {
+                alt = altText[index]
             }
             return UIMenu(title: alt, image: nil, identifier: nil, children: [actMenu])
         }
     }
 
     func setupImages(url1: String, url2: String?, url3: String?, url4: String?, isVideo: Bool? = false, altText: [String] = [], fullImages: [Attachment] = []) {
-        self.imagesFull = fullImages
+        imagesFull = fullImages
         self.isVideo = isVideo ?? false
         self.altText = altText
         images = []
@@ -2502,15 +2478,14 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             countButtonBG.isUserInteractionEnabled = false
         } else {
             countButtonBG.alpha = 0
-            if self.dataImages.count < 2 {
-
+            if dataImages.count < 2 {
             } else {
                 countButtonBG.alpha = 1
                 countButtonBG.frame = CGRect(x: 35, y: collectionView1.frame.origin.y, width: 40, height: 25)
 
                 countButton.frame = CGRect(x: 0, y: 0, width: 40, height: 25)
                 countButton.titleLabel?.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize + GlobalStruct.customTextSize, weight: .bold)
-                countButton.setTitle("1/\(self.dataImages.count)", for: .normal)
+                countButton.setTitle("1/\(dataImages.count)", for: .normal)
                 countButton.sizeToFit()
                 countButtonBG.widthAnchor.constraint(equalToConstant: countButton.bounds.size.width).isActive = true
                 countButtonBG.heightAnchor.constraint(equalToConstant: countButton.bounds.size.height).isActive = true
@@ -2523,7 +2498,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         }
     }
 
-    func setupQuoteImages(url1: String, url2: String?, url3: String?, url4: String?, isVideo: Bool? = false) {
+    func setupQuoteImages(url1: String, url2: String?, url3: String?, url4: String?, isVideo _: Bool? = false) {
         linkImages = []
         linkImages.append(url1)
         if url2 != nil {
@@ -2540,7 +2515,6 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         if url2 != nil {
             // show count
             if GlobalStruct.smallImages {
-
             } else {
                 linkAllCounts = linkImages.count
                 linkCountButtonBG.alpha = 1
@@ -2560,15 +2534,14 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             }
         } else {
             linkCountButtonBG.alpha = 0
-            if self.dataImages.count < 2 {
-
+            if dataImages.count < 2 {
             } else {
                 linkCountButtonBG.alpha = 1
                 linkCountButtonBG.frame = CGRect(x: 6, y: 6, width: 40, height: 25)
 
                 linkCountButton.frame = CGRect(x: 0, y: 0, width: 40, height: 25)
                 linkCountButton.titleLabel?.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .caption2).pointSize + GlobalStruct.customTextSize, weight: .bold)
-                linkCountButton.setTitle("1/\(self.linkDataImages.count)", for: .normal)
+                linkCountButton.setTitle("1/\(linkDataImages.count)", for: .normal)
                 linkCountButton.sizeToFit()
                 linkCountButtonBG.frame.size.width = linkCountButton.bounds.size.width
                 linkCountButtonBG.frame.size.height = linkCountButton.bounds.size.height
@@ -2582,23 +2555,23 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
     }
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let center = CGPoint(x: scrollView.contentOffset.x + (scrollView.frame.width / 2), y: (scrollView.frame.height / 2))
-        if let ip = self.collectionView1.indexPathForItem(at: center) {
+        let center = CGPoint(x: scrollView.contentOffset.x + (scrollView.frame.width / 2), y: scrollView.frame.height / 2)
+        if let ip = collectionView1.indexPathForItem(at: center) {
             currentIndex = ip.row
             countButton.alpha = 1
-            if self.dataImages.isEmpty {
+            if dataImages.isEmpty {
                 countButton.setTitle("\(ip.row + 1)/\(allCounts)", for: .normal)
             } else {
-                countButton.setTitle("\(ip.row + 1)/\(self.dataImages.count)", for: .normal)
+                countButton.setTitle("\(ip.row + 1)/\(dataImages.count)", for: .normal)
             }
         }
-        if let ip = self.linkCollectionView1.indexPathForItem(at: center) {
+        if let ip = linkCollectionView1.indexPathForItem(at: center) {
             linkCurrentIndex = ip.row
             linkCountButton.alpha = 1
-            if self.linkDataImages.isEmpty {
+            if linkDataImages.isEmpty {
                 linkCountButton.setTitle("\(ip.row + 1)/\(linkAllCounts)", for: .normal)
             } else {
-                linkCountButton.setTitle("\(ip.row + 1)/\(self.linkDataImages.count)", for: .normal)
+                linkCountButton.setTitle("\(ip.row + 1)/\(linkDataImages.count)", for: .normal)
             }
         }
     }
@@ -2622,23 +2595,23 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             let symbolConfigS = UIImage.SymbolConfiguration(pointSize: 20, weight: .semibold)
 
             if GlobalStruct.smallImages {
-                self.playButton.frame = CGRect(x: 15, y: 15, width: 36, height: 36)
-                self.playButton.layer.cornerRadius = 18
-                self.collectionView1.addSubview(self.playButton)
+                playButton.frame = CGRect(x: 15, y: 15, width: 36, height: 36)
+                playButton.layer.cornerRadius = 18
+                collectionView1.addSubview(playButton)
             } else {
                 var wid: CGFloat = 0
                 if UIApplication.shared.preferredApplicationWindow?.traitCollection.horizontalSizeClass != .compact {
-                    wid = (CGFloat(GlobalStruct.padColWidth - 100))/2
+                    wid = CGFloat(GlobalStruct.padColWidth - 100) / 2
                 } else {
                     #if targetEnvironment(macCatalyst)
-                    wid = (CGFloat(GlobalStruct.padColWidth - 100))/2
+                        wid = CGFloat(GlobalStruct.padColWidth - 100) / 2
                     #else
-                    wid = ((UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) - 100)/2
+                        wid = ((UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) - 100) / 2
                     #endif
                 }
-                self.playButton.frame = CGRect(x: wid + 80 - 35, y: 110 - 35, width: 70, height: 70)
-                self.playButton.layer.cornerRadius = 35
-                self.collectionView1.addSubview(self.playButton)
+                playButton.frame = CGRect(x: wid + 80 - 35, y: 110 - 35, width: 70, height: 70)
+                playButton.layer.cornerRadius = 35
+                collectionView1.addSubview(playButton)
             }
             playButton.backgroundColor = UIColor.white
             playButton.isHidden = false
@@ -2667,35 +2640,35 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                     countButton2.setImage(UIImage(systemName: "play.fill", withConfiguration: symbolConfig)?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
                 }
             }
-            self.playButton.addSubview(countButton2)
+            playButton.addSubview(countButton2)
         }
     }
 
     func setupPlayButtonQ(_ videoUrl: String) {
-        self.videoUrlQ = ""
-        self.playButtonQ.isHidden = true
+        videoUrlQ = ""
+        playButtonQ.isHidden = true
         if videoUrl != "" {
-            self.videoUrlQ = videoUrl
+            videoUrlQ = videoUrl
             if GlobalStruct.smallImages {} else {
                 let symbolConfig = UIImage.SymbolConfiguration(pointSize: 40, weight: .semibold)
 
                 var wid: CGFloat = 0
                 if UIApplication.shared.preferredApplicationWindow?.traitCollection.horizontalSizeClass != .compact {
-                    wid = (CGFloat(GlobalStruct.padColWidth - 92))/2
+                    wid = CGFloat(GlobalStruct.padColWidth - 92) / 2
                 } else {
                     #if targetEnvironment(macCatalyst)
-                    wid = (CGFloat(GlobalStruct.padColWidth - 92))/2
+                        wid = CGFloat(GlobalStruct.padColWidth - 92) / 2
                     #else
-                    wid = ((UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) - 92)/2
+                        wid = ((UIApplication.shared.windows.first?.bounds.width ?? UIScreen.main.bounds.width) - 92) / 2
                     #endif
                 }
-                self.playButtonQ.frame = CGRect(x: wid - 35, y: 95 - 35, width: 70, height: 70)
-                self.playButtonQ.layer.cornerRadius = 35
-                self.linkCollectionView1.addSubview(self.playButtonQ)
+                playButtonQ.frame = CGRect(x: wid - 35, y: 95 - 35, width: 70, height: 70)
+                playButtonQ.layer.cornerRadius = 35
+                linkCollectionView1.addSubview(playButtonQ)
 
-                self.playButtonQ.backgroundColor = UIColor.white
-                self.playButtonQ.isHidden = false
-                self.playButtonQ.isUserInteractionEnabled = false
+                playButtonQ.backgroundColor = UIColor.white
+                playButtonQ.isHidden = false
+                playButtonQ.isUserInteractionEnabled = false
 
                 let countButton2 = UIButton()
                 countButton2.frame.size.width = 70
@@ -2703,7 +2676,7 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 countButton2.isUserInteractionEnabled = false
                 countButton2.backgroundColor = UIColor.clear
                 countButton2.setImage(UIImage(systemName: "play.fill", withConfiguration: symbolConfig)?.withTintColor(.black, renderingMode: .alwaysOriginal), for: .normal)
-                self.playButtonQ.addSubview(countButton2)
+                playButtonQ.addSubview(countButton2)
             }
         }
     }
@@ -2718,38 +2691,38 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 assetForCache.loadValuesAsynchronously(forKeys: keys, completionHandler: {
                     self.player = AVPlayer(playerItem: playerItem)
                     self.player.isMuted = true
-                    
-                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil) { (_) in
+
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil) { _ in
                         if UIApplication.shared.applicationState == .active {
                             self.player.seek(to: CMTime.zero)
                             self.player.play()
                         }
                     }
-                    
+
                     DispatchQueue.main.async {
                         self.playerController.view.isHidden = false
                         self.playerController.videoGravity = .resizeAspectFill
                         self.playerController.player = self.player
                         if let vi = self.playerController.view {
-                            if let cell = self.collectionView1.cellForItem(at: (IndexPath(item: 0, section: 0))) as? CollectionImageCell {
+                            if let cell = self.collectionView1.cellForItem(at: IndexPath(item: 0, section: 0)) as? CollectionImageCell {
                                 vi.backgroundColor = .custom.quoteTint
                                 vi.layer.cornerRadius = 10
                                 vi.layer.masksToBounds = true
                                 vi.frame = cell.image.frame
                                 self.inputViewController?.addChild(self.playerController)
                                 self.collectionView1.addSubview(vi)
-                                
+
                                 self.player.play()
                                 self.playerController.player?.play()
                             }
-                            if let cell = self.collectionView1.cellForItem(at: (IndexPath(item: 0, section: 0))) as? CollectionImageCellActivity {
+                            if let cell = self.collectionView1.cellForItem(at: IndexPath(item: 0, section: 0)) as? CollectionImageCellActivity {
                                 vi.backgroundColor = .custom.quoteTint
                                 vi.layer.cornerRadius = 10
                                 vi.layer.masksToBounds = true
                                 vi.frame = cell.image.frame
                                 self.inputViewController?.addChild(self.playerController)
                                 self.collectionView1.addSubview(vi)
-                                
+
                                 self.player.play()
                                 self.playerController.player?.play()
                             }
@@ -2770,27 +2743,27 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 assetForCache.loadValuesAsynchronously(forKeys: keys, completionHandler: {
                     self.playerQ = AVPlayer(playerItem: playerItem)
                     self.playerQ.isMuted = true
-                    
-                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.playerQ.currentItem, queue: nil) { (_) in
+
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.playerQ.currentItem, queue: nil) { _ in
                         if UIApplication.shared.applicationState == .active {
                             self.playerQ.seek(to: CMTime.zero)
                             self.playerQ.play()
                         }
                     }
-                    
+
                     DispatchQueue.main.async {
                         self.playerControllerQ.view.isHidden = false
                         self.playerControllerQ.videoGravity = .resizeAspectFill
                         self.playerControllerQ.player = self.playerQ
                         if let vi = self.playerControllerQ.view {
-                            if let cell = self.linkCollectionView1.cellForItem(at: (IndexPath(item: 0, section: 0))) as? CollectionImageCell2 {
+                            if let cell = self.linkCollectionView1.cellForItem(at: IndexPath(item: 0, section: 0)) as? CollectionImageCell2 {
                                 vi.backgroundColor = .custom.quoteTint
 //                                vi.layer.cornerRadius = 10
                                 vi.layer.masksToBounds = true
                                 vi.frame = CGRect(x: 0, y: 0, width: cell.image.frame.size.width, height: cell.image.frame.size.height)
                                 self.inputViewController?.addChild(self.playerControllerQ)
                                 self.linkCollectionView1.addSubview(vi)
-                                
+
                                 self.playerQ.play()
                                 self.playerControllerQ.player?.play()
                             }
@@ -2802,21 +2775,21 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
     }
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        if collectionView == self.collectionView1 {
-            if self.videoUrl != "" {
-                if let ur = URL(string: self.videoUrl) {
+        if collectionView == collectionView1 {
+            if videoUrl != "" {
+                if let ur = URL(string: videoUrl) {
                     let player = AVPlayer(url: ur)
                     let vc = CustomVideoPlayer()
                     vc.delegate = self
                     vc.allowsPictureInPicturePlayback = true
-                    
-                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: nil) { (_) in
+
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: nil) { _ in
                         if UIApplication.shared.applicationState == .active {
                             player.seek(to: CMTime.zero)
                             player.play()
                         }
                     }
-                    
+
                     vc.player = player
                     GlobalStruct.inVideoPlayer = true
                     getTopMostViewController()?.present(vc, animated: true) {
@@ -2826,18 +2799,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             } else {
                 if dataImages.isEmpty {
                     var images = [SKPhoto]()
-                    if let cell = self.collectionView1.cellForItem(at: indexPath) as? CollectionImageCell {
+                    if let cell = collectionView1.cellForItem(at: indexPath) as? CollectionImageCell {
                         if let originImage = cell.image.image {
-                            for x in self.imagesFull {
+                            for x in imagesFull {
                                 let photo = SKPhoto.photoWithImageURL(x.url ?? x.previewURL!)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -2851,18 +2824,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             getTopMostViewController()?.present(browser, animated: true, completion: {})
                         }
                     }
-                    if let cell = self.collectionView1.cellForItem(at: indexPath) as? CollectionImageCellActivity {
+                    if let cell = collectionView1.cellForItem(at: indexPath) as? CollectionImageCellActivity {
                         if let originImage = cell.image.image {
-                            for x in self.imagesFull {
+                            for x in imagesFull {
                                 let photo = SKPhoto.photoWithImageURL(x.url ?? x.previewURL!)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -2876,18 +2849,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             getTopMostViewController()?.present(browser, animated: true, completion: {})
                         }
                     }
-                    if let cell = self.collectionView1.cellForItem(at: indexPath) as? CollectionImageCellS {
+                    if let cell = collectionView1.cellForItem(at: indexPath) as? CollectionImageCellS {
                         if let originImage = cell.image.image {
-                            for x in self.imagesFull {
+                            for x in imagesFull {
                                 let photo = SKPhoto.photoWithImageURL(x.url ?? x.previewURL!)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -2901,18 +2874,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             getTopMostViewController()?.present(browser, animated: true, completion: {})
                         }
                     }
-                    if let cell = self.collectionView1.cellForItem(at: indexPath) as? CollectionImageCell2 {
+                    if let cell = collectionView1.cellForItem(at: indexPath) as? CollectionImageCell2 {
                         if let originImage = cell.image.image {
-                            for x in self.imagesFull {
+                            for x in imagesFull {
                                 let photo = SKPhoto.photoWithImageURL(x.url ?? x.previewURL!)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -2926,18 +2899,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             getTopMostViewController()?.present(browser, animated: true, completion: {})
                         }
                     }
-                    if let cell = self.collectionView1.cellForItem(at: indexPath) as? CollectionImageCell3 {
+                    if let cell = collectionView1.cellForItem(at: indexPath) as? CollectionImageCell3 {
                         if let originImage = cell.image.image {
-                            for x in self.imagesFull {
+                            for x in imagesFull {
                                 let photo = SKPhoto.photoWithImageURL(x.url ?? x.previewURL!)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: postText.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -2954,20 +2927,20 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                 }
             }
         } else {
-            if self.videoUrlQ != "" && self.lpImage == UIImage() {
-                if let ur = URL(string: self.videoUrlQ) {
+            if videoUrlQ != "", lpImage == UIImage() {
+                if let ur = URL(string: videoUrlQ) {
                     let player = AVPlayer(url: ur)
                     let vc = CustomVideoPlayer()
                     vc.delegate = self
                     vc.allowsPictureInPicturePlayback = true
-                    
-                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: nil) { (_) in
+
+                    NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: player.currentItem, queue: nil) { _ in
                         if UIApplication.shared.applicationState == .active {
                             player.seek(to: CMTime.zero)
                             player.play()
                         }
                     }
-                    
+
                     vc.player = player
                     GlobalStruct.inVideoPlayer = true
                     getTopMostViewController()?.present(vc, animated: true) {
@@ -2977,18 +2950,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
             } else {
                 if linkDataImages.isEmpty {
                     var images = [SKPhoto]()
-                    if let cell = self.linkCollectionView1.cellForItem(at: indexPath) as? CollectionImageCell {
+                    if let cell = linkCollectionView1.cellForItem(at: indexPath) as? CollectionImageCell {
                         if let originImage = cell.image.image {
-                            for x in self.linkImages {
+                            for x in linkImages {
                                 let photo = SKPhoto.photoWithImageURL(x)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.linkPost.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: linkPost.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -3002,18 +2975,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             getTopMostViewController()?.present(browser, animated: true, completion: {})
                         }
                     }
-                    if let cell = self.linkCollectionView1.cellForItem(at: indexPath) as? CollectionImageCellActivity {
+                    if let cell = linkCollectionView1.cellForItem(at: indexPath) as? CollectionImageCellActivity {
                         if let originImage = cell.image.image {
-                            for x in self.linkImages {
+                            for x in linkImages {
                                 let photo = SKPhoto.photoWithImageURL(x)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.linkPost.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: linkPost.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -3027,18 +3000,18 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
                             getTopMostViewController()?.present(browser, animated: true, completion: {})
                         }
                     }
-                    if let cell = self.linkCollectionView1.cellForItem(at: indexPath) as? CollectionImageCell3 {
+                    if let cell = linkCollectionView1.cellForItem(at: indexPath) as? CollectionImageCell3 {
                         if let originImage = cell.image.image {
-                            for x in self.linkImages {
+                            for x in linkImages {
                                 let photo = SKPhoto.photoWithImageURL(x)
                                 photo.shouldCachePhotoURLImage = true
                                 images.append(photo)
                             }
                             var alt = ""
-                            if indexPath.item < self.altText.count {
-                                alt = self.altText[indexPath.item]
+                            if indexPath.item < altText.count {
+                                alt = altText[indexPath.item]
                             }
-                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: self.linkPost.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
+                            let browser = SKPhotoBrowser(originImage: originImage, photos: images, animatedFromView: cell.image, imageText: linkPost.text ?? "", imageText2: 0, imageText3: 0, imageText4: alt)
                             browser.delegate = self
                             SKPhotoBrowserOptions.enableSingleTapDismiss = false
                             SKPhotoBrowserOptions.displayCounterLabel = false
@@ -3057,15 +3030,14 @@ class PostView: UIView, UICollectionViewDataSource, UICollectionViewDelegate, SK
         }
     }
 
-    var linkStr: Card? = nil
+    var linkStr: Card?
     @objc func linkTapped() {
         triggerHapticImpact(style: .light)
         // open url
-        if let x = self.linkStr?.url {
+        if let x = linkStr?.url {
             if let ur = URL(string: x) {
                 PostActions.openLink(ur)
             }
         }
     }
-
 }

@@ -5,7 +5,6 @@
 //  Created by Riley Howard on 2/25/23.
 //
 
-
 // IMPORTANT:
 //
 // Initial setup before running tests:
@@ -17,24 +16,18 @@
 //  [eventually, the above may be automated out...]
 //
 
-
-
-import XCTest
 @testable import Mammoth
-
+import XCTest
 
 final class FollowManagerTest: XCTestCase {
-
     var testBert1Account: Account!
     var testBert2Account: Account!
     var testBert3Account: Account!
-
 
     //
     // Put setup code here. This method is called before the invocation of each test method in the class.
     //
     override func setUpWithError() throws {
-        
         // For now, just assert that the app is logged into all three accounts,
         let accounts = Account.getAccounts()
         testBert1Account = accounts.first(where: { account in
@@ -46,68 +39,64 @@ final class FollowManagerTest: XCTestCase {
         testBert3Account = accounts.first(where: { account in
             account.fullAcct == "TestBertThree@moth.social"
         })
-        
+
         XCTAssertTrue(accounts.contains(testBert1Account), "TestBert1 must be logged in")
         XCTAssertTrue(accounts.contains(testBert2Account), "TestBert2 must be logged in")
         XCTAssertTrue(accounts.contains(testBert3Account), "TestBert3 must be logged in")
-        
-        self.switchToAccount(testBert1Account)
-        self.unfollowAllAccounts()
-        self.switchToAccount(testBert2Account)
-        self.unfollowAllAccounts()
-        
+
+        switchToAccount(testBert1Account)
+        unfollowAllAccounts()
+        switchToAccount(testBert2Account)
+        unfollowAllAccounts()
+
         // End up in the TestBert1 account
-        self.switchToAccount(testBert1Account)
+        switchToAccount(testBert1Account)
     }
 
-    
     //
     // Put teardown code here. This method is called after the invocation of each test method in the class.
     //
-    override func tearDownWithError() throws {
-    }
+    override func tearDownWithError() throws {}
 
-    
     //
     // These expectations are fulfilled when there has been a change
     // in the Follow state (and a notification has been posted)
     //
-    var followDidChangeExpectation: XCTestExpectation?  // Fulfilled on *any* change
+    var followDidChangeExpectation: XCTestExpectation? // Fulfilled on *any* change
     var followingExpectation: XCTestExpectation?
     var notFollowingExpectation: XCTestExpectation?
     var followAwatingApprovalExpectation: XCTestExpectation?
-    
+
     @objc func followDidChangeNotification(notification: Notification) {
         let userInfo = notification.userInfo!
         let followStatusRawValue = userInfo["followStatus"] as! String
         let followStatus = FollowManager.FollowStatus(rawValue: followStatusRawValue)
-        
+
         log.debug(#function + " updated follow status: " + followStatusRawValue)
-        
+
         if followDidChangeExpectation != nil {
             followDidChangeExpectation!.fulfill()
         }
-        
-        if followingExpectation != nil && followStatus == .following {
+
+        if followingExpectation != nil, followStatus == .following {
             followingExpectation!.fulfill()
         }
 
-        if notFollowingExpectation != nil && followStatus == .notFollowing {
+        if notFollowingExpectation != nil, followStatus == .notFollowing {
             notFollowingExpectation!.fulfill()
         }
-        
-        if followAwatingApprovalExpectation != nil && followStatus == .followAwaitingApproval {
+
+        if followAwatingApprovalExpectation != nil, followStatus == .followAwaitingApproval {
             followAwatingApprovalExpectation!.fulfill()
         }
     }
 
-    
     func unfollowAllAccounts() {
         let networkCallsCompleteExpectation = XCTestExpectation(description: "Waiting to for all accounts to be unfollowed")
 
         // Get the list of accounts being followed by the current user, and unfollow them one by one
         let request = Accounts.following(id: AccountsManager.shared.currentUser()!.id)
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("Error getting list of followers: \(error)")
             }
@@ -116,7 +105,7 @@ final class FollowManagerTest: XCTestCase {
                 for account in accounts {
                     self.notFollowingExpectation = XCTestExpectation(description: "Waiting to for account to be unfollowed")
                     FollowManager.shared.unfollowAccount(account)
-                    let result = XCTWaiter.wait(for: [self.notFollowingExpectation!],  timeout: 30.0)
+                    let result = XCTWaiter.wait(for: [self.notFollowingExpectation!], timeout: 30.0)
                     if result == XCTWaiter.Result.timedOut {
                         XCTAssert(false, "Timed out waiting to remove a follower")
                     }
@@ -126,26 +115,24 @@ final class FollowManagerTest: XCTestCase {
             }
             networkCallsCompleteExpectation.fulfill()
         }
-        
-        
-        let result = XCTWaiter.wait(for: [networkCallsCompleteExpectation],  timeout: 200.0)
+
+        let result = XCTWaiter.wait(for: [networkCallsCompleteExpectation], timeout: 200.0)
         if result == XCTWaiter.Result.timedOut {
             XCTAssert(false, "Timed out waiting to remove all followers")
         }
     }
 
-    
     func testFollowLocal() throws {
         //
         // TestBert1 tries to follow TestBert2
         //
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(followDidChangeNotification), name: didChangeFollowStatusNotification, object: nil)
         followingExpectation = XCTestExpectation(description: "Waiting for follow status update")
 
         FollowManager.shared.followAccount(testBert2Account)
 
-        let result = XCTWaiter.wait(for: [followingExpectation!],  timeout: 30.0)
+        let result = XCTWaiter.wait(for: [followingExpectation!], timeout: 30.0)
         if result == XCTWaiter.Result.timedOut {
             XCTAssert(false, "Timed out waiting for the follow")
         } else {
@@ -156,21 +143,20 @@ final class FollowManagerTest: XCTestCase {
 
         NotificationCenter.default.removeObserver(self, name: didChangeFollowStatusNotification, object: nil)
     }
-    
-    
+
     func testUnfollowLocal() throws {
         //
         // TestBert1 tries to follow, then unfollow TestBert2
         //
-        
+
         try testFollowLocal()
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(followDidChangeNotification), name: didChangeFollowStatusNotification, object: nil)
         notFollowingExpectation = XCTestExpectation(description: "Waiting for follow status update")
 
         FollowManager.shared.unfollowAccount(testBert2Account)
 
-        let result = XCTWaiter.wait(for: [notFollowingExpectation!],  timeout: 30.0)
+        let result = XCTWaiter.wait(for: [notFollowingExpectation!], timeout: 30.0)
         if result == XCTWaiter.Result.timedOut {
             XCTAssert(false, "Timed out waiting for the unfollow")
         } else {
@@ -181,31 +167,26 @@ final class FollowManagerTest: XCTestCase {
 
         NotificationCenter.default.removeObserver(self, name: didChangeFollowStatusNotification, object: nil)
     }
-    
 
-    func testFollowRemote() throws {
-    }
-    
-    
-    func testUnfollowRemote() throws {
-    }
+    func testFollowRemote() throws {}
 
-    
+    func testUnfollowRemote() throws {}
+
     func testFollowRequiresApproval() {
         //
         // TestBert1 tries to follow TestBert3, but that account is locked and requires approval.
         // The result should be "request pending".
         //
-        
+
         NotificationCenter.default.addObserver(self, selector: #selector(followDidChangeNotification), name: didChangeFollowStatusNotification, object: nil)
         followAwatingApprovalExpectation = XCTestExpectation(description: "Waiting for pending follow status update")
 
         FollowManager.shared.followAccount(testBert3Account)
-        
-        // We request an update so that the check for .followAwaitingApproval will happen
-        let _ = FollowManager.shared.followStatusForAccount(testBert3Account, requestUpdate: .none)
 
-        let result = XCTWaiter.wait(for: [followAwatingApprovalExpectation!],  timeout: 30.0)
+        // We request an update so that the check for .followAwaitingApproval will happen
+        _ = FollowManager.shared.followStatusForAccount(testBert3Account, requestUpdate: .none)
+
+        let result = XCTWaiter.wait(for: [followAwatingApprovalExpectation!], timeout: 30.0)
         if result == XCTWaiter.Result.timedOut {
             XCTAssert(false, "Timed out waiting for the follow to show that it was pending")
         } else {
@@ -217,26 +198,16 @@ final class FollowManagerTest: XCTestCase {
         NotificationCenter.default.removeObserver(self, name: didChangeFollowStatusNotification, object: nil)
     }
 
+    func testFollowRequiresApprovalApproved() {}
 
-    func testFollowRequiresApprovalApproved() {
-    }
+    func testFollowRequiresApprovalDenied() {}
 
-    
-    func testFollowRequiresApprovalDenied() {
-    }
+    func testFollowRemoteOldInstance() throws {}
 
-    
-    func testFollowRemoteOldInstance() throws {
-    }
-    
-    
-    func testUnfollowRemoteOldInstance() throws {
-    }
-    
-    
+    func testUnfollowRemoteOldInstance() throws {}
+
     func testToggleFollowing() throws {
-        
-        self.switchToAccount(testBert1Account)
+        switchToAccount(testBert1Account)
 
         // Setup around expecting status to change -> un/followRequested
         NotificationCenter.default.addObserver(self, selector: #selector(followDidChangeNotification), name: didChangeFollowStatusNotification, object: nil)
@@ -245,7 +216,7 @@ final class FollowManagerTest: XCTestCase {
         // Setup around expecting status to change to final un/followed
         followingExpectation = XCTestExpectation(description: "Waiting for follow status to be 'following'")
         notFollowingExpectation = XCTestExpectation(description: "Waiting for follow status  to be 'unfollowed'")
-        
+
         // Follow or Unfollow the account based on the previous state
         let initialFollowStatus = FollowManager.shared.followStatusForAccount(testBert2Account)
         if initialFollowStatus == .following {
@@ -253,9 +224,9 @@ final class FollowManagerTest: XCTestCase {
         } else {
             FollowManager.shared.followAccount(testBert2Account)
         }
-        
+
         // The status should change to "trying to follow", or "trying to unfollow"
-        var result = XCTWaiter.wait(for: [followDidChangeExpectation!],  timeout: 20.0)
+        var result = XCTWaiter.wait(for: [followDidChangeExpectation!], timeout: 20.0)
         if result == XCTWaiter.Result.timedOut {
             XCTAssert(false, "Timed out waiting for the un/follow")
         } else {
@@ -266,11 +237,11 @@ final class FollowManagerTest: XCTestCase {
         }
 
         // Now, the status should change to "followed" or "unfollowed"
-        
+
         if initialFollowStatus == .following {
-            result = XCTWaiter.wait(for: [notFollowingExpectation!],  timeout: 20.0)
+            result = XCTWaiter.wait(for: [notFollowingExpectation!], timeout: 20.0)
         } else {
-            result = XCTWaiter.wait(for: [followingExpectation!],  timeout: 20.0)
+            result = XCTWaiter.wait(for: [followingExpectation!], timeout: 20.0)
         }
         if result == XCTWaiter.Result.timedOut {
             XCTAssert(false, "Timed out waiting for the follow")
@@ -283,25 +254,19 @@ final class FollowManagerTest: XCTestCase {
 
         NotificationCenter.default.removeObserver(self, name: didChangeFollowStatusNotification, object: nil)
     }
-    
 
-    
-    
-    
-    
     // ============================================================================================================
     // ============================================================================================================
     // ============================================================================================================
     // ACCOUNT STUFF; move to account manager calls
 
-
     private func accountForFullAcct(_ fullAcct: String) -> Account {
         // Do a search, then return the Account
         var accountForAcct: Account? = nil
-        
+
         let networkComplete = XCTestExpectation(description: "Waiting for network to complete")
         let request = Accounts.lookup(acct: fullAcct)
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("error in lookup for \(fullAcct)")
                 log.error("error :\(error)")
@@ -313,15 +278,14 @@ final class FollowManagerTest: XCTestCase {
             }
             networkComplete.fulfill()
         }
-        
-        let result = XCTWaiter.wait(for: [networkComplete],  timeout: 60.0)
+
+        let result = XCTWaiter.wait(for: [networkComplete], timeout: 60.0)
         if result == XCTWaiter.Result.timedOut {
             XCTAssert(false, "Timed out waiting for the network")
         }
         return accountForAcct!
     }
-    
-    
+
     private func accountForLocalID(_ localID: String) -> Account {
         var account: Account?
         do {
@@ -332,26 +296,22 @@ final class FollowManagerTest: XCTestCase {
         return account!
     }
 
-    
-    private func switchToAccount(_ account: Account) {
-/*
-    // PLACEHOLDER
-    // Use new accountsManager to switch accounts
- 
- 
-    if GlobalStruct.isCompact || UIDevice.current.userInterfaceIdiom == .phone {
-            UIApplication.shared.keyWindow?.rootViewController = TabBarViewController()
-        } else {
-            NotificationCenter.default.post(name: shouldChangeRootViewController, object: nil)
-        }
-        NotificationCenter.default.post(name: didSwitchCurrentAccount, object: nil)
+    private func switchToAccount(_: Account) {
+        /*
+            // PLACEHOLDER
+            // Use new accountsManager to switch accounts
 
-        // Sit here and wait until currentUser is valid
-        repeat {
-            RunLoop.current.run(until: Date.init(timeIntervalSinceNow: 1))
-        } while AccountsManager.shared.currentUser() == nil
- */
+            if GlobalStruct.isCompact || UIDevice.current.userInterfaceIdiom == .phone {
+                    UIApplication.shared.keyWindow?.rootViewController = TabBarViewController()
+                } else {
+                    NotificationCenter.default.post(name: shouldChangeRootViewController, object: nil)
+                }
+                NotificationCenter.default.post(name: didSwitchCurrentAccount, object: nil)
+
+                // Sit here and wait until currentUser is valid
+                repeat {
+                    RunLoop.current.run(until: Date.init(timeIntervalSinceNow: 1))
+                } while AccountsManager.shared.currentUser() == nil
+         */
     }
-    
-    
 }

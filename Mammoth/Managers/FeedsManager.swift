@@ -11,69 +11,68 @@ import Foundation
 public let didChangeFeedTypeItemsNotification = Notification.Name("didChangeFeedTypeItemsNotification")
 
 class FeedsManager {
-    
     static let shared = FeedsManager()
-    
+
     private var initialized: Bool = false
     private var didSwitchAccountTask: Task<Void, Error>?
 
-    public var feeds: [FeedTypeItem] = [] {
+    var feeds: [FeedTypeItem] = [] {
         didSet {
-            if self.feeds != oldValue {
+            if feeds != oldValue {
                 NotificationCenter.default.post(name: didChangeFeedTypeItemsNotification, object: nil)
             }
         }
     }
-    
-    public init() {
-        self.feeds = self.initialFeedItems()
-        self.consolidate()
-        self.initialized = true
-        
+
+    init() {
+        feeds = initialFeedItems()
+        consolidate()
+        initialized = true
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.didSwitchAccount),
+                                               selector: #selector(didSwitchAccount),
                                                name: didSwitchCurrentAccountNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.willSwitchAccount),
+                                               selector: #selector(willSwitchAccount),
                                                name: willSwitchCurrentAccountNotification,
                                                object: nil)
-        
-        self.addChangeObservers()
+
+        addChangeObservers()
     }
-    
+
     deinit {
         self.removeChangeObservers()
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     private func addChangeObservers() {
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.checkCommunitiesChanges),
+                                               selector: #selector(checkCommunitiesChanges),
                                                name: didChangePinnedInstancesNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.checkHashtagsChanges),
+                                               selector: #selector(checkHashtagsChanges),
                                                name: didChangeHashtagsNotification,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.checkListsChanges),
+                                               selector: #selector(checkListsChanges),
                                                name: didChangeListsNotification,
                                                object: nil)
     }
-    
+
     private func removeChangeObservers() {
         NotificationCenter.default.removeObserver(self, name: didChangePinnedInstancesNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: didChangeHashtagsNotification, object: nil)
         NotificationCenter.default.removeObserver(self, name: didChangeListsNotification, object: nil)
     }
-    
+
     private func initialFeedItems() -> [FeedTypeItem] {
         do {
-            let cachedFeeds = try self.readFeedsFromDisk()
+            let cachedFeeds = try readFeedsFromDisk()
             if !cachedFeeds.isEmpty {
                 let filteredFeeds = cachedFeeds.filter { item in
                     if case .channel = item.type {
@@ -84,29 +83,29 @@ class FeedsManager {
                 return filteredFeeds
             }
         } catch {}
-        
+
         let general = [
             FeedTypeItem(type: NewsFeedTypes.following, isDraggable: false),
             FeedTypeItem(type: NewsFeedTypes.forYou, isDraggable: false),
             FeedTypeItem(type: NewsFeedTypes.federated, isEnabled: false),
-            FeedTypeItem(type: NewsFeedTypes.community(AccountsManager.shared.currentUser()?.server ?? "Instance"), isEnabled: false)
+            FeedTypeItem(type: NewsFeedTypes.community(AccountsManager.shared.currentUser()?.server ?? "Instance"), isEnabled: false),
         ]
-        
-        let communities = InstanceManager.shared.pinnedInstances.map({ FeedTypeItem(type: NewsFeedTypes.community($0)) })
-        let lists = ListManager.shared.allLists().map({ FeedTypeItem(type: NewsFeedTypes.list($0)) })
-        let hashtags = HashtagManager.shared.allHashtags().map({ FeedTypeItem(type: NewsFeedTypes.hashtag($0)) })
-        
+
+        let communities = InstanceManager.shared.pinnedInstances.map { FeedTypeItem(type: NewsFeedTypes.community($0)) }
+        let lists = ListManager.shared.allLists().map { FeedTypeItem(type: NewsFeedTypes.list($0)) }
+        let hashtags = HashtagManager.shared.allHashtags().map { FeedTypeItem(type: NewsFeedTypes.hashtag($0)) }
+
         return general + communities + lists + hashtags
     }
-    
+
     // consolidate cached feed type items with new lists, hashtags and instances
-    public func consolidate() {
-        self.checkListsChanges()
-        self.checkHashtagsChanges()
-        self.checkCommunitiesChanges()
+    func consolidate() {
+        checkListsChanges()
+        checkHashtagsChanges()
+        checkCommunitiesChanges()
     }
-    
-    public func clearCache() {
+
+    func clearCache() {
         if let path = Self.diskPath {
             do {
                 try Disk.remove(path, from: .caches)
@@ -114,33 +113,33 @@ class FeedsManager {
                 log.error("error clearing feeds cache: \(error)")
             }
         }
-        
-        self.feeds = self.initialFeedItems()
+
+        feeds = initialFeedItems()
     }
-    
+
     @objc func willSwitchAccount() {
-        self.removeChangeObservers()
-        self.initialized = false
-        
-        if self.didSwitchAccountTask != nil {
-            self.didSwitchAccountTask!.cancel()
+        removeChangeObservers()
+        initialized = false
+
+        if didSwitchAccountTask != nil {
+            didSwitchAccountTask!.cancel()
         }
-        
-        self.feeds = [
+
+        feeds = [
             FeedTypeItem(type: NewsFeedTypes.following, isDraggable: false),
-            FeedTypeItem(type: NewsFeedTypes.forYou, isDraggable: false)
+            FeedTypeItem(type: NewsFeedTypes.forYou, isDraggable: false),
         ]
     }
-    
+
     @objc func didSwitchAccount() {
-        self.initialized = true
-        self.feeds = self.initialFeedItems()
-        
-        if self.didSwitchAccountTask != nil {
-            self.didSwitchAccountTask!.cancel()
+        initialized = true
+        feeds = initialFeedItems()
+
+        if didSwitchAccountTask != nil {
+            didSwitchAccountTask!.cancel()
         }
-        
-        self.didSwitchAccountTask = Task {
+
+        didSwitchAccountTask = Task {
             try await Task.sleep(seconds: 3)
             await MainActor.run {
                 self.consolidate()
@@ -148,63 +147,63 @@ class FeedsManager {
             }
         }
     }
-    
+
     @objc func checkCommunitiesChanges() {
-        guard self.initialized else { return }
+        guard initialized else { return }
         DispatchQueue.main.async {
-            let allInstances = InstanceManager.shared.pinnedInstances.map({ FeedTypeItem(type:NewsFeedTypes.community($0)) }) + [FeedTypeItem(type: NewsFeedTypes.community(AccountsManager.shared.currentUser()?.server ?? "Instance"), isEnabled: false)]
-            
-            let diff = allInstances.difference(from: self.feeds.filter({
-                if case .community = $0.type { return true}
+            let allInstances = InstanceManager.shared.pinnedInstances.map { FeedTypeItem(type: NewsFeedTypes.community($0)) } + [FeedTypeItem(type: NewsFeedTypes.community(AccountsManager.shared.currentUser()?.server ?? "Instance"), isEnabled: false)]
+
+            let diff = allInstances.difference(from: self.feeds.filter {
+                if case .community = $0.type { return true }
                 return false
-            }))
-            
+            })
+
             if self.applyDiff(diff: diff) {
                 self.saveFeedsToDisk(feeds: self.feeds)
             }
         }
     }
-    
+
     @objc func checkHashtagsChanges() {
-        guard self.initialized else { return }
-            let allHashtags = HashtagManager.shared.allHashtags().map({ FeedTypeItem(type: NewsFeedTypes.hashtag($0)) })
-        
-        let diff = allHashtags.difference(from: self.feeds.filter({
-            if case .hashtag = $0.type { return true}
+        guard initialized else { return }
+        let allHashtags = HashtagManager.shared.allHashtags().map { FeedTypeItem(type: NewsFeedTypes.hashtag($0)) }
+
+        let diff = allHashtags.difference(from: feeds.filter {
+            if case .hashtag = $0.type { return true }
             return false
-        }))
-        
-        if self.applyDiff(diff: diff) {
-            self.saveFeedsToDisk(feeds: self.feeds)
+        })
+
+        if applyDiff(diff: diff) {
+            saveFeedsToDisk(feeds: feeds)
         }
     }
-    
+
     @objc func checkListsChanges() {
-        guard self.initialized else { return }
-        let allLists = ListManager.shared.allLists().map({ FeedTypeItem(type: NewsFeedTypes.list($0)) })
-        
-        let diff = allLists.difference(from: self.feeds.filter({
-            if case .list = $0.type { return true}
+        guard initialized else { return }
+        let allLists = ListManager.shared.allLists().map { FeedTypeItem(type: NewsFeedTypes.list($0)) }
+
+        let diff = allLists.difference(from: feeds.filter {
+            if case .list = $0.type { return true }
             return false
-        }))
-        
-        self.applyDiff(diff: diff)
-        
+        })
+
+        applyDiff(diff: diff)
+
         // Update list names
-        self.feeds = self.feeds.map({ feedTypeItem in
+        feeds = feeds.map { feedTypeItem in
             if let item = allLists.first(where: { listItem in
                 listItem == feedTypeItem
             }) {
                 // create a new item and copy over the current isEnabled and isDraggable state
                 return FeedTypeItem(type: item.type, isDraggable: feedTypeItem.isDraggable, isEnabled: feedTypeItem.isEnabled)
             }
-            
+
             return feedTypeItem
-        })
-        
-        self.saveFeedsToDisk(feeds: self.feeds)
+        }
+
+        saveFeedsToDisk(feeds: feeds)
     }
-    
+
     @discardableResult
     private func applyDiff(diff: CollectionDifference<FeedTypeItem>) -> Bool {
         var didApplyDiff = false
@@ -212,68 +211,66 @@ class FeedsManager {
         var deletions: [FeedTypeItem] = []
         for change in diff {
             switch change {
-            case .insert(_, let element, _):
+            case let .insert(_, element, _):
                 insertions.append(element)
-                break
-            case .remove(_, let element, _):
+            case let .remove(_, element, _):
                 deletions.append(element)
-                break
             }
         }
-        
+
         // ignore position diffs (the same element is both deleted and inserted at a different offset)
-        let filteredInsertions = insertions.filter({ !deletions.contains($0) })
-        deletions = deletions.filter({ !insertions.contains($0) })
+        let filteredInsertions = insertions.filter { !deletions.contains($0) }
+        deletions = deletions.filter { !insertions.contains($0) }
         insertions = filteredInsertions
-        
+
         if !insertions.isEmpty {
-            self.feeds.append(contentsOf: insertions)
+            feeds.append(contentsOf: insertions)
             didApplyDiff = true
         }
 
-        deletions.forEach({
-            if let index = self.feeds.firstIndex(of: $0) {
-                self.feeds.remove(at: index)
+        for deletion in deletions {
+            if let index = feeds.firstIndex(of: deletion) {
+                feeds.remove(at: index)
                 didApplyDiff = true
             }
-        })
-        
+        }
+
         return didApplyDiff
     }
-    
-    public func moveItem(_ item: FeedTypeItem, fromIndex sourceIndex: Int, toIndex destinationIndex: Int) {
-        self.feeds.remove(at: sourceIndex)
-        self.feeds.insert(item, at: destinationIndex)
-        self.saveFeedsToDisk(feeds: self.feeds)
+
+    func moveItem(_ item: FeedTypeItem, fromIndex sourceIndex: Int, toIndex destinationIndex: Int) {
+        feeds.remove(at: sourceIndex)
+        feeds.insert(item, at: destinationIndex)
+        saveFeedsToDisk(feeds: feeds)
     }
-    
-    public func enable(_ item: FeedTypeItem) {
-        if let index = self.feeds.firstIndex(of: item) {
-            self.feeds[index].isEnabled = true
-            self.moveItem(self.feeds[index], fromIndex: index, toIndex: self.feeds.count - 1)
+
+    func enable(_ item: FeedTypeItem) {
+        if let index = feeds.firstIndex(of: item) {
+            feeds[index].isEnabled = true
+            moveItem(feeds[index], fromIndex: index, toIndex: feeds.count - 1)
         }
     }
-    
-    public func disable(_ item: FeedTypeItem) {
-        if let index = self.feeds.firstIndex(of: item) {
-            self.feeds[index].isEnabled = false
-            self.moveItem(self.feeds[index], fromIndex: index, toIndex: 0)
+
+    func disable(_ item: FeedTypeItem) {
+        if let index = feeds.firstIndex(of: item) {
+            feeds[index].isEnabled = false
+            moveItem(feeds[index], fromIndex: index, toIndex: 0)
         }
     }
 }
 
 // MARK: - Disk IO
+
 extension FeedsManager {
-    
     static var diskPath: String? {
         if let user = AccountsManager.shared.currentAccount as? MastodonAcctData {
             return "\(user.diskFolderName())/feeds.json"
         }
-        
+
         return nil
     }
-    
-    internal func saveFeedsToDisk(feeds: [FeedTypeItem]) {
+
+    func saveFeedsToDisk(feeds: [FeedTypeItem]) {
         if let path = Self.diskPath {
             do {
                 try Disk.save(feeds, to: .caches, as: path)
@@ -282,8 +279,8 @@ extension FeedsManager {
             }
         }
     }
-    
-    internal func readFeedsFromDisk() throws -> [FeedTypeItem] {
+
+    func readFeedsFromDisk() throws -> [FeedTypeItem] {
         if let path = Self.diskPath {
             do {
                 let feeds = try Disk.retrieve(path, from: .caches, as: [FeedTypeItem].self)
@@ -293,7 +290,7 @@ extension FeedsManager {
                 throw error
             }
         }
-        
+
         return []
     }
 }
@@ -302,13 +299,13 @@ class FeedTypeItem: Codable, Equatable {
     let type: NewsFeedTypes
     let isDraggable: Bool
     var isEnabled: Bool
-    
+
     init(type: NewsFeedTypes, isDraggable: Bool = true, isEnabled: Bool = true) {
         self.type = type
         self.isDraggable = isDraggable
         self.isEnabled = isEnabled
     }
-    
+
     static func == (lhs: FeedTypeItem, rhs: FeedTypeItem) -> Bool {
         return lhs.type == rhs.type
     }

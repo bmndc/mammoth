@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Notifications {
+public enum Notifications {
     /// Fetches a user's notifications.
     ///
     /// - Parameter range: The bounds used when requesting data from Mastodon.
@@ -16,9 +16,9 @@ public struct Notifications {
     public static func all(range: RequestRange = .default, typesToExclude: [NotificationType] = []) -> Request<[Notificationt]> {
         let parameters = range.parameters(limit: between(1, and: 15, default: 30)) ?? []
         let otherParameter = typesToExclude.map(toArrayOfParameters(withName: "exclude_types"))
-        
+
         let otherParameter2 = ["admin.sign_up", "admin.report"].map(toArrayOfParameters(withName: "exclude_types"))
-        
+
         let method = HTTPMethod.get(.parameters(parameters + otherParameter + otherParameter2))
 
         return Request<[Notificationt]>(path: "/api/v1/notifications", method: method)

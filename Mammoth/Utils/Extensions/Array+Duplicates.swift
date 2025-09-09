@@ -15,13 +15,16 @@ extension Array where Element: Hashable {
             addedDict.updateValue(true, forKey: $0) == nil
         }
     }
+
     mutating func removeAllDuplicates() {
-        self = self.removingDuplicates()
+        self = removingDuplicates()
     }
+
     var orderedSet: Self {
         var set = Set<Element>()
         return filter { set.insert($0).inserted }
     }
+
     mutating func removeDuplicates() {
         var set = Set<Element>()
         removeAll { !set.insert($0).inserted }

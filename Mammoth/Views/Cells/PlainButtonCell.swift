@@ -10,17 +10,16 @@ import Foundation
 import UIKit
 
 class PlainButtonCell: UITableViewCell {
-    
     var bg = UIButton()
     var titleText = UILabel()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
+
         bg.translatesAutoresizingMaskIntoConstraints = false
         bg.backgroundColor = .clear
         contentView.addSubview(bg)
-        
+
         titleText.translatesAutoresizingMaskIntoConstraints = false
         titleText.backgroundColor = .clear
         titleText.text = ""
@@ -28,26 +27,26 @@ class PlainButtonCell: UITableViewCell {
         titleText.isUserInteractionEnabled = false
         titleText.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
         contentView.addSubview(titleText)
-        
+
         contentView.layer.masksToBounds = false
-        
+
         let viewsDict = [
-            "bg" : bg,
-            "titleText" : titleText,
+            "bg": bg,
+            "titleText": titleText,
         ]
         let metricsDict = [
-            "offset" : UIFont.preferredFont(forTextStyle: .body).pointSize + 40
+            "offset": UIFont.preferredFont(forTextStyle: .body).pointSize + 40,
         ]
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[bg]-0-|", options: [], metrics: nil, views: viewsDict))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(offset)-[titleText]-15-|", options: [], metrics: metricsDict, views: viewsDict))
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[bg]-0-|", options: [], metrics: nil, views: viewsDict))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-12-[titleText]-12-|", options: [], metrics: nil, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[bg]-0-|", options: [], metrics: nil, views: viewsDict))
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-(offset)-[titleText]-15-|", options: [], metrics: metricsDict, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[bg]-0-|", options: [], metrics: nil, views: viewsDict))
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-12-[titleText]-12-|", options: [], metrics: nil, views: viewsDict))
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }

@@ -6,42 +6,39 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import UIKit
-import Social
 import MobileCoreServices
+import Social
+import UIKit
 import UniformTypeIdentifiers
 
 class ShareViewController: UIViewController {
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.parseMedia()
+        parseMedia()
     }
-    
+
     func redirect(key: String) {
-        
         let url = URL(string: "mammoth://dataUrl=\(key)")
         var responder = self as UIResponder?
         let selectorOpenURL = sel_registerName("openURL:")
-        while (responder != nil) {
+        while responder != nil {
             if (responder?.responds(to: selectorOpenURL))! {
-                let _ = responder?.perform(selectorOpenURL, with: url)
+                _ = responder?.perform(selectorOpenURL, with: url)
             }
             responder = responder!.next
         }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1 ) {
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
             self.extensionContext?.completeRequest(returningItems: nil)
         }
-        
     }
-    
+
     func parseMedia() {
         let content = extensionContext!.inputItems[0] as! NSExtensionItem
         let textType = "public.url"
         let contentType = UTType.data.identifier as String
         guard let attachments = content.attachments else { return }
-        for (index, attachment) in (attachments).enumerated() {
+        for (index, attachment) in attachments.enumerated() {
             if attachment.hasItemConformingToTypeIdentifier(textType) {
                 attachment.loadItem(forTypeIdentifier: textType, options: nil) { [weak self] data, error in
                     if error == nil, let self = self {
@@ -75,7 +72,7 @@ class ShareViewController: UIViewController {
                             DispatchQueue.main.async {
                                 let fileContent = theData ?? Data()
                                 let sharedGroupContainerDirectory = FileManager().containerURL(
-                                  forSecurityApplicationGroupIdentifier: "group.com.theblvd.mammoth.wormhole")
+                                    forSecurityApplicationGroupIdentifier: "group.com.theblvd.mammoth.wormhole")
                                 guard let fileURL = sharedGroupContainerDirectory?.appendingPathComponent("savedMedia.json") else { return }
                                 try? fileContent.write(to: fileURL)
                                 if let _ = try? Data(contentsOf: fileURL) {
@@ -100,7 +97,7 @@ class ShareViewController: UIViewController {
                             DispatchQueue.main.async {
                                 let fileContent = theData ?? Data()
                                 let sharedGroupContainerDirectory = FileManager().containerURL(
-                                  forSecurityApplicationGroupIdentifier: "group.com.theblvd.mammoth.wormhole")
+                                    forSecurityApplicationGroupIdentifier: "group.com.theblvd.mammoth.wormhole")
                                 guard let fileURL = sharedGroupContainerDirectory?.appendingPathComponent("savedMedia.json") else { return }
                                 try? fileContent.write(to: fileURL)
                                 if let _ = try? Data(contentsOf: fileURL) {
@@ -113,5 +110,4 @@ class ShareViewController: UIViewController {
             }
         }
     }
-
 }

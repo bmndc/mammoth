@@ -11,104 +11,103 @@ import UIKit
 
 let FOR_YOU_FEED_TYPE = "ForYouFeedType"
 
-class HomeViewController : UIViewController {
-
+class HomeViewController: UIViewController {
     private var feedCarousel = Carousel()
-    private var accountsBarButton: UIBarButtonItem? = nil
+    private var accountsBarButton: UIBarButtonItem?
 
     enum HomeViewSegment: Int {
         case feeds = 0
         case forYou = 1
     }
-    
+
     private let pageViewController: UIPageViewController
-    private var cachedPages: [NewsFeedTypes:NewsFeedViewController] = [:]
+    private var cachedPages: [NewsFeedTypes: NewsFeedViewController] = [:]
     private var currentFeedType: NewsFeedTypes = .following {
         didSet {
-            self.updateNavBarButtons()
-            self.updateQuickJumpMenu()
-            self.updateForYouFeedType()
-            self.showTutorialIfNeeded()
+            updateNavBarButtons()
+            updateQuickJumpMenu()
+            updateForYouFeedType()
+            showTutorialIfNeeded()
         }
     }
-    
-    required init() {
 
+    required init() {
         pageViewController = UIPageViewController(transitionStyle: .scroll, navigationOrientation: .horizontal)
 
         super.init(nibName: nil, bundle: nil)
-        
+
         pageViewController.dataSource = self
         pageViewController.delegate = self
-        
+
         if let scrollView = pageViewController.view.subviews.first(where: { $0 is UIScrollView }) as? UIScrollView {
             scrollView.delegate = self
         }
-        
-        self.addChild(pageViewController)
-        self.view.addSubview(pageViewController.view)
+
+        addChild(pageViewController)
+        view.addSubview(pageViewController.view)
         pageViewController.didMove(toParent: self)
-        
+
         feedCarousel.delegate = self
         navigationItem.titleView = feedCarousel
         navigationItem.title = "Feeds"
-        
-        self.updateNavBarButtons()
-        self.updateCarousel()
+
+        updateNavBarButtons()
+        updateCarousel()
 
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.onForYouChange),
+                                               selector: #selector(onForYouChange),
                                                name: didUpdateAccountForYou,
                                                object: nil)
-        
+
         NotificationCenter.default.addObserver(self,
-                                               selector: #selector(self.updateCarousel),
+                                               selector: #selector(updateCarousel),
                                                name: didChangeFeedTypeItemsNotification,
                                                object: nil)
     }
-    
+
     override func viewDidLoad() {
-        let initialViewController = self.pageForType(type: self.currentFeedType)
+        let initialViewController = pageForType(type: currentFeedType)
         pageViewController.setViewControllers([initialViewController], direction: .forward, animated: false)
-        
+
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.updateQuickJumpMenu()
         }
     }
 
-    required init?(coder aDecoder: NSCoder) {
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        self.cachedPages = [:]
-      }
-    
+        cachedPages = [:]
+    }
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         // Update the appearance of the navbar
-        configureNavigationBarLayout(navigationController: self.navigationController, userInterfaceStyle: self.traitCollection.userInterfaceStyle)
-        self.navigationController?.additionalSafeAreaInsets.top = 5
+        configureNavigationBarLayout(navigationController: navigationController, userInterfaceStyle: traitCollection.userInterfaceStyle)
+        navigationController?.additionalSafeAreaInsets.top = 5
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        self.showTutorialIfNeeded()
+        showTutorialIfNeeded()
     }
-    
+
     func showTutorialIfNeeded() {
-        
-        if FeedsManager.shared.feeds.count >= 5 && TutorialOverlay.shouldShowOverlay(forType: .quickFeedSwitcher) {
+        if FeedsManager.shared.feeds.count >= 5, TutorialOverlay.shouldShowOverlay(forType: .quickFeedSwitcher) {
             // Force this on the next runloop to make sure rootViewController is set
             DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                 if let currentTabBarController = getTabBarController(),
-                   let item = currentTabBarController.animatedTabBar.tabBarItems.first {
+                   let item = currentTabBarController.animatedTabBar.tabBarItems.first
+                {
                     currentTabBarController.selectedIndex = 0
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                         TutorialOverlay.showOverlay(type: .quickFeedSwitcher, onRef: item)
@@ -116,18 +115,18 @@ class HomeViewController : UIViewController {
                 }
             }
         } else {
-            
-            switch self.currentFeedType {
+            switch currentFeedType {
             case .forYou:
-                if let itemIndex = self.indexOfCarouselItem(item: .forYou),
-                   let item = self.feedCarousel.cellAtIndexPath(indexPath: IndexPath(item: itemIndex, section: 0)) {
+                if let itemIndex = indexOfCarouselItem(item: .forYou),
+                   let item = feedCarousel.cellAtIndexPath(indexPath: IndexPath(item: itemIndex, section: 0))
+                {
                     // The delay is needed to let the carousel animation finish before
                     // taking a snapshot of the reference and positioning on the scrim
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
                         guard let self else { return }
                         guard self.currentFeedType == .forYou else { return }
                         guard self.isInWindowHierarchy() else { return }
-                        
+
                         // Display tutorial overlay
                         if TutorialOverlay.shouldShowOverlay(forType: .forYou) {
                             TutorialOverlay.showOverlay(type: .forYou, onRef: item) { [weak self] in
@@ -139,14 +138,15 @@ class HomeViewController : UIViewController {
                     }
                 }
             case .channel:
-                if let itemIndex = self.indexOfCarouselItem(item: self.currentFeedType),
-                   let item = self.feedCarousel.cellAtIndexPath(indexPath: IndexPath(item: itemIndex, section: 0)) {
-                    let selectedFeed = self.currentFeedType
+                if let itemIndex = indexOfCarouselItem(item: currentFeedType),
+                   let item = feedCarousel.cellAtIndexPath(indexPath: IndexPath(item: itemIndex, section: 0))
+                {
+                    let selectedFeed = currentFeedType
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
                         guard let self else { return }
                         guard self.currentFeedType == selectedFeed else { return }
                         guard self.isInWindowHierarchy() else { return }
-                        
+
                         // Display tutorial overlay
                         if TutorialOverlay.shouldShowOverlay(forType: .smartList) {
                             TutorialOverlay.showOverlay(type: .smartList, onRef: item)
@@ -161,8 +161,8 @@ class HomeViewController : UIViewController {
 }
 
 // MARK: - UIPageViewController delegate methods and helper methods
+
 extension HomeViewController: UIPageViewControllerDataSource, UIPageViewControllerDelegate, UIScrollViewDelegate {
-    
     func pageForType(type: NewsFeedTypes) -> NewsFeedViewController {
         return cachedPages[type] ?? {
             let newVC = NewsFeedViewController(type: type)
@@ -171,36 +171,34 @@ extension HomeViewController: UIPageViewControllerDataSource, UIPageViewControll
             return newVC
         }()
     }
-    
+
     func currentPage() -> NewsFeedViewController {
-        return self.pageForType(type: self.currentFeedType)
+        return pageForType(type: currentFeedType)
     }
 
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerBefore viewController: UIViewController) -> UIViewController? {
-        if let previousItem = self.previousCarouselItem(currentItem: self.currentFeedType) {
-            return self.pageForType(type: previousItem)
+    func pageViewController(_: UIPageViewController, viewControllerBefore _: UIViewController) -> UIViewController? {
+        if let previousItem = previousCarouselItem(currentItem: currentFeedType) {
+            return pageForType(type: previousItem)
         }
 
         return nil
     }
-      
-    func pageViewController(_ pageViewController: UIPageViewController, viewControllerAfter viewController: UIViewController) -> UIViewController? {
-        if let nextItem = self.nextCarouselItem(currentItem: self.currentFeedType) {
-            return self.pageForType(type: nextItem)
+
+    func pageViewController(_: UIPageViewController, viewControllerAfter _: UIViewController) -> UIViewController? {
+        if let nextItem = nextCarouselItem(currentItem: currentFeedType) {
+            return pageForType(type: nextItem)
         }
 
         return nil
     }
-    
-    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating finished: Bool, previousViewControllers: [UIViewController], transitionCompleted completed: Bool) {
-        
+
+    func pageViewController(_ pageViewController: UIPageViewController, didFinishAnimating _: Bool, previousViewControllers: [UIViewController], transitionCompleted _: Bool) {
         if let currentPageViewController = pageViewController.viewControllers?.first as? NewsFeedViewController {
-            
-            self.currentFeedType = currentPageViewController.type
-            
-            if let index = self.indexOfCarouselItem(item: currentPageViewController.type) {
-                self.feedCarousel.selectItem(atIndex: index)
-                
+            currentFeedType = currentPageViewController.type
+
+            if let index = indexOfCarouselItem(item: currentPageViewController.type) {
+                feedCarousel.selectItem(atIndex: index)
+
                 // Pause all videos when switching feeds
                 if let previousPageViewController = previousViewControllers.first as? NewsFeedViewController {
                     DispatchQueue.main.async {
@@ -210,61 +208,65 @@ extension HomeViewController: UIPageViewControllerDataSource, UIPageViewControll
             }
         }
     }
-    
+
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         if scrollView.isDragging {
             let width = scrollView.frame.size.width
             let offset = scrollView.contentOffset.x
             let offsetPercentage = (offset - width) / width
-            self.feedCarousel.adjustScrollOffset(withPercentageToNextItem: offsetPercentage)
+            feedCarousel.adjustScrollOffset(withPercentageToNextItem: offsetPercentage)
         }
     }
 }
 
-//MARK: - NewsFeedViewControllerDelegate
+// MARK: - NewsFeedViewControllerDelegate
+
 extension HomeViewController: NewsFeedViewControllerDelegate {
     func didScrollToTop() {}
-    
+
     func userActivityStorageIdentifier() -> String {
         return "HomeViewController.currentMenuItemIdentifier"
     }
-    
+
     func didChangeFeed(_ type: NewsFeedTypes) {
         // If views are added/removed from the feed, the related navbar items may be outdated
-         self.currentFeedType = type
+        currentFeedType = type
     }
-    
+
     func willChangeFeed(_ type: NewsFeedTypes) {
-        if let index = self.indexOfCarouselItem(item: type) {
-            self.feedCarousel.scrollTo(index: index)
+        if let index = indexOfCarouselItem(item: type) {
+            feedCarousel.scrollTo(index: index)
         }
     }
-    
+
     func isActiveFeed(_ type: NewsFeedTypes) -> Bool {
-        return type == self.currentFeedType
+        return type == currentFeedType
     }
 }
 
 // MARK: - Feed context menu
+
 extension HomeViewController {
     private func updateNavBarButtons() {
         if let accountsBarButton {
-            self.navigationItem.setRightBarButtonItems([accountsBarButton], animated: false)
+            navigationItem.setRightBarButtonItems([accountsBarButton], animated: false)
         }
-        
-        let generalOptions = self.generalContextMenu()
+
+        let generalOptions = generalContextMenu()
         let menu = UIMenu(title: "", options: [], children: [generalOptions])
-        self.feedCarousel.contextButton.menu = menu
+        feedCarousel.contextButton.menu = menu
     }
-    
+
     private func updateQuickJumpMenu() {
-        if let currentTabBarController = getTabBarController(), 
-            let item = currentTabBarController.animatedTabBar.tabBarItems.first {
-            item.menu = UIMenu(title: "", options: [], children: [self.jumpToContextMenu()])
+        if let currentTabBarController = getTabBarController(),
+           let item = currentTabBarController.animatedTabBar.tabBarItems.first
+        {
+            item.menu = UIMenu(title: "", options: [], children: [jumpToContextMenu()])
         }
     }
+
     private func generalContextMenu() -> UIMenu {
-        let addList = UIAction(title: NSLocalizedString("list.add", comment: ""), image: FontAwesome.image(fromChar: "\u{2b}", size: 16, weight: .bold).withRenderingMode(.alwaysTemplate), identifier: nil) { [weak self] action in
+        let addList = UIAction(title: NSLocalizedString("list.add", comment: ""), image: FontAwesome.image(fromChar: "\u{2b}", size: 16, weight: .bold).withRenderingMode(.alwaysTemplate), identifier: nil) { [weak self] _ in
             guard let self else { return }
             DispatchQueue.main.async {
                 let vc = AltTextViewController { [weak self] in
@@ -274,8 +276,8 @@ extension HomeViewController {
                 self.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
             }
         }
-        
-        let organize = UIAction(title: NSLocalizedString("home.manageFeeds", comment: ""), image: FontAwesome.image(fromChar: "\u{f03a}", size: 16, weight: .bold).withRenderingMode(.alwaysTemplate), identifier: nil) { [weak self] action in
+
+        let organize = UIAction(title: NSLocalizedString("home.manageFeeds", comment: ""), image: FontAwesome.image(fromChar: "\u{f03a}", size: 16, weight: .bold).withRenderingMode(.alwaysTemplate), identifier: nil) { [weak self] _ in
             guard let self else { return }
             DispatchQueue.main.async {
                 let vc = FeedEditorViewController { [weak self] in
@@ -300,10 +302,10 @@ extension HomeViewController {
 
         return UIMenu(title: "", options: [.displayInline], children: [organize, addList, settings])
     }
-    
+
     private func jumpToContextMenu() -> UIMenu {
-        let jumpToMenu = UIMenu(title: NSLocalizedString("home.jumpToAList", comment: "Appears when holding in the 'home' button, before a list of feeds."), options: [.displayInline], children: FeedsManager.shared.feeds.sorted(by: { (_, right) in !right.isEnabled }).map { item in
-            return UIAction(title: item.type.plainTitle(), image: item.type.icon, identifier: nil) { [weak self] _ in
+        let jumpToMenu = UIMenu(title: NSLocalizedString("home.jumpToAList", comment: "Appears when holding in the 'home' button, before a list of feeds."), options: [.displayInline], children: FeedsManager.shared.feeds.sorted(by: { _, right in !right.isEnabled }).map { item in
+            UIAction(title: item.type.plainTitle(), image: item.type.icon, identifier: nil) { [weak self] _ in
                 guard let self else { return }
 
                 DispatchQueue.main.async {
@@ -330,187 +332,189 @@ extension HomeViewController {
                 }
             }
         })
-        
+
         return jumpToMenu
     }
 }
 
 // MARK: - Jump to newest
+
 extension HomeViewController: JumpToNewest {
     @objc func jumpToNewest() {
-        if let currentPage = self.pageViewController.viewControllers?.first as? NewsFeedViewController {
+        if let currentPage = pageViewController.viewControllers?.first as? NewsFeedViewController {
             currentPage.jumpToNewest()
         }
     }
 }
 
 // MARK: - Carousel delegate and helpers
+
 extension HomeViewController: CarouselDelegate {
-     
     func carouselMenu() -> [NewsFeedTypes] {
-        return FeedsManager.shared.feeds.filter({ $0.isEnabled }).map { $0.type }
+        return FeedsManager.shared.feeds.filter { $0.isEnabled }.map { $0.type }
     }
-    
+
     @objc private func updateCarousel() {
-        self.feedCarousel.richContent = self.carouselMenu().map({$0.attributedTitle()})
-        if let index = self.indexOfCarouselItem(item: self.currentFeedType) {
-            self.feedCarousel.scrollTo(index: index, animated: false)
+        feedCarousel.richContent = carouselMenu().map { $0.attributedTitle() }
+        if let index = indexOfCarouselItem(item: currentFeedType) {
+            feedCarousel.scrollTo(index: index, animated: false)
         } else {
-            self.currentFeedType = .following
-            self.feedCarousel.scrollTo(index: self.indexOfCarouselItem(item: self.currentFeedType) ?? 0, animated: false)
+            currentFeedType = .following
+            feedCarousel.scrollTo(index: indexOfCarouselItem(item: currentFeedType) ?? 0, animated: false)
         }
-        
-        let vc = self.pageForType(type: self.currentFeedType)
-        self.pageViewController.setViewControllers([vc], direction: .forward, animated: false)
-        
-        self.updateNavBarButtons()
-        self.updateQuickJumpMenu()
+
+        let vc = pageForType(type: currentFeedType)
+        pageViewController.setViewControllers([vc], direction: .forward, animated: false)
+
+        updateNavBarButtons()
+        updateQuickJumpMenu()
     }
-    
+
     func indexOfCarouselItem(item: NewsFeedTypes) -> Int? {
-        let items = self.carouselMenu()
+        let items = carouselMenu()
         return items.firstIndex(of: item)
     }
-    
+
     func nextCarouselItem(currentItem: NewsFeedTypes) -> NewsFeedTypes? {
-        let items = self.carouselMenu()
-        if let currentIndex = self.indexOfCarouselItem(item: currentItem) {
-            guard items.count > currentIndex + 1 else { return nil}
+        let items = carouselMenu()
+        if let currentIndex = indexOfCarouselItem(item: currentItem) {
+            guard items.count > currentIndex + 1 else { return nil }
             return items[currentIndex + 1]
         }
-        
+
         return nil
     }
-    
+
     func previousCarouselItem(currentItem: NewsFeedTypes) -> NewsFeedTypes? {
-        let items = self.carouselMenu()
-        if let currentIndex = self.indexOfCarouselItem(item: currentItem) {
-            guard currentIndex > 0 else { return nil}
+        let items = carouselMenu()
+        if let currentIndex = indexOfCarouselItem(item: currentItem) {
+            guard currentIndex > 0 else { return nil }
             return items[currentIndex - 1]
         }
-        
+
         return nil
     }
-    
+
     func carouselItem(atIndex index: Int) -> NewsFeedTypes? {
-        let items = self.carouselMenu()
+        let items = carouselMenu()
         guard items.count > index else { return nil }
         return items[index]
     }
-    
+
     func carouselItemPressed(withIndex index: Int) {
-        let menuItems = self.carouselMenu()
+        let menuItems = carouselMenu()
         guard menuItems.count > index else { return }
-        
+
         var direction = UIPageViewController.NavigationDirection.reverse
-        if let oldIndex = self.indexOfCarouselItem(item: self.currentFeedType) {
+        if let oldIndex = indexOfCarouselItem(item: currentFeedType) {
             if oldIndex < index {
                 direction = UIPageViewController.NavigationDirection.forward
             }
-            
-            let previousViewController = self.pageForType(type: self.currentFeedType)
+
+            let previousViewController = pageForType(type: currentFeedType)
             previousViewController.pauseAllVideos()
         }
-        
-        self.currentFeedType = self.carouselItem(atIndex: index) ?? .following
-        let vc = self.pageForType(type: self.currentFeedType)
-        self.pageViewController.setViewControllers([vc], direction: direction, animated: true)
+
+        currentFeedType = carouselItem(atIndex: index) ?? .following
+        let vc = pageForType(type: currentFeedType)
+        pageViewController.setViewControllers([vc], direction: direction, animated: true)
     }
-    
+
     func carouselActiveItemDoublePressed() {
-        self.currentPage().jumpToNewest()
+        currentPage().jumpToNewest()
     }
-    
+
     func contextMenuForItem(withIndex index: Int) -> UIMenu? {
-        let items = self.carouselMenu()
+        let items = carouselMenu()
         let type = items[index]
-        let page = self.pageForType(type: type)
+        let page = pageForType(type: type)
         let feedOptions = page.contextMenu()
-        
+
         if !feedOptions.children.isEmpty {
             return UIMenu(title: "", options: [], children: [feedOptions])
         }
-        
+
         return nil
     }
 }
 
 // MARK: - App state restoration
+
 extension HomeViewController: AppStateRestoration {
-    
-    public func storeUserActivity(in activity: NSUserActivity) {
+    func storeUserActivity(in activity: NSUserActivity) {
         log.debug("HomeViewController:" + #function)
-        activity.userInfo?["HomeViewController.carouselIndex"] = self.feedCarousel.selectedIndexPath.item
+        activity.userInfo?["HomeViewController.carouselIndex"] = feedCarousel.selectedIndexPath.item
     }
-    
-    public func restoreUserActivity(from activity: NSUserActivity) {
+
+    func restoreUserActivity(from activity: NSUserActivity) {
         log.debug("HomeViewController:" + #function)
         if let selectedCarouselIndex = activity.userInfo?["HomeViewController.carouselIndex"] as? Int {
             log.debug("HomeViewController:" + #function + " selectedCarouselIndex:\(selectedCarouselIndex)")
-            
-            if let currentType = self.carouselItem(atIndex: selectedCarouselIndex) {
-                self.currentFeedType = currentType
-                self.feedCarousel.scrollTo(index: selectedCarouselIndex, animated: false)
-                let vc = self.pageForType(type: currentType)
-                self.pageViewController.setViewControllers([vc], direction: .forward, animated: false)
+
+            if let currentType = carouselItem(atIndex: selectedCarouselIndex) {
+                currentFeedType = currentType
+                feedCarousel.scrollTo(index: selectedCarouselIndex, animated: false)
+                let vc = pageForType(type: currentType)
+                pageViewController.setViewControllers([vc], direction: .forward, animated: false)
             }
         }
     }
 }
 
 // MARK: - Appearance changes
-internal extension HomeViewController {
-     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+
+extension HomeViewController {
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
-         if #available(iOS 13.0, *) {
-             if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-                 configureNavigationBarLayout(navigationController: self.navigationController, userInterfaceStyle: self.traitCollection.userInterfaceStyle)
-             }
-         }
+
+        if #available(iOS 13.0, *) {
+            if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                configureNavigationBarLayout(navigationController: self.navigationController, userInterfaceStyle: self.traitCollection.userInterfaceStyle)
+            }
+        }
     }
 }
 
 // MARK: - ForYou User Settings
+
 /// Keeps track of the current user's ForYou feed type as a
 extension HomeViewController {
-    
-    func forYouUserSettingKey() -> String  {
-        if let currentUser  = AccountsManager.shared.currentAccount?.remoteFullOriginalAcct {
+    func forYouUserSettingKey() -> String {
+        if let currentUser = AccountsManager.shared.currentAccount?.remoteFullOriginalAcct {
             return "\(currentUser):\(FOR_YOU_FEED_TYPE)"
         } else {
             return ""
         }
     }
-    
-     func forYouUserSetting() -> String? {
-         let key: String = forYouUserSettingKey()
-         return UserDefaults.standard.object(forKey:key) as? String
-        }
-    
-    func updateForYouUserSetting(type: String) -> Void {
-        UserDefaults.standard.set(type, forKey: self.forYouUserSettingKey())
+
+    func forYouUserSetting() -> String? {
+        let key: String = forYouUserSettingKey()
+        return UserDefaults.standard.object(forKey: key) as? String
     }
-    
-    func triggerPersonalFeedAlert(remoteFullOriginalAcct: String) -> Void {
+
+    func updateForYouUserSetting(type: String) {
+        UserDefaults.standard.set(type, forKey: forYouUserSettingKey())
+    }
+
+    func triggerPersonalFeedAlert(remoteFullOriginalAcct _: String) {
         let dialogMessage = UIAlertController(title: "Success", message: "You're now able to see posts from friends of friends.", preferredStyle: .alert)
         dialogMessage.addAction(UIAlertAction(title: "Done", style: .default))
-        self.present(dialogMessage, animated: true, completion: nil)
+        present(dialogMessage, animated: true, completion: nil)
     }
-    
+
     // We want to check type of the ForYou Feed (public | personal)
     // On return of 'personal' set user default and launch confetti!
-    private func updateForYouFeedType() -> Void {
+    private func updateForYouFeedType() {
         // Only for For You feed
-        guard self.currentFeedType == .forYou else { return }
+        guard currentFeedType == .forYou else { return }
         // Don't check if state is already personal
-        let storedSetting = self.forYouUserSetting()
+        let storedSetting = forYouUserSetting()
         guard storedSetting != ForYouAccountType.personal.rawValue else { return }
         // Only if we have an account name
         guard let remoteFullOriginalAcct = AccountsManager.shared.currentAccount?.remoteFullOriginalAcct else { return }
-        
+
         let currentAccount = AccountsManager.shared.currentAccount
-        
+
         Task {
             // Fetch ForYou Type
             let result = try await TimelineService.forYouMe(remoteFullOriginalAcct: remoteFullOriginalAcct)
@@ -518,7 +522,7 @@ extension HomeViewController {
             await MainActor.run { [weak self] in
                 guard let self else { return }
                 guard currentAccount?.remoteFullOriginalAcct == AccountsManager.shared.currentAccount?.remoteFullOriginalAcct else { return }
-                
+
                 // Update our local forYou settings based on what the server just returned
                 AccountsManager.shared.updateCurrentAccountForYou(result.forYou, writeToServer: false)
 
@@ -530,16 +534,16 @@ extension HomeViewController {
                 if storedSetting != nil {
                     self.pageForType(type: .forYou).forceReloadForYou()
                 }
-                
+
                 // If the setting went from 'something' (not nil) to .personal,
                 // it's confetti time!
-                if result.forYou.type == ForYouAccountType.personal && storedSetting != nil {
+                if result.forYou.type == ForYouAccountType.personal, storedSetting != nil {
                     triggerPersonalFeedAlert(remoteFullOriginalAcct: remoteFullOriginalAcct)
                 }
             }
         }
     }
-    
+
     @objc private func onForYouChange() {
         // This notification is triggered when the user changes their For You
         // account settings.
@@ -548,5 +552,4 @@ extension HomeViewController {
             self.pageForType(type: .forYou).startCheckingFYStatus()
         }
     }
-
 }

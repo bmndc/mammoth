@@ -12,25 +12,24 @@ public let didChangePinnedInstancesNotification = Notification.Name("didChangePi
 public let didChangeAllInstancesNotification = Notification.Name("didChangeAllInstancesNotification") // list of possible Instances changed
 
 class InstanceManager {
-    
     static let shared = InstanceManager()
-    
+
     enum InstanceStatus: String {
-        case notPinned           // default (not subscribed)
-        case pinned              // am subscribed
+        case notPinned // default (not subscribed)
+        case pinned // am subscribed
     }
-    
+
     var allInstances: [tagInstance] = []
     var pinnedInstances: [String] = [] { // subscribed to
         didSet {
             NotificationCenter.default.post(name: didChangePinnedInstancesNotification, object: self, userInfo: nil)
         }
     }
-    
-    public init() {
+
+    init() {
         // Listen to account switch, and update the list of channels accordingly
-        NotificationCenter.default.addObserver(self, selector: #selector(self.didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
-                
+        NotificationCenter.default.addObserver(self, selector: #selector(didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
+
         // Get all possible instances
         Task {
             let allInstances = await InstanceService.allInstances()
@@ -40,16 +39,15 @@ class InstanceManager {
             }
         }
         // Get channels for current user
-        self.updateUserInstances()
+        updateUserInstances()
     }
-    
-    public func prepareForUse() {}
-    
+
+    func prepareForUse() {}
 
     @objc func didSwitchAccount() {
-        self.updateUserInstances()
+        updateUserInstances()
     }
-    
+
     @objc func onForYouDidChange() {
         updateUserInstances()
     }
@@ -63,8 +61,8 @@ class InstanceManager {
             // unable to find subscribed instances file on disk
         }
     }
-    
-    public func setPinnedInstances(instances: [String], forAccount account: any AcctDataType) {
+
+    func setPinnedInstances(instances: [String], forAccount account: any AcctDataType) {
         if let acctData = account as? MastodonAcctData {
             do {
                 try Disk.save(instances, to: .documents, as: "\(acctData.diskFolderName())/instances.json")
@@ -77,14 +75,11 @@ class InstanceManager {
             updateUserInstances()
         }
     }
-    
 }
-
 
 // Public APIs
 extension InstanceManager {
-        
-    public func pinnedStatusForInstance(_ instanceName: String) -> InstanceStatus {
+    func pinnedStatusForInstance(_ instanceName: String) -> InstanceStatus {
         if pinnedInstances.contains(instanceName) {
             return .pinned
         } else {
@@ -92,7 +87,7 @@ extension InstanceManager {
         }
     }
 
-    public func pinInstance(_ instanceName: String) {
+    func pinInstance(_ instanceName: String) {
         pinnedInstances.append(instanceName)
         do {
             if let currentAccount = AccountsManager.shared.currentAccount {
@@ -102,11 +97,11 @@ extension InstanceManager {
             log.error("unable to pin instance \(instanceName): \(error)")
         }
         DispatchQueue.main.async {
-            NotificationCenter.default.post(name: didChangePinnedInstancesNotification, object: self, userInfo: ["InstanceName" : instanceName])
+            NotificationCenter.default.post(name: didChangePinnedInstancesNotification, object: self, userInfo: ["InstanceName": instanceName])
         }
     }
 
-    public func unpinInstance(_ instanceName: String) {
+    func unpinInstance(_ instanceName: String) {
         pinnedInstances.removeAll { anInstance in
             anInstance == instanceName
         }
@@ -118,11 +113,11 @@ extension InstanceManager {
             log.error("unable to unpin instance \(instanceName): \(error)")
         }
         DispatchQueue.main.async {
-            NotificationCenter.default.post(name: didChangePinnedInstancesNotification, object: self, userInfo: ["InstanceName" : instanceName])
+            NotificationCenter.default.post(name: didChangePinnedInstancesNotification, object: self, userInfo: ["InstanceName": instanceName])
         }
     }
 
-    public func clearCache() {
+    func clearCache() {
         let currentAccount = AccountsManager.shared.currentAccount
         do {
             try Disk.remove("\(currentAccount?.diskFolderName() ?? "")/instances.json", from: .documents)
@@ -131,7 +126,4 @@ extension InstanceManager {
         }
         updateUserInstances()
     }
-
 }
-
-

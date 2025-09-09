@@ -6,9 +6,9 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
+import ArkanaKeys
 import Foundation
 import Segment
-import ArkanaKeys
 
 enum Events: String {
     case newPost
@@ -21,15 +21,15 @@ enum Events: String {
     case channelSubscribed
     case channelUnsubscribed
     case navigateToChannel
-    
+
     case loggedIn
     case accountCreated
     case verifiedEmail
     case switchingAccount
-    
+
     case follow
     case unfollow
-    
+
     case like
     case unlike
     case repost
@@ -39,46 +39,46 @@ enum Events: String {
 class AnalyticsManager {
     private let analytics: Analytics
     static let shared = AnalyticsManager()
-    
+
     init() {
         #if DEBUG
-        let key = ArkanaKeys.Staging().analyticsKey
-        let config = Configuration(writeKey: key)
-            .trackApplicationLifecycleEvents(true)
-            .flushAt(1)
-            .flushInterval(5)
-        
-        analytics = Analytics(configuration: config)
-        
+            let key = ArkanaKeys.Staging().analyticsKey
+            let config = Configuration(writeKey: key)
+                .trackApplicationLifecycleEvents(true)
+                .flushAt(1)
+                .flushInterval(5)
+
+            analytics = Analytics(configuration: config)
+
         #else
-        let key = ArkanaKeys.Production().analyticsKey
-        let config = Configuration(writeKey: key)
-            .trackApplicationLifecycleEvents(true)
-            .flushAt(3)
-            .flushInterval(10)
-        
-        analytics = Analytics(configuration: config)
+            let key = ArkanaKeys.Production().analyticsKey
+            let config = Configuration(writeKey: key)
+                .trackApplicationLifecycleEvents(true)
+                .flushAt(3)
+                .flushInterval(10)
+
+            analytics = Analytics(configuration: config)
         #endif
-        
+
         analytics.enabled = GlobalStruct.shareAnalytics
     }
-    
+
     func prepareForUse() {
-        NotificationCenter.default.addObserver(self, selector: #selector(self.didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.didUpdatePurchase), name: didUpdatePurchaseStatus, object: nil)
-        
+        NotificationCenter.default.addObserver(self, selector: #selector(didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didUpdatePurchase), name: didUpdatePurchaseStatus, object: nil)
+
         analytics.add(plugin: DeviceToken())
         analytics.add(plugin: UIKitScreenTracking())
     }
-    
-    @objc func didSwitchAccount(_ notification: NSNotification) {
+
+    @objc func didSwitchAccount(_: NSNotification) {
         // stub
     }
-    
-    @objc func didUpdatePurchase(_ notification: NSNotification) {
+
+    @objc func didUpdatePurchase(_: NSNotification) {
         // stub
     }
-    
+
     private func callActivities() {
         if GlobalStruct.shareAnalytics {
             if let currentFullAccount = AccountsManager.shared.currentAccount?.remoteFullOriginalAcct {
@@ -90,65 +90,64 @@ class AnalyticsManager {
             }
         }
     }
-    
-    static public func track(event: Events, props: [String:Any]? = [:]) {
+
+    static func track(event: Events, props: [String: Any]? = [:]) {
         if GlobalStruct.shareAnalytics {
-            self.shared.analytics.track(name: event.rawValue, properties: props)
+            shared.analytics.track(name: event.rawValue, properties: props)
         }
     }
-    
-    static public func reportError(_ error: Error) {
+
+    static func reportError(_ error: Error) {
         if GlobalStruct.shareAnalytics {
-            self.shared.analytics.reportInternalError(error)
+            shared.analytics.reportInternalError(error)
         }
     }
-    
-    static public func identity(userId: String, identity: IdentityData) {
+
+    static func identity(userId: String, identity: IdentityData) {
         if GlobalStruct.shareAnalytics {
-            self.shared.analytics.identify(userId: userId, traits: identity)
+            shared.analytics.identify(userId: userId, traits: identity)
         }
     }
-    
-    static public func alias(userId: String) {
+
+    static func alias(userId: String) {
         if GlobalStruct.shareAnalytics {
-            self.shared.analytics.alias(newId: userId)
+            shared.analytics.alias(newId: userId)
         }
     }
-    
-    static public func openURL(url: URL) {
+
+    static func openURL(url: URL) {
         if GlobalStruct.shareAnalytics {
-            self.shared.analytics.openURL(url)
+            shared.analytics.openURL(url)
         }
     }
-    
-    static public func setDeviceToken(token: Data) {
+
+    static func setDeviceToken(token: Data) {
         if GlobalStruct.shareAnalytics {
-            self.shared.analytics.registeredForRemoteNotifications(deviceToken: token)
+            shared.analytics.registeredForRemoteNotifications(deviceToken: token)
         }
     }
-    
-    static public func failedToRegisterForPushNotifications(error: Error?) {
+
+    static func failedToRegisterForPushNotifications(error: Error?) {
         if GlobalStruct.shareAnalytics {
-            self.shared.analytics.failedToRegisterForRemoteNotification(error: error)
+            shared.analytics.failedToRegisterForRemoteNotification(error: error)
         }
     }
-    
-    static public func subscribe() {
-        self.shared.analytics.enabled = true
-        self.shared.analytics.identify(traits: ["shareAnalytics": true])
-        self.shared.analytics.flush()
+
+    static func subscribe() {
+        shared.analytics.enabled = true
+        shared.analytics.identify(traits: ["shareAnalytics": true])
+        shared.analytics.flush()
     }
-    
-    static public func unsubscribe() {
-        self.shared.analytics.identify(traits: ["shareAnalytics": false])
-        self.shared.analytics.flush()
-        self.shared.analytics.reset()
-        self.shared.analytics.enabled = false
+
+    static func unsubscribe() {
+        shared.analytics.identify(traits: ["shareAnalytics": false])
+        shared.analytics.flush()
+        shared.analytics.reset()
+        shared.analytics.enabled = false
     }
-    
-    static public func reset() {
-        self.shared.analytics.flush()
-        self.shared.analytics.reset()
+
+    static func reset() {
+        shared.analytics.flush()
+        shared.analytics.reset()
     }
-    
 }

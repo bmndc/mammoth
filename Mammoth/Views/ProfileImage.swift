@@ -6,8 +6,8 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import UIKit
 import SDWebImage
+import UIKit
 
 protocol ProfileImageDisplayer {
     func setProfileImage(image: UIImage?, selectedImage: UIImage?)
@@ -41,13 +41,13 @@ func currentProfileImages(image: UIImage? = nil, completion: @escaping ((_ image
                         let _ = UIImage(data: data)
                     else {
                         log.error("Unable to get avatar from url: \(url)")
-                        DispatchQueue.main.async() {
+                        DispatchQueue.main.async {
                             completion(FontAwesome.image(fromChar: "\u{f007}").withRenderingMode(.alwaysTemplate),
                                        FontAwesome.image(fromChar: "\u{f007}", weight: .bold).withRenderingMode(.alwaysTemplate))
                         }
                         return
                     }
-                    DispatchQueue.main.async() {
+                    DispatchQueue.main.async {
                         let image = UIImage(data: data)!
                         if GlobalStruct.circleProfiles {
                             let resized = image.resize(targetSize: CGSize(width: 24, height: 24)).withRoundedCorners()?.withRenderingMode(.alwaysOriginal)

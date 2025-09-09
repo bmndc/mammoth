@@ -10,13 +10,12 @@ import Foundation
 import UIKit
 
 class AltTextCell: UITableViewCell {
-    
     var altText = UITextField()
     var charCount = UILabel()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
+
         altText.translatesAutoresizingMaskIntoConstraints = false
         altText.placeholder = "Option 1"
         altText.accessibilityLabel = "Option 1"
@@ -27,7 +26,7 @@ class AltTextCell: UITableViewCell {
         altText.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize + 2, weight: .regular)
         altText.smartDashesType = .no
         contentView.addSubview(altText)
-        
+
         charCount.translatesAutoresizingMaskIntoConstraints = false
         charCount.text = ""
         charCount.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize + 2, weight: .regular)
@@ -35,41 +34,41 @@ class AltTextCell: UITableViewCell {
         charCount.textColor = .custom.baseTint
         contentView.addSubview(charCount)
         charCount.setContentCompressionResistancePriority(.required, for: .horizontal)
-        
+
         contentView.layer.masksToBounds = false
-        
+
         let viewsDict = [
-            "altText" : altText,
-            "charCount" : charCount,
+            "altText": altText,
+            "charCount": charCount,
         ]
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[altText]-(>=15)-[charCount]-15-|", options: [], metrics: nil, views: viewsDict))
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-12-[altText]-12-|", options: [], metrics: nil, views: viewsDict))
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[charCount]", options: [], metrics: nil, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[altText]-(>=15)-[charCount]-15-|", options: [], metrics: nil, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-12-[altText]-12-|", options: [], metrics: nil, views: viewsDict))
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[charCount]", options: [], metrics: nil, views: viewsDict))
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }
 
 class AltTextMultiCell: UITableViewCell {
-    
     var altText = MultilineTextField()
     var charCount = UILabel()
     var showCharCount = false {
         didSet {
-            self.updateConstraints()
+            updateConstraints()
         }
     }
+
     var charCountConstraints: [NSLayoutConstraint] = []
     var noCharCountConstraints: [NSLayoutConstraint] = []
 
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
+
         altText.translatesAutoresizingMaskIntoConstraints = false
         altText.placeholder = "Option 1"
         altText.accessibilityLabel = "Option 1"
@@ -81,7 +80,7 @@ class AltTextMultiCell: UITableViewCell {
         altText.smartDashesType = .no
         altText.isScrollEnabled = false
         contentView.addSubview(altText)
-        
+
         charCount.translatesAutoresizingMaskIntoConstraints = false
         charCount.text = ""
         charCount.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize + 2, weight: .regular)
@@ -91,24 +90,24 @@ class AltTextMultiCell: UITableViewCell {
         charCount.setContentCompressionResistancePriority(.required, for: .horizontal)
 
         contentView.layer.masksToBounds = false
-        
+
         let viewsDict = [
-            "altText" : altText,
-            "charCount" : charCount,
+            "altText": altText,
+            "charCount": charCount,
         ]
 
         charCountConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[altText]-(>=15)-[charCount]-15-|", options: [], metrics: nil, views: viewsDict))
         charCountConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-12-[altText]-12-|", options: [], metrics: nil, views: viewsDict))
         charCountConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[charCount]", options: [], metrics: nil, views: viewsDict))
-        self.contentView.addConstraints(charCountConstraints)
+        contentView.addConstraints(charCountConstraints)
 
         noCharCountConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[altText]-15-|", options: [], metrics: nil, views: viewsDict))
         noCharCountConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-12-[altText]-12-|", options: [], metrics: nil, views: viewsDict))
-        self.contentView.addConstraints(noCharCountConstraints)
+        contentView.addConstraints(noCharCountConstraints)
 
-       self.updateConstraints()
+        updateConstraints()
     }
-    
+
     override func updateConstraints() {
         super.updateConstraints()
         if showCharCount {
@@ -121,20 +120,19 @@ class AltTextMultiCell: UITableViewCell {
             NSLayoutConstraint.deactivate(charCountConstraints)
         }
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }
 
 class AltTextCell2: UITableViewCell {
-    
     var altText = UITextField()
-    
+
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        
+
         altText.translatesAutoresizingMaskIntoConstraints = false
         altText.placeholder = "Option 1"
         altText.accessibilityLabel = "Option 1"
@@ -145,21 +143,20 @@ class AltTextCell2: UITableViewCell {
         altText.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize + 2, weight: .regular)
         altText.smartDashesType = .no
         contentView.addSubview(altText)
-        
+
         contentView.layer.masksToBounds = false
-        
+
         let viewsDict = [
-            "altText" : altText,
+            "altText": altText,
         ]
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[altText]-15-|", options: [], metrics: nil, views: viewsDict))
-        
-        self.contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[altText(50)]-0-|", options: [], metrics: nil, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-15-[altText]-15-|", options: [], metrics: nil, views: viewsDict))
+
+        contentView.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[altText(50)]-0-|", options: [], metrics: nil, views: viewsDict))
     }
-    
-    required init?(coder aDecoder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
 }
-

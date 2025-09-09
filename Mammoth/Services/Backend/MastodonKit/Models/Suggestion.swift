@@ -12,4 +12,3 @@ public class Suggestion: Codable {
     let source: String
     let account: Account
 }
-

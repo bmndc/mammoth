@@ -6,19 +6,18 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import UIKit
 import AVFoundation
-import Vision
+import AVKit
+import Foundation
+import Kingfisher
+import LinkPresentation
 import NaturalLanguage
 import Photos
-import AVKit
-import LinkPresentation
-import Kingfisher
+import UIKit
+import Vision
 
 // swiftlint:disable:next type_body_length
 class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContextMenuInteractionDelegate {
-    
     var pipView = UIPiPView()
     var profileIcon = UIButton()
     var lockedBadge = UIImageView()
@@ -32,7 +31,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
     let linkUsername = UILabel()
     let linkUsertag = UILabel()
     let linkDate = UILabel()
-    let linkPost = ActiveLabel()       // this is the body of the above
+    let linkPost = ActiveLabel() // this is the body of the above
     let linkStackView0 = UIStackView()
     let linkStackView = UIStackView()
     var id: String = ""
@@ -46,7 +45,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
     // constraints
     var conLP1: NSLayoutConstraint? // large image cards
     var conLP2: NSLayoutConstraint? // smaller image cards
-    
+
     // Valid constraint sets are:
     //      - must have one of either quotePostConstraints - OR - nonQuoteConstraints
     //      - linkStackViewContraints (required)
@@ -63,52 +62,52 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
     var topThreadLine = UIView()
     var fromFeed: Bool = false
     var tmpIndex: Int = 0
-    
+
     var isQuotedPostPreview: Bool = false
-    
+
     func prepareForReuse() {
-        self.topThreadLine.alpha = 0
-        self.lpImage.image = UIImage()
+        topThreadLine.alpha = 0
+        lpImage.image = UIImage()
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-    
+
     init(isQuotedPostPreview: Bool) {
         super.init(frame: CGRectZero)
         self.isQuotedPostPreview = isQuotedPostPreview
-        self.commonInit()
+        commonInit()
     }
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
         commonInit()
     }
-    
+
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
         commonInit()
     }
-    
+
     private func commonInit() {
         if !isQuotedPostPreview {
-            self.quotePostHostView = QuotePostHostView()
+            quotePostHostView = QuotePostHostView()
         }
-        
-        self.accessibilityIdentifier = "DetailView"
-        self.pipView.accessibilityIdentifier = "DetailCellPipView"
+
+        accessibilityIdentifier = "DetailView"
+        pipView.accessibilityIdentifier = "DetailCellPipView"
         pipView.translatesAutoresizingMaskIntoConstraints = false
-        self.addSubview(pipView)
-        
+        addSubview(pipView)
+
         // thread lines
-        
+
         topThreadLine.translatesAutoresizingMaskIntoConstraints = false
         topThreadLine.backgroundColor = .custom.quoteTint
         topThreadLine.alpha = 0
         pipView.addSubview(topThreadLine)
-        
+
         profileIcon.translatesAutoresizingMaskIntoConstraints = false
         profileIcon.backgroundColor = .custom.quoteTint
         profileIcon.contentMode = .scaleAspectFill
@@ -117,7 +116,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         profileIcon.contentMode = .scaleAspectFill
         profileIcon.accessibilityLabel = NSLocalizedString("navigator.profile", comment: "")
         pipView.addSubview(profileIcon)
-        
+
         let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: UIFont.preferredFont(forTextStyle: .title2).pointSize + GlobalStruct.customTextSize, weight: .bold)
         lockedBadge.translatesAutoresizingMaskIntoConstraints = false
         lockedBadge.backgroundColor = .clear
@@ -125,25 +124,25 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         lockedBadge.alpha = 0
         pipView.addSubview(lockedBadge)
         lockedBadge.setContentCompressionResistancePriority(.required, for: .horizontal)
-        
+
         lockedBackground.translatesAutoresizingMaskIntoConstraints = false
         lockedBackground.backgroundColor = .custom.backgroundTint
         lockedBackground.layer.cornerRadius = (UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 6) / 2
         lockedBackground.alpha = 0
         pipView.insertSubview(lockedBackground, belowSubview: lockedBadge)
-        
+
         userName.translatesAutoresizingMaskIntoConstraints = false
         userName.textAlignment = .left
         userName.textColor = UIColor.label
         userName.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold)
         pipView.addSubview(userName)
-        
+
         userTag.translatesAutoresizingMaskIntoConstraints = false
         userTag.textAlignment = .left
         userTag.textColor = UIColor.secondaryLabel
         userTag.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .light)
         pipView.addSubview(userTag)
-        
+
         followsYou.translatesAutoresizingMaskIntoConstraints = false
         followsYou.setTitle("Follows You", for: .normal)
         followsYou.setTitleColor(UIColor.label.withAlphaComponent(0.5), for: .normal)
@@ -154,9 +153,9 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         followsYou.layer.cornerCurve = .continuous
         followsYou.contentEdgeInsets = UIEdgeInsets(top: 2, left: 9, bottom: 2, right: 9)
         followsYou.alpha = 0
-        self.addSubview(followsYou)
+        addSubview(followsYou)
         followsYou.setContentCompressionResistancePriority(.required, for: .horizontal)
-        
+
         postText.translatesAutoresizingMaskIntoConstraints = false
         postText.accessibilityIdentifier = "postText"
         postText.commitUpdates {
@@ -172,33 +171,33 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
             postText.urlMaximumLength = 30
         }
         pipView.addSubview(postText)
-        
+
         // create stack for quote
-        
+
         linkUsername.text = ""
         linkUsername.textColor = .label
         linkUsername.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold)
         linkUsername.setContentCompressionResistancePriority(.defaultHigh, for: .horizontal)
         linkUsername.numberOfLines = 1
-        
+
         linkUsertag.text = ""
         linkUsertag.textColor = .secondaryLabel
         linkUsertag.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
         linkUsertag.sizeToFit()
         linkUsertag.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
-        
+
         linkDate.text = ""
         linkDate.textColor = .secondaryLabel
         linkDate.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .light)
         linkDate.textAlignment = .right
         linkDate.sizeToFit()
         linkDate.setContentCompressionResistancePriority(.required, for: .horizontal)
-        
+
         let spacer2 = UIView()
         spacer2.isUserInteractionEnabled = false
         spacer2.setContentHuggingPriority(.fittingSizeLevel, for: .horizontal)
         spacer2.setContentCompressionResistancePriority(.fittingSizeLevel, for: .horizontal)
-        
+
         linkStackViewHorizontal.translatesAutoresizingMaskIntoConstraints = false
         linkStackViewHorizontal.addArrangedSubview(linkUsername)
         linkStackViewHorizontal.addArrangedSubview(linkUsertag)
@@ -212,7 +211,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         linkStackViewHorizontal.layer.masksToBounds = true
         linkStackViewHorizontal.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         pipView.addSubview(linkStackViewHorizontal)
-        
+
         linkPost.text = ""
         linkPost.textColor = .secondaryLabel
         linkPost.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
@@ -224,17 +223,17 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         linkPost.URLColor = .custom.baseTint
         linkPost.lineSpacing = GlobalStruct.customLineSize
         linkPost.urlMaximumLength = 30
-        
+
         linkUsername.setContentCompressionResistancePriority(.required, for: .vertical)
-        
+
         linkStackView0.accessibilityIdentifier = "linkStackView0"
         linkStackView0.addArrangedSubview(linkStackViewHorizontal)
         linkStackView0.addArrangedSubview(linkPost)
-        
-        if let quotePostHostView = self.quotePostHostView {
+
+        if let quotePostHostView = quotePostHostView {
             linkStackView0.addArrangedSubview(quotePostHostView)
         }
-        
+
         linkStackView0.axis = .vertical
         linkStackView0.distribution = .fill
         linkStackView0.spacing = 1
@@ -245,16 +244,16 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         linkStackView0.layer.masksToBounds = true
         linkStackView0.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
         pipView.addSubview(linkStackView0)
-        
+
         lpImage.image = UIImage()
         lpImage.translatesAutoresizingMaskIntoConstraints = false
-        conLP1 = self.lpImage.heightAnchor.constraint(equalToConstant: 170)
-        conLP2 = self.lpImage.heightAnchor.constraint(equalToConstant: 65)
+        conLP1 = lpImage.heightAnchor.constraint(equalToConstant: 170)
+        conLP2 = lpImage.heightAnchor.constraint(equalToConstant: 65)
         lpImage.backgroundColor = .custom.quoteTint
         lpImage.contentMode = .scaleAspectFill
         pipView.addSubview(lpImage)
         conLP1?.isActive = true
-        
+
         linkStackView.translatesAutoresizingMaskIntoConstraints = false
         linkStackView.addArrangedSubview(lpImage)
         linkStackView.addArrangedSubview(linkStackView0)
@@ -270,129 +269,124 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         linkStackView.layer.cornerRadius = 10
         linkStackView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner, .layerMinXMinYCorner, .layerMaxXMinYCorner]
         pipView.addSubview(linkStackView)
-        
-        let qGesture = UITapGestureRecognizer(target: self, action: #selector(self.quoteTapped))
+
+        let qGesture = UITapGestureRecognizer(target: self, action: #selector(quoteTapped))
         linkStackView.addGestureRecognizer(qGesture)
-        
+
         let interaction = UIContextMenuInteraction(delegate: self)
         linkStackView.addInteraction(interaction)
-        
+
         let viewsDict = [
-            "pipView" : pipView,
-            "profileIcon" : profileIcon,
-            "lockedBackground" : lockedBackground,
-            "lockedBadge" : lockedBadge,
-            "userName" : userName,
-            "userTag" : userTag,
-            "followsYou" : followsYou,
-            "postText" : postText,
-            "linkStackView" : linkStackView,
-            "topThreadLine" : topThreadLine,
-        ] as [String : Any]
+            "pipView": pipView,
+            "profileIcon": profileIcon,
+            "lockedBackground": lockedBackground,
+            "lockedBadge": lockedBadge,
+            "userName": userName,
+            "userTag": userTag,
+            "followsYou": followsYou,
+            "postText": postText,
+            "linkStackView": linkStackView,
+            "topThreadLine": topThreadLine,
+        ] as [String: Any]
         let metricsDict = [
-            "fontSize" : UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 6,
-            "padCo" : CGFloat(GlobalStruct.padColWidth - 92)
+            "fontSize": UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 6,
+            "padCo": CGFloat(GlobalStruct.padColWidth - 92),
         ]
-        
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-2-[pipView]-2-|", options: [], metrics: nil, views: viewsDict))
-        
-#if targetEnvironment(macCatalyst)
-        let horizontalPadding = self.isQuotedPostPreview ? 2 : 20
-        
-        if GlobalStruct.singleColumn {
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[pipView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
-            self.linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView(padCo)]-(>=\(horizontalPadding)-|", options: [], metrics: metricsDict, views: viewsDict))
 
-        } else {
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict))
-             self.linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-2-[pipView]-2-|", options: [], metrics: nil, views: viewsDict))
 
-        }
-#elseif !targetEnvironment(macCatalyst)
-        let horizontalPadding = self.isQuotedPostPreview ? 2 : 20
-        
-        if UIDevice.current.userInterfaceIdiom == .pad && GlobalStruct.singleColumn && self.window?.traitCollection.horizontalSizeClass != .compact {
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[pipView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
-             self.linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView(padCo)]-(>=\(horizontalPadding))-|", options: [], metrics: metricsDict, views: viewsDict))
-            
-        } else {
-            self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict))
-             self.linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
-        }
-#endif
-        
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[topThreadLine(2)]", options: [], metrics: nil, views: viewsDict))
-        self.addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[topThreadLine(18)]", options: [], metrics: nil, views: viewsDict))
-        
-        
+        #if targetEnvironment(macCatalyst)
+            let horizontalPadding = isQuotedPostPreview ? 2 : 20
+
+            if GlobalStruct.singleColumn {
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[pipView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
+                linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView(padCo)]-(>=\(horizontalPadding)-|", options: [], metrics: metricsDict, views: viewsDict))
+
+            } else {
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict))
+                linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
+            }
+        #elseif !targetEnvironment(macCatalyst)
+            let horizontalPadding = isQuotedPostPreview ? 2 : 20
+
+            if UIDevice.current.userInterfaceIdiom == .pad, GlobalStruct.singleColumn, window?.traitCollection.horizontalSizeClass != .compact {
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[pipView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
+                linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView(padCo)]-(>=\(horizontalPadding))-|", options: [], metrics: metricsDict, views: viewsDict))
+
+            } else {
+                addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-0-[pipView]-0-|", options: [], metrics: nil, views: viewsDict))
+                linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-\(horizontalPadding)-[linkStackView]-\(horizontalPadding)-|", options: [], metrics: nil, views: viewsDict))
+            }
+        #endif
+
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "H:|-40-[topThreadLine(2)]", options: [], metrics: nil, views: viewsDict))
+        addConstraints(NSLayoutConstraint.constraints(withVisualFormat: "V:|-0-[topThreadLine(18)]", options: [], metrics: nil, views: viewsDict))
+
         // Only one of the constraint sets below should be active at any time
-        
 
         // Used for self.isQuotedPostPreview
         //
         // horizontal
-        self.quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|[profileIcon(18)]-6-[userName]-6-[userTag]", options: [], metrics: metricsDict, views: viewsDict))
-        self.quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|[postText]-(>=4)-|", options: [], metrics: nil, views: viewsDict))
+        quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|[profileIcon(18)]-6-[userName]-6-[userTag]", options: [], metrics: metricsDict, views: viewsDict))
+        quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|[postText]-(>=4)-|", options: [], metrics: nil, views: viewsDict))
         // vertical down to the postText
-        self.quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|[profileIcon(18)]", options: [], metrics: nil, views: viewsDict))
-        self.quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|[userName]", options: [], metrics: nil, views: viewsDict))
-        self.quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|[userTag]", options: [], metrics: nil, views: viewsDict))
-        self.quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[userTag]-(>=6)-[postText]", options: [], metrics: nil, views: viewsDict))
+        quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|[profileIcon(18)]", options: [], metrics: nil, views: viewsDict))
+        quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|[userName]", options: [], metrics: nil, views: viewsDict))
+        quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|[userTag]", options: [], metrics: nil, views: viewsDict))
+        quotePostConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[userTag]-(>=6)-[postText]", options: [], metrics: nil, views: viewsDict))
 
         // Used for NOT self.isQuotedPostPreview
         //
         // horizontal
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[profileIcon(50)]-12-[userName]", options: [], metrics: metricsDict, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:[userName]-9-[lockedBackground(fontSize)]", options: [], metrics: metricsDict, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:[userName]-5-[lockedBadge]-(>=16)-|", options: [], metrics: nil, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:[profileIcon]-12-[userTag]-6-[followsYou]-(>=16)-|", options: [], metrics: nil, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-20-[postText]-20-|", options: [], metrics: nil, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-16-[profileIcon(50)]-12-[userName]", options: [], metrics: metricsDict, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:[userName]-9-[lockedBackground(fontSize)]", options: [], metrics: metricsDict, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:[userName]-5-[lockedBadge]-(>=16)-|", options: [], metrics: nil, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:[profileIcon]-12-[userTag]-6-[followsYou]-(>=16)-|", options: [], metrics: nil, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-20-[postText]-20-|", options: [], metrics: nil, views: viewsDict))
         // vertical down to the postText
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[profileIcon(50)]", options: [], metrics: nil, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-20-[lockedBackground(fontSize)]", options: [], metrics: metricsDict, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-16-[lockedBadge]", options: [], metrics: nil, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName]-0-[userTag]-(>=4)-[postText]", options: [], metrics: nil, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[profileIcon]-(>=6)-[postText]", options: [], metrics: nil, views: viewsDict))
-        self.nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[userName]-(-1.4)-[followsYou]", options: [], metrics: nil, views: viewsDict))
-        
-        // Used when link is present
-        self.linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-10-[linkStackView]|", options: [], metrics: nil, views: viewsDict))
-        // Used when no link is present
-        self.nonLinkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]|", options: [], metrics: nil, views: viewsDict))
-        
-    }
-                                        
-    override func updateConstraints() {
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[profileIcon(50)]", options: [], metrics: nil, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-20-[lockedBackground(fontSize)]", options: [], metrics: metricsDict, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-16-[lockedBadge]", options: [], metrics: nil, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:|-14-[userName]-0-[userTag]-(>=4)-[postText]", options: [], metrics: nil, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[profileIcon]-(>=6)-[postText]", options: [], metrics: nil, views: viewsDict))
+        nonQuoteConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[userName]-(-1.4)-[followsYou]", options: [], metrics: nil, views: viewsDict))
 
+        // Used when link is present
+        linkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-10-[linkStackView]|", options: [], metrics: nil, views: viewsDict))
+        // Used when no link is present
+        nonLinkStackViewContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]|", options: [], metrics: nil, views: viewsDict))
+    }
+
+    override func updateConstraints() {
         let viewsDict = [
-            "postText" : postText,
-            "linkStackView" : linkStackView,
-            "pollStack" : pollStack
-        ] as [String : Any]
-        
+            "postText": postText,
+            "linkStackView": linkStackView,
+            "pollStack": pollStack,
+        ] as [String: Any]
+
         // Create the poll constraints if needed.
         // These are created lazily as pollStack is not
         let containsPoll = !pollStack.isHidden && pollStack.superview != nil
-        if containsPoll && self.pollConstraints.isEmpty{
-            if self.pollConstraints.isEmpty {
-                self.pollConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-20-[pollStack]-20-|", options: [], metrics: nil, views: viewsDict))
-                
+        if containsPoll, pollConstraints.isEmpty {
+            if pollConstraints.isEmpty {
+                pollConstraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "H:|-20-[pollStack]-20-|", options: [], metrics: nil, views: viewsDict))
+
                 // Used when link is present and a poll
-                self.linkStackViewWithPollContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-10-[linkStackView]-10-[pollStack]-14-|", options: [], metrics: nil, views: viewsDict))
+                linkStackViewWithPollContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-10-[linkStackView]-10-[pollStack]-14-|", options: [], metrics: nil, views: viewsDict))
                 // Used when no link is present and a poll
-                self.nonLinkStackViewWithPollContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-10-[pollStack]-14-|", options: [], metrics: nil, views: viewsDict))
+                nonLinkStackViewWithPollContraints.append(contentsOf: NSLayoutConstraint.constraints(withVisualFormat: "V:[postText]-10-[pollStack]-14-|", options: [], metrics: nil, views: viewsDict))
             }
         }
-        
+
         // Enable one of the other sets of constraints
-        if self.isQuotedPostPreview {
-            NSLayoutConstraint.deactivate(self.nonQuoteConstraints)
-            NSLayoutConstraint.activate(self.quotePostConstraints)
+        if isQuotedPostPreview {
+            NSLayoutConstraint.deactivate(nonQuoteConstraints)
+            NSLayoutConstraint.activate(quotePostConstraints)
         } else {
-            NSLayoutConstraint.deactivate(self.quotePostConstraints)
-            NSLayoutConstraint.activate(self.nonQuoteConstraints)
+            NSLayoutConstraint.deactivate(quotePostConstraints)
+            NSLayoutConstraint.activate(nonQuoteConstraints)
         }
-        
+
         // 4 Scenerios are possible. Deactivate the other 3 when selecting:
         // NonLinkStack with a Poll
         // LinkStack with a Poll
@@ -400,59 +394,57 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         // LinkStack
         if containsPoll {
             // There is a Poll present
-            NSLayoutConstraint.activate(self.pollConstraints)
+            NSLayoutConstraint.activate(pollConstraints)
             if linkStackView.isHidden {
-                NSLayoutConstraint.deactivate(self.linkStackViewContraints)
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewWithPollContraints)
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewContraints)
+                NSLayoutConstraint.deactivate(linkStackViewContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewWithPollContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewContraints)
                 // Showing nonLinkStack with polls
-                NSLayoutConstraint.activate((self.nonLinkStackViewWithPollContraints))
+                NSLayoutConstraint.activate(nonLinkStackViewWithPollContraints)
             } else {
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewContraints)
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewWithPollContraints)
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewWithPollContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewWithPollContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewWithPollContraints)
                 // Showing linkStack with polls
-                NSLayoutConstraint.activate((self.linkStackViewWithPollContraints))
+                NSLayoutConstraint.activate(linkStackViewWithPollContraints)
             }
         } else {
             // There is no poll present
-            NSLayoutConstraint.deactivate(self.pollConstraints)
+            NSLayoutConstraint.deactivate(pollConstraints)
             if linkStackView.isHidden {
-                NSLayoutConstraint.deactivate(self.linkStackViewContraints)
-                NSLayoutConstraint.deactivate(self.linkStackViewWithPollContraints)
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewWithPollContraints)
+                NSLayoutConstraint.deactivate(linkStackViewContraints)
+                NSLayoutConstraint.deactivate(linkStackViewWithPollContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewWithPollContraints)
                 // Showing nonLinkStack without polls
-                NSLayoutConstraint.activate((self.nonLinkStackViewContraints))
+                NSLayoutConstraint.activate(nonLinkStackViewContraints)
             } else {
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewContraints)
-                NSLayoutConstraint.deactivate(self.nonLinkStackViewWithPollContraints)
-                NSLayoutConstraint.deactivate(self.linkStackViewWithPollContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewContraints)
+                NSLayoutConstraint.deactivate(nonLinkStackViewWithPollContraints)
+                NSLayoutConstraint.deactivate(linkStackViewWithPollContraints)
                 // Showing linkStack without polls
-                NSLayoutConstraint.activate((self.linkStackViewContraints))
+                NSLayoutConstraint.activate(linkStackViewContraints)
             }
         }
 
         super.updateConstraints()
     }
-    
 
-    public func updateFromStat(_ stat: Status?) {
-                
+    func updateFromStat(_ stat: Status?) {
         if let profileURL = URL(string: stat?.reblog?.account?.avatar ?? stat?.account?.avatar ?? "") {
-            self.profileIcon.sd_setImage(with: profileURL, for: .normal, completed: nil)
+            profileIcon.sd_setImage(with: profileURL, for: .normal, completed: nil)
         }
 
         var linkStr = stat?.reblog?.card ?? stat?.card ?? nil
         if GlobalStruct.linkPreviewCards2 == false {
             linkStr = nil
         }
-        self.postText.commitUpdates {
+        postText.commitUpdates {
             if self.isQuotedPostPreview {
                 self.postText.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize - 2, weight: .regular)
             } else {
                 self.postText.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
             }
-            
+
             self.postText.textColor = .custom.mainTextColor
             self.linkPost.textColor = .custom.mainTextColor2
             if isQuotedPostPreview {
@@ -465,52 +457,52 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
             self.postText.URLColor = .custom.baseTint
             self.postText.emailColor = .custom.baseTint
             self.postText.sizeToFit()
-            
+
             let userName = stat?.reblog?.account?.displayName ?? stat?.account?.displayName ?? ""
             self.userName.text = userName
-            
+
             self.userName.sizeToFit()
-            
+
             let userTag = stat?.reblog?.account?.acct ?? stat?.account?.acct ?? ""
             self.userTag.text = "@\(userTag)"
             self.userTag.sizeToFit()
         }
-        
+
         if stat?.reblog?.account?.locked ?? stat?.account?.locked ?? false == false {
-            self.lockedBadge.alpha = 0
-            self.lockedBackground.alpha = 0
+            lockedBadge.alpha = 0
+            lockedBackground.alpha = 0
         } else {
             let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: GlobalStruct.smallerFontSize, weight: .bold)
-            self.lockedBadge.image = UIImage(systemName: "lock.circle.fill", withConfiguration: symbolConfig0)?.withTintColor(UIColor.label, renderingMode: .alwaysOriginal)
-            self.lockedBadge.alpha = 1
-            self.lockedBackground.alpha = 1
-            self.lockedBackground.backgroundColor = .custom.backgroundTint
+            lockedBadge.image = UIImage(systemName: "lock.circle.fill", withConfiguration: symbolConfig0)?.withTintColor(UIColor.label, renderingMode: .alwaysOriginal)
+            lockedBadge.alpha = 1
+            lockedBackground.alpha = 1
+            lockedBackground.backgroundColor = .custom.backgroundTint
         }
-        
-        var containsPoll: Bool = false
+
+        var containsPoll = false
         if let _ = stat?.reblog?.poll ?? stat?.poll {
             containsPoll = true
         }
         let quotePostCard = stat?.quotePostCard()
-        self.updateContent(quotePostCard: quotePostCard, containsPoll: containsPoll, pollOptions: stat?.reblog?.poll ?? stat?.poll ?? nil, link: linkStr, stat: stat)
-        
-        (self.superview as? UITableViewCell)?.separatorInset = .zero
+        updateContent(quotePostCard: quotePostCard, containsPoll: containsPoll, pollOptions: stat?.reblog?.poll ?? stat?.poll ?? nil, link: linkStr, stat: stat)
+
+        (superview as? UITableViewCell)?.separatorInset = .zero
         let bgColorView = UIView()
         bgColorView.backgroundColor = .clear
-        (self.superview as? UITableViewCell)?.selectedBackgroundView = bgColorView
+        (superview as? UITableViewCell)?.selectedBackgroundView = bgColorView
 //        self.setNeedsLayout()
     }
-    
+
     var hasImage: Bool = false
     func containsImage() {
         hasImage = true
     }
-    
+
     func updateContent(quotePostCard: Card?, containsPoll: Bool, pollOptions: Poll?, link: Card? = nil, stat: Status? = nil) {
         var pollOptions = pollOptions
-        
+
         if GlobalStruct.circleProfiles {
-            if self.isQuotedPostPreview {
+            if isQuotedPostPreview {
                 profileIcon.layer.cornerRadius = 9
 
             } else {
@@ -519,7 +511,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         } else {
             profileIcon.layer.cornerRadius = 8
         }
-        
+
         // remove spaces within posts
         if (postText.text ?? "").suffix(3) == "\n\n " {
             postText.text = String(String(String((postText.text ?? "").dropLast()).dropLast()).dropLast())
@@ -527,65 +519,63 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         if (postText.text ?? "").suffix(2) == "\n\n" {
             postText.text = String(String((postText.text ?? "").dropLast()).dropLast())
         }
-        
-        if stat?.reblog?.emojis.isEmpty ?? stat?.emojis.isEmpty ?? false {
 
+        if stat?.reblog?.emojis.isEmpty ?? stat?.emojis.isEmpty ?? false {
         } else {
-            let attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.content.stripHTML() ?? stat?.content.stripHTML() ?? "")", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
+            let attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.content.stripHTML() ?? stat?.content.stripHTML() ?? "")", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
             if let z = stat?.reblog?.emojis ?? stat?.emojis {
-                let _ = z.map({
+                _ = z.map {
                     let textAttachment = NSTextAttachment()
-                    textAttachment.kf.setImage(with: $0.url, attributedView: self.postText, completionHandler:  { r in
+                    textAttachment.kf.setImage(with: $0.url, attributedView: self.postText, completionHandler: { _ in
                         self.postText.setNeedsDisplay()
                     })
-                    textAttachment.bounds = CGRect(x:0, y: Int(-2), width: Int(self.postText.font.lineHeight - 6), height: Int(self.postText.font.lineHeight - 6))
+                    textAttachment.bounds = CGRect(x: 0, y: Int(-2), width: Int(self.postText.font.lineHeight - 6), height: Int(self.postText.font.lineHeight - 6))
                     let attrStringWithImage = NSAttributedString(attachment: textAttachment)
                     while attributedString.mutableString.contains(":\($0.shortcode):") {
                         let range: NSRange = (attributedString.mutableString as NSString).range(of: ":\($0.shortcode):")
                         attributedString.replaceCharacters(in: range, with: attrStringWithImage)
                     }
-                })
-#if !targetEnvironment(macCatalyst)
-                self.postText.attributedText = attributedString
-#endif
+                }
+                #if !targetEnvironment(macCatalyst)
+                    postText.attributedText = attributedString
+                #endif
             }
         }
 
         if stat?.reblog?.account?.emojis.isEmpty ?? stat?.account?.emojis.isEmpty ?? false {
-
         } else {
-            let attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.account?.displayName ?? stat?.account?.displayName ?? "")", attributes: [NSAttributedString.Key.font : UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
+            let attributedString = NSMutableAttributedString(string: "\(stat?.reblog?.account?.displayName ?? stat?.account?.displayName ?? "")", attributes: [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .semibold), NSAttributedString.Key.foregroundColor: UIColor.custom.mainTextColor.withAlphaComponent(0.85)])
             if let z = stat?.reblog?.account?.emojis ?? stat?.account?.emojis {
-                let _ = z.map({
+                _ = z.map {
                     let textAttachment = NSTextAttachment()
-                    textAttachment.kf.setImage(with: $0.url, attributedView: self.userName, completionHandler:  { r in
+                    textAttachment.kf.setImage(with: $0.url, attributedView: self.userName, completionHandler: { _ in
                         self.userName.setNeedsDisplay()
                     })
-                    textAttachment.bounds = CGRect(x:0, y: Int(-2), width: Int(self.userName.font.lineHeight - 6), height: Int(self.userName.font.lineHeight - 6))
+                    textAttachment.bounds = CGRect(x: 0, y: Int(-2), width: Int(self.userName.font.lineHeight - 6), height: Int(self.userName.font.lineHeight - 6))
                     let attrStringWithImage = NSAttributedString(attachment: textAttachment)
                     while attributedString.mutableString.contains(":\($0.shortcode):") {
                         let range: NSRange = (attributedString.mutableString as NSString).range(of: ":\($0.shortcode):")
                         attributedString.replaceCharacters(in: range, with: attrStringWithImage)
                     }
-                })
-#if !targetEnvironment(macCatalyst)
-                self.userName.attributedText = attributedString
-#endif
+                }
+                #if !targetEnvironment(macCatalyst)
+                    userName.attributedText = attributedString
+                #endif
             }
         }
-        
-        self.userName.textColor = UIColor.label
-        
+
+        userName.textColor = UIColor.label
+
         if containsPoll {
             // poll
-            if GlobalStruct.votedOnPolls[self.pollId] != nil {
-                if pollOptions?.voted ?? false && (pollOptions?.id ?? "" == self.pollId) {
-                    pollOptions = GlobalStruct.votedOnPolls[self.pollId]
+            if GlobalStruct.votedOnPolls[pollId] != nil {
+                if pollOptions?.voted ?? false, pollOptions?.id ?? "" == pollId {
+                    pollOptions = GlobalStruct.votedOnPolls[pollId]
                 }
             }
-            
-            self.pollId = pollOptions?.id ?? ""
-            
+
+            pollId = pollOptions?.id ?? ""
+
             for x in pollStack.arrangedSubviews {
                 pollStack.removeArrangedSubview(x)
             }
@@ -596,9 +586,9 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
 
             if let pOp = pollOptions?.options {
                 var totalVotes = 0
-                _ = pOp.map({ x in
+                _ = pOp.map { x in
                     totalVotes += x.votesCount ?? 0
-                })
+                }
 
                 // add poll end or ended time
 
@@ -610,11 +600,11 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                 let date1 = pollOptions?.expiresAt ?? ""
                 var tText = "ends in"
                 var tText2 = ""
-                
+
                 let dateFormatter = DateFormatter()
                 dateFormatter.dateFormat = GlobalStruct.dateFormat
                 let date = dateFormatter.date(from: date1)
-                
+
                 var diff = getMinutesDifferenceFromTwoDates(start: Date(), end: date ?? Date())
                 var mVote = "\(diff) minutes"
                 if diff == 1 {
@@ -656,10 +646,10 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                         }
                     }
                 }
-                
-                for (c,x) in pOp.enumerated() {
+
+                for (c, x) in pOp.enumerated() {
                     let barText = UIButton()
-                    barText.frame = CGRect(x: 0, y: 0, width: self.bounds.width - 80, height: 40)
+                    barText.frame = CGRect(x: 0, y: 0, width: bounds.width - 80, height: 40)
                     barText.backgroundColor = .clear
                     barText.setTitle("  \(x.title)  ", for: .normal)
                     barText.setTitleColor(.label, for: .normal)
@@ -670,7 +660,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                     barText.layer.masksToBounds = true
                     barText.tag = c
                     if tText != "ended" {
-                        let bGesture = UITapGestureRecognizer(target: self, action: #selector(self.pollOptionsTap(_:)))
+                        let bGesture = UITapGestureRecognizer(target: self, action: #selector(pollOptionsTap(_:)))
                         barText.addGestureRecognizer(bGesture)
                     }
                     barText.titleLabel?.lineBreakMode = .byTruncatingTail
@@ -678,7 +668,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                     let underlay = UIView()
                     underlay.layer.cornerRadius = 6
                     underlay.layer.masksToBounds = true
-                    if (pollOptions?.voted ?? false) || (tText == "ended") || ((pollOptions?.voted ?? false) && GlobalStruct.votedOnPolls[self.pollId] != nil) {
+                    if (pollOptions?.voted ?? false) || (tText == "ended") || ((pollOptions?.voted ?? false) && GlobalStruct.votedOnPolls[pollId] != nil) {
                         if let own = pollOptions?.ownVotes, own.contains(c) {
                             underlay.backgroundColor = .custom.baseTint
                         } else {
@@ -687,12 +677,12 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                         if totalVotes == 0 {
                             underlay.frame = CGRect(x: 0, y: 0, width: 0, height: 32)
                         } else {
-                            let diff = (Double(x.votesCount ?? 0)/Double(totalVotes))
+                            let diff = (Double(x.votesCount ?? 0) / Double(totalVotes))
                             var wid9 = UIScreen.main.bounds.size.width
                             if GlobalStruct.isCompact || UIDevice.current.userInterfaceIdiom == .phone {} else {
                                 wid9 = CGFloat(GlobalStruct.padColWidth)
                             }
-                            underlay.frame = CGRect(x: 0, y: 0, width: CGFloat((((wid9) - 40) * (diff))), height: 32)
+                            underlay.frame = CGRect(x: 0, y: 0, width: CGFloat((wid9 - 40) * diff), height: 32)
                         }
                     } else {
                         underlay.backgroundColor = .custom.backgroundTint
@@ -711,7 +701,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                         if totalVotes == 0 {
                             barDetail.text = "0%"
                         } else {
-                            let diff = Int((Double(x.votesCount ?? 0)/Double(totalVotes))*100)
+                            let diff = Int((Double(x.votesCount ?? 0) / Double(totalVotes)) * 100)
                             barDetail.text = "\(diff)%"
                         }
                     } else {
@@ -740,7 +730,6 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                 endPoll.font = UIFont.systemFont(ofSize: 14, weight: .regular)
 
                 pollStack.addArrangedSubview(endPoll)
-
             }
 
             pollStack.translatesAutoresizingMaskIntoConstraints = false
@@ -755,44 +744,40 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
             pollStack.layer.masksToBounds = true
             pollStack.layer.borderWidth = 0.4
             pollStack.layer.borderColor = UIColor.label.withAlphaComponent(0.2).cgColor
-            self.pipView.addSubview(pollStack)
+            pipView.addSubview(pollStack)
 
             pollStack.isHidden = false
             linkStackView.isHidden = true
-            
+
         } else {
-            
             pollStack.isHidden = true
-            
+
             linkPost.numberOfLines = 0
-            self.linkStr = link
-            
-            
+            linkStr = link
+
             if let link = link {
-                self.setupLinkPreview(link, stat: stat)
+                setupLinkPreview(link, stat: stat)
             } else {
-                self.linkStackView.isHidden = true
+                linkStackView.isHidden = true
             }
             if let quotePostCard = quotePostCard {
                 // This is a quote post; use the quotePostDetailCell to display it
-                self.setupQuotePostPreview(quotePostCard)
+                setupQuotePostPreview(quotePostCard)
             } else {
-                self.quotePostHostView?.isHidden = true
+                quotePostHostView?.isHidden = true
             }
         }
-        self.updateConstraints()
+        updateConstraints()
     }
-    
-    
+
     var pollId: String = ""
     @objc func pollOptionsTap(_ sender: UITapGestureRecognizer) {
         triggerHapticImpact(style: .light)
         let alert = UIAlertController(title: "Vote for '\((sender.view as? UIButton)?.titleLabel?.text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")'?", message: "You cannot change your vote once you have voted.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Vote", style: .default , handler:{ (UIAlertAction) in
+        alert.addAction(UIAlertAction(title: "Vote", style: .default, handler: { _ in
             self.voteOnThis(sender.view?.tag ?? 0)
         }))
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-            
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
         }))
         if let presenter = alert.popoverPresentationController {
             presenter.sourceView = getTopMostViewController()?.view
@@ -800,17 +785,16 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         }
         getTopMostViewController()?.present(alert, animated: true, completion: nil)
     }
-    
+
     func voteOnThis(_ sender: Int) {
-        let request = Polls.vote(id: self.pollId, choices: [sender])
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        let request = Polls.vote(id: pollId, choices: [sender])
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let err = statuses.error {
                 if "\(err)".contains("ended") {
                     DispatchQueue.main.async {
                         triggerHapticNotification(feedback: .warning)
                         let alert = UIAlertController(title: "Poll Ended", message: "You can't vote on this poll as it has already ended.", preferredStyle: .alert)
-                        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-                            
+                        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
                         }))
                         if let presenter = alert.popoverPresentationController {
                             presenter.sourceView = getTopMostViewController()?.view
@@ -823,8 +807,7 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
                         DispatchQueue.main.async {
                             triggerHapticNotification(feedback: .warning)
                             let alert = UIAlertController(title: "Already Voted", message: "You can't vote on this poll as you have already voted on it.", preferredStyle: .alert)
-                            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-                                
+                            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
                             }))
                             if let presenter = alert.popoverPresentationController {
                                 presenter.sourceView = getTopMostViewController()?.view
@@ -851,40 +834,40 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
             }
         }
     }
-    
-    var linkStr: Card? = nil
+
+    var linkStr: Card?
     @objc func quoteTapped() {
         // open url
-        if let x = self.linkStr?.url {
+        if let x = linkStr?.url {
             if let ur = URL(string: x) {
                 PostActions.openLink(ur)
             }
         }
     }
-    
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { suggestedActions in
-            return self.makeContextMenu()
+
+    func contextMenuInteraction(_: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { _ in
+            self.makeContextMenu()
         })
     }
-    
+
     func makeContextMenu() -> UIMenu {
-        let openLink = UIAction(title: "Open Link", image: UIImage(systemName: "safari"), identifier: nil) { action in
+        let openLink = UIAction(title: "Open Link", image: UIImage(systemName: "safari"), identifier: nil) { _ in
             if let x = self.linkStr?.url {
                 if let ur = URL(string: x) {
                     PostActions.openLink(ur)
                 }
             }
         }
-        let copy = UIAction(title: NSLocalizedString("generic.copy", comment: ""), image: UIImage(systemName: "doc.on.doc"), identifier: nil) { action in
+        let copy = UIAction(title: NSLocalizedString("generic.copy", comment: ""), image: UIImage(systemName: "doc.on.doc"), identifier: nil) { _ in
             if let x = self.linkStr?.url {
                 UIPasteboard.general.string = x
             }
         }
-        let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { action in
+        let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: UIImage(systemName: "square.and.arrow.up"), identifier: nil) { _ in
             if let x = self.linkStr?.url {
                 let linkToShare = [x]
-                let activityViewController = UIActivityViewController(activityItems: linkToShare,  applicationActivities: nil)
+                let activityViewController = UIActivityViewController(activityItems: linkToShare, applicationActivities: nil)
                 activityViewController.popoverPresentationController?.sourceView = self
                 activityViewController.popoverPresentationController?.sourceRect = self.bounds
                 getTopMostViewController()?.present(activityViewController, animated: true, completion: nil)
@@ -892,21 +875,20 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         }
         return UIMenu(title: "", image: nil, identifier: nil, children: [openLink, copy, share])
     }
-    
+
     func setupLinkPreview(_ link2: Card, stat: Status?) {
-        
-        self.linkStackView.isHidden = false
+        linkStackView.isHidden = false
 
         if GlobalStruct.linkPreviewCardsLarge == false {
-            self.linkPost.isHidden = true
-            self.conLP1?.isActive = false
-            self.conLP2?.isActive = true
+            linkPost.isHidden = true
+            conLP1?.isActive = false
+            conLP2?.isActive = true
             lpImage.widthAnchor.constraint(equalToConstant: 65).isActive = true
             linkStackView.axis = .horizontal
         } else {
-            self.linkPost.isHidden = false
-            self.conLP1?.isActive = true
-            self.conLP2?.isActive = false
+            linkPost.isHidden = false
+            conLP1?.isActive = true
+            conLP2?.isActive = false
             lpImage.widthAnchor.constraint(equalToConstant: 65).isActive = false
             linkStackView.axis = .vertical
         }
@@ -928,61 +910,59 @@ class DetailView: UIView, SKPhotoBrowserDelegate, UIActivityItemSource, UIContex
         }
         linkPost.URLColor = .secondaryLabel
         linkDate.text = ""
-        self.lpImage.isHidden = false
-        
+        lpImage.isHidden = false
+
         // If we are showing an image from the post, don't show the
         // image associated with the opengraph link.
         if DetailImageCell.willDisplayContentForStat(stat) {
-            self.lpImage.isHidden = true
+            lpImage.isHidden = true
         } else {
             if let x = link2.image?.absoluteString {
                 if let profileURL = URL(string: x) {
-                    self.lpImage.sd_setImage(with: profileURL, completed: nil)
+                    lpImage.sd_setImage(with: profileURL, completed: nil)
                 } else {
-                    self.lpImage.isHidden = true
+                    lpImage.isHidden = true
                 }
             } else {
-                self.lpImage.isHidden = true
+                lpImage.isHidden = true
             }
         }
     }
-    
+
     func setupQuotePostPreview(_ link2: Card) {
-        self.quotePostHostView?.isHidden = false
-        self.linkStackView.isHidden = false
-        
+        quotePostHostView?.isHidden = false
+        linkStackView.isHidden = false
+
         // Detail header is already display via QuotePostHostView > DetailView
-        if !self.isQuotedPostPreview {
+        if !isQuotedPostPreview {
             UIView.setAnimationsEnabled(false)
-            self.lpImage.isHidden = true
-            self.linkPost.isHidden = true
-            self.linkStackViewHorizontal.isHidden = true
+            lpImage.isHidden = true
+            linkPost.isHidden = true
+            linkStackViewHorizontal.isHidden = true
             UIView.setAnimationsEnabled(true)
         }
 
         let cardURL = URL(string: link2.url ?? "")
-        self.quotePostHostView?.updateForQuotePost(cardURL)
+        quotePostHostView?.updateForQuotePost(cardURL)
     }
 
-    public func activityViewControllerPlaceholderItem(_ activityViewController: UIActivityViewController) -> Any {
+    func activityViewControllerPlaceholderItem(_: UIActivityViewController) -> Any {
         return ""
     }
 
-    public func activityViewController(_ activityViewController: UIActivityViewController, itemForActivityType activityType: UIActivity.ActivityType?) -> Any? {
+    func activityViewController(_: UIActivityViewController, itemForActivityType _: UIActivity.ActivityType?) -> Any? {
         return nil
     }
 
-    public func activityViewControllerLinkMetadata(_ activityViewController: UIActivityViewController) -> LPLinkMetadata? {
-        let image: UIImage = UIImage()
+    func activityViewControllerLinkMetadata(_: UIActivityViewController) -> LPLinkMetadata? {
+        let image = UIImage()
         let imageProvider = NSItemProvider(object: image)
         let metadata = LPLinkMetadata()
         metadata.imageProvider = imageProvider
         return metadata
     }
-    
-    func makeContextMenu2(_ index: Int) -> UIMenu {
+
+    func makeContextMenu2(_: Int) -> UIMenu {
         return UIMenu(title: "", image: nil, identifier: nil, children: [])
     }
-    
 }
-

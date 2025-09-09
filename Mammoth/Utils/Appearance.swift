@@ -10,12 +10,12 @@ import UIKit
 
 final class AppearanceManager {
     static let shared = AppearanceManager()
-    
+
     struct ColorTheme {
         var backgroundTint: UIColor?
         var mainTextColor: UIColor?
     }
-    
+
     @objc func reloadAll() {
         // tints
         let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
@@ -48,7 +48,7 @@ func NavBarBackgroundColor(userInterfaceStyle: UIUserInterfaceStyle) -> UIColor?
 func configureNavigationBarLayout(navigationController: UINavigationController?, userInterfaceStyle: UIUserInterfaceStyle = .light) {
     let appearance = UINavigationBarAppearance()
     appearance.configureWithTransparentBackground()
-    
+
     appearance.backgroundColor = NavBarBackgroundColor(userInterfaceStyle: userInterfaceStyle)
     appearance.backgroundEffect = NavBarBlurEffect()
     appearance.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
@@ -56,10 +56,10 @@ func configureNavigationBarLayout(navigationController: UINavigationController?,
     UINavigationBar.appearance().standardAppearance = appearance
     UINavigationBar.appearance().scrollEdgeAppearance = appearance
     UINavigationBar.appearance().compactAppearance = appearance
-    
+
     navigationController?.navigationBar.standardAppearance = appearance
     navigationController?.navigationBar.scrollEdgeAppearance = appearance
     navigationController?.navigationBar.compactAppearance = appearance
-    
+
     navigationController?.navigationBar.tintColor = .custom.highContrast
 }

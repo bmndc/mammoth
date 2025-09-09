@@ -18,7 +18,7 @@ class UIKitScreenTracking: UtilityPlugin {
     static let notificationName = Notification.Name(rawValue: "UIKitScreenTrackNotification")
     static let screenNameKey = "name"
     static let controllerKey = "controller"
-    
+
     static let ignoredViewControllers = [
         "UIPageViewController",
         "UIInputWindowController",
@@ -26,21 +26,20 @@ class UIKitScreenTracking: UtilityPlugin {
         "UIPressAndHoldPopoverController",
         "Mammoth.HomeViewController",
         "Mammoth.ColumnViewController",
-        "Mammoth.SidebarViewController"
+        "Mammoth.SidebarViewController",
     ]
-    
+
     let type = PluginType.utility
-    weak var analytics: Analytics? = nil
-    
+    weak var analytics: Analytics?
+
     init() {
         setupUIKitHooks()
     }
 
-    internal func setupUIKitHooks() {
+    func setupUIKitHooks() {
         swizzle(forClass: UIViewController.self,
                 original: #selector(UIViewController.viewDidAppear(_:)),
-                new: #selector(UIViewController.seg__viewDidAppear)
-        )
+                new: #selector(UIViewController.seg__viewDidAppear))
 
         NotificationCenter.default.addObserver(forName: Self.notificationName, object: nil, queue: OperationQueue.main) { notification in
             let name = notification.userInfo?[Self.screenNameKey] as? String
@@ -66,7 +65,7 @@ extension UIKitScreenTracking {
 }
 
 extension UIViewController {
-    internal func activeController() -> UIViewController? {
+    func activeController() -> UIViewController? {
         if let root = viewIfLoaded?.window?.rootViewController {
             return root
         } else if #available(iOS 13.0, *) {
@@ -86,31 +85,31 @@ extension UIViewController {
         }
         return nil
     }
-    
-    internal func captureScreen() {
+
+    func captureScreen() {
         var rootController = viewIfLoaded?.window?.rootViewController
         if rootController == nil {
             rootController = activeController()
         }
-        
+
         guard let top = Self.seg__visibleViewController(activeController()) else { return }
-        
+
         let isIgnoredVC = UIKitScreenTracking.ignoredViewControllers.reduce(false) { result, current in
             if top.isOfType(className: current) || self.isOfType(className: current) {
                 return true
             }
-            
+
             return result
         }
-        
+
         guard !isIgnoredVC else { return }
 
-        var name = String(describing: top.self.classForCoder).replacingOccurrences(of: "ViewController", with: "")
+        var name = String(describing: top.classForCoder).replacingOccurrences(of: "ViewController", with: "")
         if let newsFeedVC = top as? NewsFeedViewController {
             name = newsFeedVC.type.trackingTitle()
         }
         // name could've been just "ViewController"...
-        if  name.count == 0 || name == "UI" {
+        if name.count == 0 || name == "UI" {
             guard let title = top.title else { return }
             name = title
         }
@@ -124,12 +123,12 @@ extension UIViewController {
                                         userInfo: [UIKitScreenTracking.screenNameKey: name,
                                                    UIKitScreenTracking.controllerKey: top])
     }
-    
-    @objc internal func seg__viewDidAppear(animated: Bool) {
+
+    @objc func seg__viewDidAppear(animated: Bool) {
         captureScreen()
         seg__viewDidAppear(animated: animated)
     }
-    
+
     static func seg__visibleViewController(_ controller: UIViewController?) -> UIViewController? {
         if let navigationController = controller as? UINavigationController {
             return seg__visibleViewController(navigationController.visibleViewController)
@@ -159,13 +158,14 @@ extension UIViewController {
         }
         return controller
     }
-    
-    internal func isOfType(className: String) -> Bool {
+
+    func isOfType(className: String) -> Bool {
         if let className: AnyClass = NSClassFromString(className),
-           self.isKind(of: className) {
+           isKind(of: className)
+        {
             return true
         }
-        
+
         return false
     }
 }

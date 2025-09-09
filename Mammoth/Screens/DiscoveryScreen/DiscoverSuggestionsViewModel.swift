@@ -8,7 +8,6 @@
 
 import Foundation
 
-
 protocol DiscoverySuggestionsDelegate: AnyObject {
     func didUpdateAll()
     func didUpdateSection(section: DiscoverSuggestionsViewModel.DiscoverySuggestionSection, with state: ViewState)
@@ -16,14 +15,12 @@ protocol DiscoverySuggestionsDelegate: AnyObject {
     func didDeleteCard(at indexPath: IndexPath)
 }
 
-
 class DiscoverSuggestionsViewModel {
-    
     enum DiscoverySuggestionSection: Int {
         case hashtag
         case account
     }
-    
+
     private struct ListData {
         var hashtags: [Tag]?
         var accounts: [UserCardModel]?
@@ -36,27 +33,27 @@ class DiscoverSuggestionsViewModel {
 
     let DefaultNumberOfChannels = 3
     let DefaultNumberOfHashtags = 2
-    
+
     // Data displayed to the user (may be filtered)
-    private var listData: ListData = ListData()
+    private var listData: ListData = .init()
     // Full list of underlying data
     private var allChannels: [Channel] = []
     private(set) var allTrendingHashtags: [Tag] = []
     private var allSuggestedAccounts: [UserCardModel] = []
-    
+
     private var searchAccountsTask: Task<Void, Never>?
     private var postSyncingTasks: [IndexPath: Task<Void, Error>] = [:]
-    
-    private var states: [ViewState] = [ .loading, .loading, .loading] {
+
+    private var states: [ViewState] = [.loading, .loading, .loading] {
         didSet {
-            let changedSections = zip(states, oldValue).map{$0 != $1}.enumerated().filter{$1}.map{$0.0}
+            let changedSections = zip(states, oldValue).map { $0 != $1 }.enumerated().filter { $1 }.map { $0.0 }
             let changedSectionIndex = changedSections[0]
             let changedSection = DiscoverSuggestionsViewModel.DiscoverySuggestionSection(rawValue: changedSectionIndex)!
             let viewState = states[changedSectionIndex]
-            self.delegate?.didUpdateSection(section: changedSection, with: viewState)
+            delegate?.didUpdateSection(section: changedSection, with: viewState)
         }
     }
-    
+
     weak var delegate: DiscoverySuggestionsDelegate?
     var showSummaryCells = false {
         didSet {
@@ -66,68 +63,67 @@ class DiscoverSuggestionsViewModel {
             }
         }
     }
-    
-    private var searchQuery: String? = nil {
+
+    private var searchQuery: String? {
         didSet {
             updateContentFromSearchQuery()
         }
     }
 
     init() {
-        NotificationCenter.default.addObserver(self, selector: #selector(self.didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.hashtagStatusDidChange), name: didChangeHashtagsNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.onStatusUpdate), name: didChangeFollowStatusNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(didSwitchAccount), name: didSwitchCurrentAccountNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(hashtagStatusDidChange), name: didChangeHashtagsNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(onStatusUpdate), name: didChangeFollowStatusNotification, object: nil)
 
         Task { [weak self] in
             guard let self else { return }
             await self.loadRecommendations()
         }
     }
-    
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
-
 }
 
 extension DiscoverSuggestionsViewModel {
     func numberOfItems(forSection section: Int) -> Int {
-        switch(section) {
+        switch section {
         case 0:
-            return self.listData.hashtags?.count ?? 0
+            return listData.hashtags?.count ?? 0
         case 1:
-            return self.listData.accounts?.count ?? 0
+            return listData.accounts?.count ?? 0
         default:
             return 0
         }
     }
-    
+
     var numberOfSections: Int {
         return 3
     }
-    
+
     func hasHeader(forSection sectionIndex: Int) -> Bool {
         return numberOfItems(forSection: sectionIndex) > 0
     }
-    
+
     func getInfo(forIndexPath indexPath: IndexPath) -> ListDataReturn {
-        switch(indexPath.section) {
+        switch indexPath.section {
         case 0:
-            return .hashtag(self.listData.hashtags?[indexPath.row])
+            return .hashtag(listData.hashtags?[indexPath.row])
         case 1:
-            var userCardModel = self.listData.accounts?[indexPath.row]
+            var userCardModel = listData.accounts?[indexPath.row]
             if !(searchQuery?.isEmpty ?? true) {
                 userCardModel = userCardModel?.simple()
             }
             return .account(userCardModel)
         default:
             log.error("unexpected index for getInfo")
-            return .hashtag(self.listData.hashtags?[indexPath.row])
+            return .hashtag(listData.hashtags?[indexPath.row])
         }
     }
-    
+
     func getSectionTitle(for sectionIndex: Int) -> String {
-        switch(sectionIndex) {
+        switch sectionIndex {
         case 0:
             return NSLocalizedString("discover.trendingHashtags", comment: "")
         case 1:
@@ -140,7 +136,7 @@ extension DiscoverSuggestionsViewModel {
             return ""
         }
     }
-    
+
 //    func updateFollowStatus(atIndexPath indexPath: IndexPath, forceUpdate: Bool = false) {
 //        // Only update follow state on search results
 //        if self.type != .regular || forceUpdate {
@@ -159,7 +155,7 @@ extension DiscoverSuggestionsViewModel {
 //    }
 //
     func updateFollowStatusForAccountName(_ accountName: String!, followStatus: FollowManager.FollowStatus) -> Int? {
-        let accounts = self.listData.accounts
+        let accounts = listData.accounts
 
         // Find the index of this account
         let cardIndex = accounts?.firstIndex(where: { card in
@@ -167,28 +163,26 @@ extension DiscoverSuggestionsViewModel {
         })
         if let cardIndex {
             // Force the new status upon the card
-            let card = self.listData.accounts![cardIndex]
+            let card = listData.accounts![cardIndex]
             card.setFollowStatus(followStatus)
-            self.listData.accounts![cardIndex] = card
+            listData.accounts![cardIndex] = card
             // Return the index to be updated
             return cardIndex
         } else {
             return nil
         }
     }
-
 }
 
-
 // MARK: - Service
+
 extension DiscoverSuggestionsViewModel {
     func loadRecommendations(section: DiscoverySuggestionSection? = nil) async {
-
         if let fullAcct = AccountsManager.shared.currentUser()?.fullAcct {
             // Make requests for…
             //      - trending hashtags
             //      - suggested follows
-            
+
             // Trending Hashtags
             if section == nil || section == .hashtag {
                 Task { [weak self] in
@@ -208,7 +202,7 @@ extension DiscoverSuggestionsViewModel {
                     }
                 }
             }
-            
+
             // Accounts
             if section == nil || section == .account {
                 Task { [weak self] in
@@ -218,25 +212,25 @@ extension DiscoverSuggestionsViewModel {
                         // Filter out accounts that the user is already following,
                         // and randomize the results
                         let unfollowedAccounts = accounts.filter { account in
-                            return FollowManager.shared.followStatusForAccount(account, requestUpdate: .none) != .following
+                            FollowManager.shared.followStatusForAccount(account, requestUpdate: .none) != .following
                         }.shuffled()
-                        
-                        let userCards = unfollowedAccounts.map({ account in
+
+                        let userCards = unfollowedAccounts.map { account in
                             UserCardModel.fromAccount(account: account, instanceName: GlobalHostServer())
-                        })
-                        
+                        }
+
                         UserCardModel.preload(userCards: userCards)
-                        
+
                         // Prefetch follow status for the first 20 items
                         if userCards.count > 0 {
-                            let firstPage = Array(userCards[0...min(20, userCards.count-1)])
+                            let firstPage = Array(userCards[0 ... min(20, userCards.count - 1)])
                             DispatchQueue.main.async {
-                                firstPage.forEach({
-                                    $0.syncFollowStatus(.whenUncertain)
-                                })
+                                for item in firstPage {
+                                    item.syncFollowStatus(.whenUncertain)
+                                }
                             }
                         }
-                        
+
                         DispatchQueue.main.async { [weak self] in
                             guard let self else { return }
                             self.allSuggestedAccounts = userCards
@@ -250,20 +244,20 @@ extension DiscoverSuggestionsViewModel {
             }
         }
     }
-    
+
     func requestItemSync(forIndexPath indexPath: IndexPath, afterSeconds delay: CGFloat) {
-        let item = self.getInfo(forIndexPath: indexPath)
-        self.postSyncingTasks[indexPath] = Task {
+        let item = getInfo(forIndexPath: indexPath)
+        postSyncingTasks[indexPath] = Task {
             try await Task.sleep(seconds: delay)
             guard !Task.isCancelled else { return }
-            
+
             guard !NetworkMonitor.shared.isNearRateLimit else {
                 log.warning("Skipping syncing status due to rate limit")
                 return
             }
-            
+
             switch item {
-            case .account(let userCard):
+            case let .account(userCard):
                 await MainActor.run {
                     userCard?.syncFollowStatus(.whenUncertain)
                 }
@@ -272,22 +266,22 @@ extension DiscoverSuggestionsViewModel {
             }
         }
     }
-    
+
     func cancelItemSync(forIndexPath indexPath: IndexPath) {
-        if let task = self.postSyncingTasks[indexPath], !task.isCancelled {
+        if let task = postSyncingTasks[indexPath], !task.isCancelled {
             task.cancel()
-            self.postSyncingTasks[indexPath] = nil
+            postSyncingTasks[indexPath] = nil
         }
     }
-    
+
     func cancelAllItemSyncs() {
-        self.postSyncingTasks.forEach({ $1.cancel() })
-        self.postSyncingTasks = [:]
+        postSyncingTasks.forEach { $1.cancel() }
+        postSyncingTasks = [:]
     }
-    
 }
 
 // MARK: - Notification handlers
+
 private extension DiscoverSuggestionsViewModel {
     @objc func didSwitchAccount() {
         Task { [weak self] in
@@ -296,14 +290,14 @@ private extension DiscoverSuggestionsViewModel {
             await self.loadRecommendations()
         }
     }
-    
+
     @objc func hashtagStatusDidChange() {
         DispatchQueue.main.async { [weak self] in
             guard let self else { return }
             self.delegate?.didUpdateSection(section: .hashtag, with: .success)
         }
     }
-    
+
     @objc func onStatusUpdate(notification: Notification) {
         // Only observe the notification if it's tied to the current user.
         if (notification.userInfo!["currentUserFullAcct"] as! String) == AccountsManager.shared.currentUser()?.fullAcct {
@@ -322,52 +316,51 @@ private extension DiscoverSuggestionsViewModel {
 }
 
 // MARK: - Service
+
 extension DiscoverSuggestionsViewModel {
-    
-    func search(query: String, fullSearch: Bool = false) {
-        self.searchQuery = query
-    }
- 
-    // Actually do the searching/filtering here
-    func searchAll(query: String) async {
+    func search(query: String, fullSearch _: Bool = false) {
+        searchQuery = query
     }
 
+    // Actually do the searching/filtering here
+    func searchAll(query _: String) async {}
+
     func cancelSearch() {
-        self.searchQuery = nil
+        searchQuery = nil
     }
-    
+
     func updateContentFromSearchQuery() {
-        self.showSummaryCells = (self.searchQuery != nil)
-        
+        showSummaryCells = (searchQuery != nil)
+
         // Filter list content based on the search query
-        if self.searchQuery?.isEmpty ?? true  {
-            self.listData.hashtags = Array(self.allTrendingHashtags.prefix(self.DefaultNumberOfHashtags))
-            self.listData.accounts = self.allSuggestedAccounts
-            self.delegate?.didUpdateAll()
-        } else if let searchQuery = self.searchQuery {
+        if searchQuery?.isEmpty ?? true {
+            listData.hashtags = Array(allTrendingHashtags.prefix(DefaultNumberOfHashtags))
+            listData.accounts = allSuggestedAccounts
+            delegate?.didUpdateAll()
+        } else if let searchQuery = searchQuery {
             // Show one hashtag that is an exact match for the query
             var exactMatchQuery = searchQuery.lowercased()
             if exactMatchQuery.hasPrefix("#") {
                 exactMatchQuery = String(exactMatchQuery.dropFirst())
             }
             let exactMatch = Tag(name: exactMatchQuery, url: "")
-            self.listData.hashtags = [exactMatch]
-            self.delegate?.didUpdateSection(section: .hashtag, with: .success)
+            listData.hashtags = [exactMatch]
+            delegate?.didUpdateSection(section: .hashtag, with: .success)
 
             // Make a new query for accounts
-            if let task = self.searchAccountsTask, !task.isCancelled {
+            if let task = searchAccountsTask, !task.isCancelled {
                 task.cancel()
             }
-            self.searchAccountsTask = Task { [weak self] in
+            searchAccountsTask = Task { [weak self] in
                 guard let self else { return }
                 do {
                     try await Task.sleep(seconds: 0.4)
                     guard !Task.isCancelled else { return }
                     let result = try await SearchService.searchAccounts(query: searchQuery)
                     guard !Task.isCancelled else { return }
-                    let userCards = result.map({ account in
+                    let userCards = result.map { account in
                         UserCardModel.fromAccount(account: account)
-                    })
+                    }
                     DispatchQueue.main.async { [weak self] in
                         guard let self else { return }
                         self.listData.accounts = userCards
@@ -379,5 +372,4 @@ extension DiscoverSuggestionsViewModel {
             }
         }
     }
-    
 }

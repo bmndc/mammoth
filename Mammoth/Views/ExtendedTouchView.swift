@@ -9,7 +9,6 @@
 import UIKit
 
 class ExtendedTouchView: UIView {
-    
     override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
         if super.point(inside: point, with: event) { return true }
         for subview in subviews {
@@ -18,6 +17,4 @@ class ExtendedTouchView: UIView {
         }
         return false
     }
-
-    
 }

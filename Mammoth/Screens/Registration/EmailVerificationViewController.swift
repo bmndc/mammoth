@@ -10,24 +10,23 @@ import Foundation
 import UIKit
 
 class EmailVerificationViewController: UIViewController {
-    
     var timer: Timer?
     var tempAccessToken: String = ""
     var emailAddress: String = ""
-    @IBOutlet weak var instructionsLabel: UILabel!
-    @IBOutlet weak var resendEmailButton: UIButton!
-    @IBOutlet weak var envelopeImageView: UIImageView!
+    @IBOutlet var instructionsLabel: UILabel!
+    @IBOutlet var resendEmailButton: UIButton!
+    @IBOutlet var envelopeImageView: UIImageView!
 
     convenience init(emailAddress: String, accessToken: String) {
         self.init()
         self.emailAddress = emailAddress
-        self.tempAccessToken = accessToken
+        tempAccessToken = accessToken
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.navigationController?.navigationBar.isHidden = true
-        
+        navigationController?.navigationBar.isHidden = true
+
         // Substitute the user's email address for %@
         instructionsLabel.text = instructionsLabel.text?.replacingOccurrences(of: "%@", with: emailAddress)
         // Color the email address "Medium Contrast"
@@ -37,69 +36,67 @@ class EmailVerificationViewController: UIViewController {
         instructions.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.custom.mediumContrast, range: emailNSRange)
         instructionsLabel.attributedText = instructions
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .custom.backgroundTint
-        
-        self.setupUI()
-        self.startPolling()
+        view.backgroundColor = .custom.backgroundTint
+
+        setupUI()
+        startPolling()
     }
-    
+
     deinit {
         self.timer?.invalidate()
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-                
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     func startPolling() {
         DispatchQueue.main.async {
             self.timer?.invalidate()
-            
+
             self.timer = Timer.scheduledTimer(withTimeInterval: 5, repeats: true, block: { [weak self] _ in
-                guard let self else { return }                
+                guard let self else { return }
                 // Use GlobalStruct.newInstance
                 self.newInstanceLogged()
             })
         }
     }
-    
+
     func setupUI() {
         envelopeImageView.image = FontAwesome.image(fromChar: "\u{f0e0}", size: 28, weight: .bold).withRenderingMode(.alwaysTemplate)
         let title = NSAttributedString(string: (resendEmailButton.titleLabel?.text)!, attributes: [NSAttributedString.Key.foregroundColor: UIColor.custom.mediumContrast, NSAttributedString.Key.font: UIFont.systemFont(ofSize: 15, weight: .semibold)])
         resendEmailButton.setAttributedTitle(title, for: .normal)
     }
-    
-    @IBAction func resendEmail(_ sender: Any) {
+
+    @IBAction func resendEmail(_: Any) {
         log.debug("resending email")
         resendEmailConfirmation()
         let alert = UIAlertController(title: "Email Sent", message: "A confirmation email has been resent.", preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.ok", comment: ""), style: .default , handler:{ (UIAlertAction) in
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.ok", comment: ""), style: .default, handler: { _ in
         }))
-        self.present(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: nil)
     }
-    
-    
-    private func resendEmailConfirmation() {
 
+    private func resendEmailConfirmation() {
         //        Task {
         //            do {
         //                try await EmailService.confirmation(accessToken: tempAccessToken)
@@ -108,11 +105,10 @@ class EmailVerificationViewController: UIViewController {
         //            }
         //        }
 
-        
         // This doesn't appear to work; it's returning a 404
-        
+
         let urlStr = "https://moth.social/api/v1/emails/confirmation"
-        let url: URL = URL(string: urlStr)!
+        let url = URL(string: urlStr)!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -120,7 +116,7 @@ class EmailVerificationViewController: UIViewController {
         request.setValue("Bearer \(tempAccessToken)", forHTTPHeaderField: "Authorization")
         let sessionConfig = URLSessionConfiguration.default
         let session = URLSession(configuration: sessionConfig)
-        let task = session.dataTask(with: request) { (data, response, err) in
+        let task = session.dataTask(with: request) { _, response, err in
             log.debug("email request sent")
             if let err {
                 log.error("email resend request err - \(err)")
@@ -131,26 +127,25 @@ class EmailVerificationViewController: UIViewController {
         }
         task.resume()
     }
-    
-    
+
     @objc func newInstanceLogged() {
-        self.timer?.invalidate()
+        timer?.invalidate()
         if let newInstance = GlobalStruct.newInstance {
             let client = Client(
                 baseURL: "https://\(newInstance.returnedText)",
                 accessToken: newInstance.accessToken
             )
-            newInstance.accessToken = self.tempAccessToken
+            newInstance.accessToken = tempAccessToken
             AccountsManager.shared.addNewMastodonAccount(instanceData: newInstance, client: client) { [weak self] error in
                 guard let self else { return }
-                
+
                 guard error == nil else {
                     // Just reschedule the timer...
                     log.error("error adding new Mastodon account: \(String(describing: error))")
                     self.startPolling()
                     return
                 }
-                
+
                 // Channels don't work if logged in account is not copied to moth.social.
                 // To fix this, we ping `v4/timelines/for_you/me` after login.
                 // This will trigger the right backend event to copy the user's account to moth.social.
@@ -160,7 +155,7 @@ class EmailVerificationViewController: UIViewController {
                             let _ = try await TimelineService.forYouMe(remoteFullOriginalAcct: AccountsManager.shared.currentAccount!.remoteFullOriginalAcct)
                         } catch {}
                     }
-                    
+
                     await MainActor.run {
                         // The new account is valid; proceed to allow setting a display name/photo
                         let vc = SetupProfileController()
@@ -171,9 +166,7 @@ class EmailVerificationViewController: UIViewController {
             }
         } else {
             // Just reschedule the timer...
-            self.startPolling()
+            startPolling()
         }
     }
-
 }
-

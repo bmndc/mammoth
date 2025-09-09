@@ -10,41 +10,40 @@ import Foundation
 import UIKit
 
 class ProfileFieldsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
     var fields: [HashType] = []
-    var account: Account? = nil
+    var account: Account?
     var tableView = UITableView()
     var items: [String] = ["", ""]
     var keyHeight: CGFloat = 0
     var canPost: Bool = true
     var allTags: [Tag] = []
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
-        
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         NotificationCenter.default.post(name: Notification.Name(rawValue: "updateToolbar"), object: nil)
     }
-    
+
     override var keyCommands: [UIKeyCommand]? {
         let closeWindow = UIKeyCommand(input: "w", modifierFlags: [.command], action: #selector(dismissTap))
         closeWindow.discoverabilityTitle = NSLocalizedString("generic.dismiss", comment: "")
@@ -53,11 +52,10 @@ class ProfileFieldsViewController: UIViewController, UITableViewDataSource, UITa
         }
         return [closeWindow]
     }
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -66,7 +64,7 @@ class ProfileFieldsViewController: UIViewController, UITableViewDataSource, UITa
                 UIColor.custom.mainTextColor = .secondaryLabel
             }
             self.tableView.reloadData()
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -86,43 +84,43 @@ class ProfileFieldsViewController: UIViewController, UITableViewDataSource, UITa
             }
         }
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custom.backgroundTint
-        
-        self.navigationItem.title = "Info and Links"
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
-        
+
+        navigationItem.title = "Info and Links"
+
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+
         // set up nav bar
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
-        
+
         // set up table
         setupTable()
-        
+
         if account?.id ?? "" == AccountsManager.shared.currentUser()?.id ?? "" {
-            self.fetchFollowingTags()
+            fetchFollowingTags()
         }
     }
-    
+
     func fetchFollowingTags() {
         let request = TrendingTags.followedTags()
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let error = statuses.error {
                 log.error("error getting hashtags: \(error)")
             }
@@ -134,19 +132,19 @@ class ProfileFieldsViewController: UIViewController, UITableViewDataSource, UITa
             }
         }
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         if let cell1 = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? PollCell2 {
             cell1.pollItem.becomeFirstResponder()
         }
     }
-    
+
     @objc func dismissTap() {
         triggerHapticImpact(style: .light)
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
-    
+
     func setupTable() {
         tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.register(ProfileFieldsCell.self, forCellReuseIdentifier: "ProfileFieldsCell")
@@ -160,47 +158,45 @@ class ProfileFieldsViewController: UIViewController, UITableViewDataSource, UITa
         tableView.tableFooterView = UIView(frame: .zero)
         view.addSubview(tableView)
     }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    func numberOfSections(in _: UITableView) -> Int {
         return fields.count
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection _: Int) -> Int {
         return 1
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+
+    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
         return UITableView.automaticDimension
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "ProfileFieldsCell", for: indexPath) as! ProfileFieldsCell
-        
+
         cell.title.urlMaximumLength = 200
-        
+
         cell.title.text = fields[indexPath.section].value.stripHTML()
         cell.title.isUserInteractionEnabled = false
-        
+
         // tap items
-        cell.title.handleMentionTap { (str) in
-            
+        cell.title.handleMentionTap { _ in
         }
-        cell.title.handleHashtagTap { (str) in
+        cell.title.handleHashtagTap { str in
             triggerHapticImpact(style: .light)
             let vc = NewsFeedViewController(viewModel: NewsFeedViewModel(.hashtag(Tag(name: str, url: ""))))
             if vc.isBeingPresented {} else {
                 self.navigationController?.pushViewController(vc, animated: true)
             }
         }
-        cell.title.handleURLTap { (str) in
+        cell.title.handleURLTap { str in
             triggerHapticImpact(style: .light)
             PostActions.openLink(str)
         }
-        cell.title.handleEmailTap { (str) in
-            
+        cell.title.handleEmailTap { _ in
         }
-        
-        if let _ = self.fields[indexPath.section].verifiedAt {
+
+        if let _ = fields[indexPath.section].verifiedAt {
             cell.layer.borderColor = UIColor.systemGreen.cgColor
             cell.layer.borderWidth = 2
             cell.backgroundColor = UIColor.systemGreen.withAlphaComponent(0.3)
@@ -209,37 +205,37 @@ class ProfileFieldsViewController: UIViewController, UITableViewDataSource, UITa
             cell.layer.borderWidth = 0
             cell.backgroundColor = .custom.quoteTint
         }
-        
+
         cell.separatorInset = .zero
         let bgColorView = UIView()
         bgColorView.backgroundColor = .clear
         cell.selectedBackgroundView = bgColorView
         return cell
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if fields[indexPath.section].value.stripHTML().contains("http") {
             if let str = URL(string: fields[indexPath.section].value.stripHTML()) {
-triggerHapticImpact(style: .light)
+                triggerHapticImpact(style: .light)
                 PostActions.openLink(str)
             }
         }
     }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForHeaderInSection _: Int) -> CGFloat {
         return 52
     }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+
+    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         guard section <= 4 else {
             return nil
         }
         let bg = UIView()
-        bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+        bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
         let lab = UILabel()
         lab.frame = bg.frame
-        
+
         let symbolConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .semibold)
         let fullString = NSMutableAttributedString(string: "")
         let image1Attachment = NSTextAttachment()
@@ -248,29 +244,27 @@ triggerHapticImpact(style: .light)
         fullString.append(image1String)
         fullString.append(NSAttributedString(string: "  \(fields[section].name.stripHTML())"))
         lab.attributedText = fullString
-        
+
         lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
         lab.textColor = UIColor.label
         bg.addSubview(lab)
         lab.translatesAutoresizingMaskIntoConstraints = false
-        lab.addFillConstraints(with:bg)
+        lab.addFillConstraints(with: bg)
         return bg
     }
-    
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+
+    func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         guard section <= 4 else {
             return nil
         }
-        if let ver = self.fields[section].verifiedAt {
+        if let ver = fields[section].verifiedAt {
             return "Verified on \(ver.toDate().toString(dateStyle: .short, timeStyle: .short))"
         } else {
             return nil
         }
     }
-    
-    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForFooterInSection _: Int) -> CGFloat {
         return UITableView.automaticDimension
     }
-    
 }
-

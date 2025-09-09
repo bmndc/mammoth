@@ -8,8 +8,7 @@
 
 import Foundation
 
-struct PollService {
-    
+enum PollService {
     static func vote(pollId: String, choices: [Int]) async throws -> Poll {
         let request = Polls.vote(id: pollId, choices: choices)
         let result = try await ClientService.runRequest(request: request)

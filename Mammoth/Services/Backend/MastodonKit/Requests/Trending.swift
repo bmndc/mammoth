@@ -1,5 +1,5 @@
 //
-//  TrendingTags.swift
+//  Trending.swift
 //  Mast
 //
 //  Created by Shihab Mehboob on 05/12/2019.
@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct TrendingTags {
+public enum TrendingTags {
     /// Fetches trending tags.
     ///
     /// - Returns: Request for `[Tag]`.
@@ -17,11 +17,11 @@ public struct TrendingTags {
         let method = HTTPMethod.get(.parameters(parameters))
         return Request<[Tag]>(path: "/api/v1/trends", method: method)
     }
-    
+
     public static func followedTags() -> Request<[Tag]> {
         return Request<[Tag]>(path: "/api/v1/followed_tags")
     }
-    
+
     /// - Parameter rebuild: Request that the feed be rebuild (moth.social only).
     public static func follow(id: String, rebuild: Bool = false) -> Request<Tag> {
         var method: HTTPMethod
@@ -33,7 +33,7 @@ public struct TrendingTags {
         }
         return Request<Tag>(path: "/api/v1/tags/\(id)/follow", method: method)
     }
-    
+
     /// - Parameter rebuild: Request that the feed be rebuild (moth.social only).
     public static func unfollow(id: String, rebuild: Bool = false) -> Request<Tag> {
         var method: HTTPMethod
@@ -45,9 +45,8 @@ public struct TrendingTags {
         }
         return Request<Tag>(path: "/api/v1/tags/\(id)/unfollow", method: method)
     }
-    
+
     public static func links() -> Request<[Card]> {
         return Request<[Card]>(path: "/api/v1/trends/links")
     }
 }
-

@@ -1,5 +1,5 @@
 //
-//  NewFeedViewModel+ScrollPosition.swift
+//  NewsFeedViewModel+ScrollPositions.swift
 //  Mammoth
 //
 //  Created by Benoit Nolens on 29/06/2023.
@@ -9,7 +9,7 @@
 import Foundation
 
 struct NewsFeedScrollPosition {
-    var model: NewsFeedListItem? = nil
+    var model: NewsFeedListItem?
     var offset: Double = 0
 
     init() {}
@@ -21,9 +21,8 @@ struct NewsFeedScrollPosition {
 
 // Positions are cached on disk
 extension NewsFeedScrollPosition: Codable {
-    
     enum CodingKeys: String, CodingKey { case model, offset }
-    
+
     init(from decoder: Decoder) throws {
         let values = try decoder.container(keyedBy: CodingKeys.self)
         do {
@@ -40,32 +39,32 @@ extension NewsFeedScrollPosition: Codable {
         offset = try values.decode(Double.self, forKey: .offset)
     }
 
-    public func encode(to encoder: Encoder) throws {
+    func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
-        if case .postCard(let postCard) = model {
-            if case .mastodon(let status) = postCard.data {
+        if case let .postCard(postCard) = model {
+            if case let .mastodon(status) = postCard.data {
                 try container.encode(status, forKey: .model)
             }
         }
-        if case .activity(let activity) = model {
+        if case let .activity(activity) = model {
             try container.encode(activity.notification, forKey: .model)
         }
         try container.encode(offset, forKey: .offset)
     }
 }
 
-internal struct NewsFeedScrollPositions {
-    var forYou: NewsFeedScrollPosition = NewsFeedScrollPosition()
-    var following: NewsFeedScrollPosition = NewsFeedScrollPosition()
-    var federated: NewsFeedScrollPosition = NewsFeedScrollPosition()
+struct NewsFeedScrollPositions {
+    var forYou: NewsFeedScrollPosition = .init()
+    var following: NewsFeedScrollPosition = .init()
+    var federated: NewsFeedScrollPosition = .init()
     var community: [String: NewsFeedScrollPosition] = [:]
     var trending: [String: NewsFeedScrollPosition] = [:]
     var hashtag: [String: NewsFeedScrollPosition] = [:]
     var list: [String: NewsFeedScrollPosition] = [:]
-    var likes: NewsFeedScrollPosition = NewsFeedScrollPosition()
-    var bookmarks: NewsFeedScrollPosition = NewsFeedScrollPosition()
-    var mentionsIn: NewsFeedScrollPosition = NewsFeedScrollPosition()
-    var mentionsOut: NewsFeedScrollPosition = NewsFeedScrollPosition()
+    var likes: NewsFeedScrollPosition = .init()
+    var bookmarks: NewsFeedScrollPosition = .init()
+    var mentionsIn: NewsFeedScrollPosition = .init()
+    var mentionsOut: NewsFeedScrollPosition = .init()
     var activity: [String: NewsFeedScrollPosition] = [:]
     var channel: [String: NewsFeedScrollPosition] = [:]
 
@@ -79,13 +78,13 @@ internal struct NewsFeedScrollPositions {
             following = position
         case .federated:
             federated = position
-        case .community(let name):
+        case let .community(name):
             community[name] = position
-        case .trending(let name):
+        case let .trending(name):
             trending[name] = position
-        case .hashtag(let tag):
+        case let .hashtag(tag):
             hashtag[tag.name] = position
-        case .list(let data):
+        case let .list(data):
             list[data.id] = position
         case .likes:
             likes = NewsFeedScrollPosition()
@@ -95,15 +94,15 @@ internal struct NewsFeedScrollPositions {
             mentionsIn = position
         case .mentionsOut:
             mentionsOut = position
-        case .activity(let type):
+        case let .activity(type):
             activity[type?.rawValue ?? "all"] = position
-        case .channel(let data):
+        case let .channel(data):
             channel[data.id] = position
         }
-        
+
         return position
     }
-    
+
     fileprivate func getPosition(forType type: NewsFeedTypes) -> NewsFeedScrollPosition {
         switch type {
         case .forYou:
@@ -112,13 +111,13 @@ internal struct NewsFeedScrollPositions {
             return following
         case .federated:
             return federated
-        case .community(let name):
+        case let .community(name):
             return community[name] ?? NewsFeedScrollPosition()
-        case .trending(let name):
+        case let .trending(name):
             return trending[name] ?? NewsFeedScrollPosition()
-        case .hashtag(let tag):
+        case let .hashtag(tag):
             return hashtag[tag.name] ?? NewsFeedScrollPosition()
-        case .list(let data):
+        case let .list(data):
             return list[data.id] ?? NewsFeedScrollPosition()
         case .likes:
             return likes
@@ -128,27 +127,28 @@ internal struct NewsFeedScrollPositions {
             return mentionsIn
         case .mentionsOut:
             return mentionsOut
-        case .activity(let type):
+        case let .activity(type):
             return activity[type?.rawValue ?? "all"] ?? NewsFeedScrollPosition()
-        case .channel(let data):
+        case let .channel(data):
             return channel[data.id] ?? NewsFeedScrollPosition()
         }
     }
 }
 
 // MARK: - Scroll position accessors
+
 extension NewsFeedViewModel {
     @discardableResult
     func setScrollPosition(model: NewsFeedListItem?, offset: Double, forFeed type: NewsFeedTypes) -> NewsFeedScrollPosition {
-        let position = self.scrollPositions.setPosition(model: model, offset: offset, forFeed: type)
-        
-        let items = self.listData.forType(type: type)
-        self.saveToDisk(items: items, position: position, feedType: type)
-        
+        let position = scrollPositions.setPosition(model: model, offset: offset, forFeed: type)
+
+        let items = listData.forType(type: type)
+        saveToDisk(items: items, position: position, feedType: type)
+
         return position
     }
-    
+
     func getScrollPosition(forFeed type: NewsFeedTypes) -> NewsFeedScrollPosition {
-        return self.scrollPositions.getPosition(forType: type)
+        return scrollPositions.getPosition(forType: type)
     }
 }

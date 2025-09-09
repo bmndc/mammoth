@@ -36,24 +36,24 @@ public extension Disk {
             let folderUrl = try createURL(for: path, in: directory)
             try createSubfoldersBeforeCreatingFile(at: folderUrl)
             try FileManager.default.createDirectory(at: folderUrl, withIntermediateDirectories: false, attributes: nil)
-            for i in 0..<value.count {
+            for i in 0 ..< value.count {
                 let image = value[i]
                 var imageData: Data
                 var imageName = "\(i)"
                 var pngData: Data?
                 var jpegData: Data?
                 #if swift(>=4.2)
-                if let data = image.pngData() {
-                    pngData = data
-                } else if let data = image.jpegData(compressionQuality: 1) {
-                    jpegData = data
-                }
+                    if let data = image.pngData() {
+                        pngData = data
+                    } else if let data = image.jpegData(compressionQuality: 1) {
+                        jpegData = data
+                    }
                 #else
-                if let data = UIImagePNGRepresentation(image) {
-                    pngData = data
-                } else if let data = UIImageJPEGRepresentation(image, 1) {
-                    jpegData = data
-                }
+                    if let data = UIImagePNGRepresentation(image) {
+                        pngData = data
+                    } else if let data = UIImageJPEGRepresentation(image, 1) {
+                        jpegData = data
+                    }
                 #endif
                 if let data = pngData {
                     imageData = data
@@ -76,7 +76,7 @@ public extension Disk {
             throw error
         }
     }
-    
+
     /// Append an image to a folder
     ///
     /// - Parameters:
@@ -89,7 +89,7 @@ public extension Disk {
             if let folderUrl = try? getExistingFileURL(for: path, in: directory) {
                 let fileUrls = try FileManager.default.contentsOfDirectory(at: folderUrl, includingPropertiesForKeys: nil, options: [])
                 var largestFileNameInt = -1
-                for i in 0..<fileUrls.count {
+                for i in 0 ..< fileUrls.count {
                     let fileUrl = fileUrls[i]
                     if let fileNameInt = fileNameInt(fileUrl) {
                         if fileNameInt > largestFileNameInt {
@@ -103,17 +103,17 @@ public extension Disk {
                 var pngData: Data?
                 var jpegData: Data?
                 #if swift(>=4.2)
-                if let data = value.pngData() {
-                    pngData = data
-                } else if let data = value.jpegData(compressionQuality: 1) {
-                    jpegData = data
-                }
+                    if let data = value.pngData() {
+                        pngData = data
+                    } else if let data = value.jpegData(compressionQuality: 1) {
+                        jpegData = data
+                    }
                 #else
-                if let data = UIImagePNGRepresentation(value) {
-                    pngData = data
-                } else if let data = UIImageJPEGRepresentation(value, 1) {
-                    jpegData = data
-                }
+                    if let data = UIImagePNGRepresentation(value) {
+                        pngData = data
+                    } else if let data = UIImageJPEGRepresentation(value, 1) {
+                        jpegData = data
+                    }
                 #endif
                 if let data = pngData {
                     imageData = data
@@ -139,7 +139,7 @@ public extension Disk {
             throw error
         }
     }
-    
+
     /// Append an array of images to a folder
     ///
     /// - Parameters:
@@ -160,7 +160,7 @@ public extension Disk {
             throw error
         }
     }
-    
+
     /// Retrieve an array of images from a folder on disk
     ///
     /// - Parameters:
@@ -169,18 +169,18 @@ public extension Disk {
     ///   - type: here for Swifty generics magic, use [UIImage].self
     /// - Returns: [UIImage] from disk
     /// - Throws: Error if there were any issues retrieving the specified folder of images
-    static func retrieve(_ path: String, from directory: Directory, as type: [UIImage].Type) throws -> [UIImage] {
+    static func retrieve(_ path: String, from directory: Directory, as _: [UIImage].Type) throws -> [UIImage] {
         do {
             let url = try getExistingFileURL(for: path, in: directory)
             let fileUrls = try FileManager.default.contentsOfDirectory(at: url, includingPropertiesForKeys: nil, options: [])
-            let sortedFileUrls = fileUrls.sorted(by: { (url1, url2) -> Bool in
+            let sortedFileUrls = fileUrls.sorted(by: { url1, url2 -> Bool in
                 if let fileNameInt1 = fileNameInt(url1), let fileNameInt2 = fileNameInt(url2) {
                     return fileNameInt1 <= fileNameInt2
                 }
                 return true
             })
             var images = [UIImage]()
-            for i in 0..<sortedFileUrls.count {
+            for i in 0 ..< sortedFileUrls.count {
                 let fileUrl = sortedFileUrls[i]
                 let data = try Data(contentsOf: fileUrl)
                 if let image = UIImage(data: data) {
@@ -192,6 +192,4 @@ public extension Disk {
             throw error
         }
     }
-
 }
-

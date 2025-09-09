@@ -12,65 +12,60 @@ protocol SignInUsernameVCDelegate: AnyObject {
 }
 
 class SignInUsernameVC: UIViewController {
-    
     weak var delegate: SignInUsernameVCDelegate?
-    
+
     private let bodyView = SignInUsernameView()
-    
+
     override func loadView() { view = bodyView }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         bodyView.nextButton.addHandler { [weak self] in
             self?.onContinue()
         }
-        
+
         bodyView.textField.becomeFirstResponder()
         bodyView.textField.delegate = self
     }
-    
+
     private func onContinue() {
         guard let id = bodyView.textField.text,
-            id != ""
+              id != ""
         else { return }
-        
+
         let adjustedID: String
         if id.hasPrefix("@") {
             adjustedID = String(id.dropFirst())
         } else {
             adjustedID = id
         }
-        
+
         delegate?.onSelectContinue(identifier: adjustedID)
     }
-    
 }
 
 extension SignInUsernameVC: UITextFieldDelegate {
-    
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+    func textFieldShouldReturn(_: UITextField) -> Bool {
         onContinue()
         return false
     }
-    
 }
 
 class SignInUsernameView: UIView {
-    
     let textField = RoundedTextField()
     let nextButton = UIButton(type: .system)
-    
-    override init(frame: CGRect) {
+
+    override init(frame _: CGRect) {
         super.init(frame: .zero)
-        
+
         let stack = UIStackView()
         stack.axis = .vertical
         stack.spacing = 16
         addSubview(stack)
         stack.pinEdges([.horizontal], padding: 24)
         stack.pinEdges(.top)
-        
+
         stack.addArrangedSubview(textField)
         textField.pinHeight(to: 56)
         textField.backgroundColor = .secondarySystemBackground
@@ -81,13 +76,13 @@ class SignInUsernameView: UIView {
         textField.keyboardType = .emailAddress
         textField.autocorrectionType = .no
         textField.autocapitalizationType = .none
-        
+
         stack.addArrangedSubview(nextButton)
         nextButton.pinHeight(to: 56)
         nextButton.setTitle("Next", for: .normal)
         nextButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .bold)
     }
-    
-    required init?(coder: NSCoder) { fatalError() }
-    
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) { fatalError() }
 }

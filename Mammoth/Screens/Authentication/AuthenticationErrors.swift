@@ -28,7 +28,6 @@ import LocalAuthentication
 
 /// Authentication Errors
 public enum AuthenticationError: Error {
-    
     case failed,
          canceledByUser,
          fallback,
@@ -38,10 +37,9 @@ public enum AuthenticationError: Error {
          biometryNotEnrolled,
          biometryLockedout,
          other
-    
+
     public static func initWithError(_ error: LAError) -> AuthenticationError {
         switch Int32(error.errorCode) {
-            
         case kLAErrorAuthenticationFailed:
             return failed
         case kLAErrorUserCancel:
@@ -59,30 +57,30 @@ public enum AuthenticationError: Error {
         case kLAErrorBiometryLockout:
             return biometryLockedout
         default:
-           return other
+            return other
         }
     }
-    
+
     // get error message based on type
     public func message() -> String {
         let isFaceIdDevice = BioMetricAuthenticator.shared.isFaceIdDevice()
-        
+
         switch self {
         case .canceledByUser, .fallback, .canceledBySystem:
             return ""
-        
+
         case .passcodeNotSet:
             return isFaceIdDevice ? kSetPasscodeToUseFaceID : kSetPasscodeToUseTouchID
-            
+
         case .biometryNotAvailable:
             return kBiometryNotAvailableReason
-            
+
         case .biometryNotEnrolled:
             return isFaceIdDevice ? kNoFaceIdentityEnrolled : kNoFingerprintEnrolled
-            
+
         case .biometryLockedout:
             return isFaceIdDevice ? kFaceIdPasscodeAuthenticationReason : kTouchIdPasscodeAuthenticationReason
-            
+
         default:
             return isFaceIdDevice ? kDefaultFaceIDAuthenticationFailedReason : kDefaultTouchIDAuthenticationFailedReason
         }

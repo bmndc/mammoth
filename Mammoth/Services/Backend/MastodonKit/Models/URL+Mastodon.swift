@@ -8,15 +8,13 @@
 
 import Foundation
 
-
 public extension URL {
-    
     func isAccountURL() -> Bool {
         var isAccountURL = false
-        
+
         // Make sure the path starts with an @, and has one or more characters,
         // but no "/[digits] after it (that would be a post URL).
-        let urlPath = self.path
+        let urlPath = path
         if urlPath.hasPrefix("/@") {
             // It's OK if there's a /, but if there is anything after that,
             // this is not an account URL.
@@ -33,41 +31,43 @@ public extension URL {
         }
         return isAccountURL
     }
-    
+
     func isPostURL() -> Bool {
         // kick out any with a specific host
-        if let urlHost = self.host,
-           urlHost.hasSuffix("tiktok.com") {
+        if let urlHost = host,
+           urlHost.hasSuffix("tiktok.com")
+        {
             return false
         }
-        
-        let urlPath = self.path
-        
+
+        let urlPath = path
+
         // Threads post URLs are formatted as https://www.threads.net/@mosseri/post/C01zSvHJ2B-
-        if let urlHost = self.host,
-           urlHost.hasSuffix("www.threads.net") {
+        if let urlHost = host,
+           urlHost.hasSuffix("www.threads.net")
+        {
             let regex = try? NSRegularExpression(pattern: "/@[a-zA-Z0-9-_]+/post/[a-zA-Z0-9-_]+", options: [])
             if let _ = regex?.firstMatch(in: urlPath, range: NSRange(location: 0, length: urlPath.utf16.count)) {
                 return true
             }
-            
+
             return false
         }
-        
+
         // look for "/@" followed by "/ and one or more digits" in the path
         let regex = try? NSRegularExpression(pattern: "/@.+/[0-9]+", options: [])
         if let _ = regex?.firstMatch(in: urlPath, range: NSRange(location: 0, length: urlPath.utf16.count)) {
             return true
         }
-        
+
         return false
     }
-    
+
     func postIDFromURL() -> String {
         var postID = ""
-        if self.isPostURL() {
+        if isPostURL() {
             // Get the string of digits after the /@.../ from the path
-            let urlPath = self.path
+            let urlPath = path
             let regex = try? NSRegularExpression(pattern: "/@.+/", options: [])
             if let atMatch = regex?.firstMatch(in: urlPath, range: NSRange(location: 0, length: urlPath.utf16.count)) {
                 // Starting after the /, get the string of digits
@@ -85,7 +85,4 @@ public extension URL {
         }
         return postID
     }
-    
-    
-    
 }

@@ -9,7 +9,6 @@
 import XCTest
 
 final class MammothUITests: XCTestCase {
-
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
 
@@ -19,22 +18,20 @@ final class MammothUITests: XCTestCase {
         // In UI tests it’s important to set the initial state - such as interface orientation - required for your tests before they run. The setUp method is a good place to do this.
     }
 
-
     override func tearDownWithError() throws {
         // Put teardown code here. This method is called after the invocation of each test method in the class.
     }
 
-    
     func testAccountCreationInputErrors() throws {
         let app = XCUIApplication()
         app.launch()
-        
+
         // Make sure there are no accounts
         logOutOfAllAccounts()
-        
+
         // Navigate to the Create Account view
         app.staticTexts["Create an Account"].tap()
-        
+
         // Check for the Username error message
         XCTAssert(app.staticTexts["Your username will be unique to moth.social"].exists)
         var elementsQuery = app.scrollViews.otherElements
@@ -54,7 +51,7 @@ final class MammothUITests: XCTestCase {
         XCTAssert(app.staticTexts["Please enter a valid email address"].exists)
         emailTextField.typeText(".com")
         XCTAssert(app.staticTexts["You will be sent a confirmation email"].exists)
-        
+
         // Verify the Sign Up button only enables with 8 character password
         XCTAssert(app.staticTexts["You will be sent a confirmation email"].exists)
         elementsQuery = app.scrollViews.otherElements
@@ -70,7 +67,6 @@ final class MammothUITests: XCTestCase {
         XCTAssert(!signUpButton.isEnabled)
     }
 
-    
     // Utilities
     func logOutOfAllAccounts() {
         let app = XCUIApplication()
@@ -79,7 +75,7 @@ final class MammothUITests: XCTestCase {
             profileButton.tap()
             app.navigationBars["Profile"].buttons["Settings"].tap()
             app.tables.staticTexts[" Accounts"].tap()
-            
+
             var done = false
             repeat {
                 // Tap and hold, then drag down and release on the "Log Out" button
@@ -87,7 +83,7 @@ final class MammothUITests: XCTestCase {
                 if topCell.exists {
                     // Tap and hold to show the Log Out contextual menu
                     topCell.press(forDuration: 2)
-                                        
+
                     // Find the Log Out button and tap on it
                     let logoutButton = app.descendants(matching: .button).matching(NSPredicate(format: "label == 'Log Out'")).firstMatch
                     logoutButton.tap()
@@ -97,6 +93,4 @@ final class MammothUITests: XCTestCase {
             } while !done
         }
     }
-
-    
 }

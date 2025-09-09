@@ -20,7 +20,7 @@ enum MAMenu {
     case messages
     case favorites
     case search
-    
+
     case mention
     case message
     case unfollow
@@ -33,18 +33,18 @@ enum MAMenu {
     case removeFromList
     case enableNotifications
     case disableNotifications
-    
+
     case muteOneDay
     case muteForever
     case unblock
     case block
     case report
-    
+
     case jumpToNewest
     case following
     case federated
     case trendingPosts
-    
+
     case list
     case hashtag
     case community
@@ -57,7 +57,7 @@ enum MAMenu {
     case receivedMentions
     case likes
     case reposts
-    
+
     case recentMedia
     case bookmarks
     case filters
@@ -76,7 +76,6 @@ enum MAMenu {
 extension MAMenu {
     private var menuStyle: MenuStyle {
         switch self {
-            
         // feed menus
         case .activity:
             return MenuStyle(title: NSLocalizedString("title.activity", comment: ""), image: FontAwesome.image(fromChar: "\u{f0f3}"))
@@ -86,7 +85,6 @@ extension MAMenu {
             return MenuStyle(title: NSLocalizedString("title.likes", comment: ""), image: FontAwesome.image(fromChar: "\u{f004}"))
         case .search:
             return MenuStyle(title: NSLocalizedString("discover.search", comment: ""), image: FontAwesome.image(fromChar: "\u{f002}"))
-            
         // contextual menus
         case .mention: /* @ */
             return MenuStyle(title: "Mention", image: FontAwesome.image(fromChar: "\u{40}"))
@@ -122,7 +120,6 @@ extension MAMenu {
             return MenuStyle(title: "Block", image: FontAwesome.image(fromChar: "\u{f05e}"))
         case .report:
             return MenuStyle(title: "Report", image: FontAwesome.image(fromChar: "\u{f024}"))
-        
         // main menus
         case .jumpToNewest: /* arrow-up */
             return MenuStyle(title: "Jump to Newest", image: FontAwesome.image(fromChar: "\u{f062}"))
@@ -132,8 +129,6 @@ extension MAMenu {
             return MenuStyle(title: NSLocalizedString("title.federated", comment: ""), image: FontAwesome.image(fromChar: "\u{f57d}"))
         case .trendingPosts:
             return MenuStyle(title: "Trending Posts", image: FontAwesome.image(fromChar: "\u{f06d}"))
-
-            
         case .list:
             return MenuStyle(title: "list", image: FontAwesome.image(fromChar: "\u{f03a}"))
         case .hashtag:
@@ -146,7 +141,6 @@ extension MAMenu {
             return MenuStyle(title: NSLocalizedString("title.newList", comment: ""), image: FontAwesome.image(fromChar: "\u{2b}"))
         case .browseCommunities:
             return MenuStyle(title: NSLocalizedString("title.browseCommunities", comment: ""), image: FontAwesome.image(fromChar: "\u{e03e}"))
-
         // activity
         case .allActivity:
             return MenuStyle(title: "All Activity", image: FontAwesome.image(fromChar: "\u{f0f3}"))
@@ -158,7 +152,6 @@ extension MAMenu {
             return MenuStyle(title: NSLocalizedString("title.likes", comment: ""), image: FontAwesome.image(fromChar: "\u{f004}"))
         case .reposts:
             return MenuStyle(title: NSLocalizedString("activity.reposts", comment: ""), image: FontAwesome.image(fromChar: "\u{f361}"))
-
         // profile menu
         case .recentMedia:
             return MenuStyle(title: "Recent Media", image: FontAwesome.image(fromChar: "\u{f2bd}"))
@@ -178,7 +171,6 @@ extension MAMenu {
             return MenuStyle(title: "Translate Bio", image: FontAwesome.image(fromChar: "\u{f0ac}"))
         case .editProfile:
             return MenuStyle(title: "Edit Profile", image: FontAwesome.image(fromChar: "\u{f303}"))
-
         case .editAvatar:
             return MenuStyle(title: "Edit Avatar", image: FontAwesome.image(fromChar: "\u{f2bd}"))
         case .editHeader:
@@ -188,8 +180,6 @@ extension MAMenu {
         case .editInfoAndLinks:
             return MenuStyle(title: "Edit Info and Links", image: FontAwesome.image(fromChar: "\u{f0c1}"))
         }
-        
-            
     }
 }
 
@@ -197,9 +187,8 @@ extension MAMenu {
     var image: UIImage {
         return menuStyle.image
     }
-    
+
     var title: String {
         return menuStyle.title
     }
 }
-

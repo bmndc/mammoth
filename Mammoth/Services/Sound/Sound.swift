@@ -6,12 +6,12 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
 import AVKit
+import Foundation
 
 class Sound {
     func playSound(named: String, withVolume: Float) {
-        if GlobalStruct.soundsEnabled && !Mute.shared.isMute {
+        if GlobalStruct.soundsEnabled, !Mute.shared.isMute {
             if let path = Bundle.main.path(forResource: "\(named)", ofType: "wav") {
                 let sound = URL(fileURLWithPath: path)
                 do {

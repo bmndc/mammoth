@@ -9,19 +9,18 @@
 import Foundation
 
 extension NewsFeedViewModel {
-    
-    internal func hydrateCache(forFeedType feedType: NewsFeedTypes, completed: @escaping ([NewsFeedListItem]?, NewsFeedScrollPosition?) -> Void) {
+    func hydrateCache(forFeedType feedType: NewsFeedTypes, completed: @escaping ([NewsFeedListItem]?, NewsFeedScrollPosition?) -> Void) {
         Task { [weak self] in
             guard let self else { return }
             do {
                 let cards = try await self.readItemsFromDisk(feedType)
                 var position = try await self.readPositionFromDisk(feedType)
-                
+
                 DispatchQueue.main.async { [weak self] in
                     guard let self else { return }
                     self.listData.set(items: cards, forType: feedType)
                     self.setScrollPosition(model: position.model, offset: position.offset, forFeed: feedType)
-                    
+
                     completed(cards, position)
                 }
             } catch {
@@ -31,7 +30,7 @@ extension NewsFeedViewModel {
             }
         }
     }
-    
+
     private func statusesPath(forFeedType feedType: NewsFeedTypes) -> String? {
         if let user = AccountsManager.shared.currentAccount as? MastodonAcctData {
             switch feedType {
@@ -39,15 +38,15 @@ extension NewsFeedViewModel {
                 return "\(user.diskFolderName())/statuses_following.json"
             case .federated:
                 return "\(user.diskFolderName())/statuses_federated.json"
-            case .community(let instance):
+            case let .community(instance):
                 return "\(user.diskFolderName())/statuses_\(instance.sanitizedFileName).json"
             case .forYou:
                 return "\(user.diskFolderName())/statuses_forYou.json"
-            case .list(let list):
+            case let .list(list):
                 return "\(user.diskFolderName())/list_\(list.id.sanitizedFileName).json"
-            case .hashtag(let hashtag):
+            case let .hashtag(hashtag):
                 return "\(user.diskFolderName())/hashtag_\(hashtag.name.sanitizedFileName).json"
-            case .trending(let instance):
+            case let .trending(instance):
                 return "\(user.diskFolderName())/trending_\(instance.sanitizedFileName).json"
             case .likes:
                 return "\(user.diskFolderName())/statuses_likes.json"
@@ -57,15 +56,15 @@ extension NewsFeedViewModel {
                 return "\(user.diskFolderName())/mentions_in.json"
             case .mentionsOut:
                 return "\(user.diskFolderName())/mentions_out.json"
-            case .activity(let type):
+            case let .activity(type):
                 return "\(user.diskFolderName())/activity_\(type?.rawValue ?? "all").json"
-            case .channel(let channel):
+            case let .channel(channel):
                 return "\(user.diskFolderName())/channel_\(channel.id.sanitizedFileName).json"
             }
         }
         return nil
     }
-    
+
     private func positionPath(forFeedType feedType: NewsFeedTypes) -> String? {
         if let user = AccountsManager.shared.currentAccount as? MastodonAcctData {
             switch feedType {
@@ -73,15 +72,15 @@ extension NewsFeedViewModel {
                 return "\(user.diskFolderName())/position_following.json"
             case .federated:
                 return "\(user.diskFolderName())/position_federated.json"
-            case .community(let instance):
+            case let .community(instance):
                 return "\(user.diskFolderName())/position_\(instance.sanitizedFileName).json"
             case .forYou:
                 return "\(user.diskFolderName())/position_forYou.json"
-            case .list(let list):
+            case let .list(list):
                 return "\(user.diskFolderName())/position_\(list.id.sanitizedFileName).json"
-            case .hashtag(let hashtag):
+            case let .hashtag(hashtag):
                 return "\(user.diskFolderName())/position_\(hashtag.name.sanitizedFileName).json"
-            case .trending(let instance):
+            case let .trending(instance):
                 return "\(user.diskFolderName())/position_\(instance.sanitizedFileName).json"
             case .likes:
                 return "\(user.diskFolderName())/position_likes.json"
@@ -91,22 +90,22 @@ extension NewsFeedViewModel {
                 return "\(user.diskFolderName())/position_mentions_in.json"
             case .mentionsOut:
                 return "\(user.diskFolderName())/position_mentions_out.json"
-            case .activity(let type):
+            case let .activity(type):
                 return "\(user.diskFolderName())/position_activity_\(type?.rawValue ?? "all").json"
-            case .channel(let channel):
+            case let .channel(channel):
                 return "\(user.diskFolderName())/position_\(channel.id.sanitizedFileName).json"
             }
         }
         return nil
     }
-    
+
     enum SaveMode {
         case position
         case cards
         case cardsAndPosition
     }
-    
-    internal func saveToDisk(items: [NewsFeedListItem]?, position: NewsFeedScrollPosition, feedType: NewsFeedTypes, mode: SaveMode = .cardsAndPosition) {
+
+    func saveToDisk(items: [NewsFeedListItem]?, position: NewsFeedScrollPosition, feedType: NewsFeedTypes, mode: SaveMode = .cardsAndPosition) {
         let statusesPath = self.statusesPath(forFeedType: feedType)
         let positionPath = self.positionPath(forFeedType: feedType)
         // Put this on the queue and return immediately (async),
@@ -116,7 +115,7 @@ extension NewsFeedViewModel {
 
             if let scrollPositionCardIndex {
                 // Keep the bookmarked card, 2 younger cards, and 10 older cards
-                var cardsSubset = items?[max(scrollPositionCardIndex, 0)...min(scrollPositionCardIndex + 10, (items?.count ?? 1) - 1)]
+                var cardsSubset = items?[max(scrollPositionCardIndex, 0) ... min(scrollPositionCardIndex + 10, (items?.count ?? 1) - 1)]
 
                 // If the 'load more' button is inside the subset of cards saved to disk
                 // only keep the chunk of the subset before or after the 'load more' button
@@ -129,12 +128,12 @@ extension NewsFeedViewModel {
                     let cardsSubsetArray = Array(cardsSubset ?? [])
                     if loadMoreIndex <= 5 {
                         // keep what's after the 'load more' button
-                        if  loadMoreIndex+1 <= cardsSubsetArray.count-1 {
-                            cardsSubset = cardsSubsetArray[loadMoreIndex+1...cardsSubsetArray.count-1]
+                        if loadMoreIndex + 1 <= cardsSubsetArray.count - 1 {
+                            cardsSubset = cardsSubsetArray[loadMoreIndex + 1 ... cardsSubsetArray.count - 1]
                         }
                     } else {
                         // keep what's before the 'load more' button
-                        cardsSubset = cardsSubsetArray[0...min(max(loadMoreIndex-1, 1), cardsSubsetArray.count-1)]
+                        cardsSubset = cardsSubsetArray[0 ... min(max(loadMoreIndex - 1, 1), cardsSubsetArray.count - 1)]
                     }
                 }
 
@@ -151,16 +150,16 @@ extension NewsFeedViewModel {
             }
         }
     }
-    
-    internal func saveToDisk(items: [NewsFeedListItem]?, path: String?) {
+
+    func saveToDisk(items: [NewsFeedListItem]?, path: String?) {
         if let path, let items {
             do {
                 if let data = extractListData(items), let first = data.first {
-                    if Swift.type(of: (first as AnyObject)) == Status.self {
+                    if Swift.type(of: first as AnyObject) == Status.self {
                         try Disk.save(data as! [Status], to: .caches, as: path)
                     }
-                    
-                    if Swift.type(of: (first as AnyObject)) == Notificationt.self {
+
+                    if Swift.type(of: first as AnyObject) == Notificationt.self {
                         try Disk.save(data as! [Notificationt], to: .caches, as: path)
                     }
                 }
@@ -169,8 +168,8 @@ extension NewsFeedViewModel {
             }
         }
     }
-    
-    internal func saveToDisk(position: NewsFeedScrollPosition, path: String?) {
+
+    func saveToDisk(position: NewsFeedScrollPosition, path: String?) {
         if let path {
             do {
                 try Disk.save(position, to: .caches, as: path)
@@ -179,41 +178,41 @@ extension NewsFeedViewModel {
             }
         }
     }
-        
-    internal func readItemsFromDisk(_ feedType: NewsFeedTypes) async throws -> [NewsFeedListItem] {
+
+    func readItemsFromDisk(_ feedType: NewsFeedTypes) async throws -> [NewsFeedListItem] {
         return try await withCheckedThrowingContinuation { continuation in
             if let path = self.statusesPath(forFeedType: feedType) {
                 do {
                     if case .activity = feedType {
                         let notifications = try Disk.retrieve(path, from: .caches, as: [Notificationt].self)
                         let batchName = "hydrated_batch_\(Int.random(in: 0 ... 10000))"
-                        let items = notifications.enumerated().map({ NewsFeedListItem.activity(ActivityCardModel(notification: $1, batchId: batchName, batchItemIndex: $0)) })
-                        
+                        let items = notifications.enumerated().map { NewsFeedListItem.activity(ActivityCardModel(notification: $1, batchId: batchName, batchItemIndex: $0)) }
+
                         continuation.resume(returning: items)
                     } else {
                         let statuses = try Disk.retrieve(path, from: .caches, as: [Status].self)
                         let hasStaticMetrics = feedType == .forYou
-                        
+
                         let batchName = "hydrated_batch_\(Int.random(in: 0 ... 10000))"
-                        
+
                         var instanceName: String? = nil
                         var shouldUseOriginalServer = false
                         switch feedType {
-                        case .forYou, .list(_), .channel(_), .hashtag(_):
+                        case .forYou, .list(_), .channel(_), .hashtag:
                             shouldUseOriginalServer = true
-                        case .community(let name):
+                        case let .community(name):
                             shouldUseOriginalServer = false
                             instanceName = name
-                        case .trending(let name):
+                        case let .trending(name):
                             shouldUseOriginalServer = false
                             instanceName = name
                         default:
                             shouldUseOriginalServer = false
                         }
-                        
-                        #warning ("Bill - We want to clear these items out if cloud sync is newer.")
-                        let items = statuses.enumerated().map({ NewsFeedListItem.postCard(PostCardModel(status: $1, withStaticMetrics: hasStaticMetrics, instanceName: shouldUseOriginalServer ? $1.serverName : instanceName, batchId: batchName, batchItemIndex: $0)) })
-                        
+
+                        #warning("Bill - We want to clear these items out if cloud sync is newer.")
+                        let items = statuses.enumerated().map { NewsFeedListItem.postCard(PostCardModel(status: $1, withStaticMetrics: hasStaticMetrics, instanceName: shouldUseOriginalServer ? $1.serverName : instanceName, batchId: batchName, batchItemIndex: $0)) }
+
                         continuation.resume(returning: items)
                     }
                 } catch {
@@ -225,8 +224,8 @@ extension NewsFeedViewModel {
             }
         }
     }
-    
-    internal func readPositionFromDisk(_ feedType: NewsFeedTypes) async throws -> NewsFeedScrollPosition {
+
+    func readPositionFromDisk(_ feedType: NewsFeedTypes) async throws -> NewsFeedScrollPosition {
         return try await withCheckedThrowingContinuation { continuation in
             if let path = self.positionPath(forFeedType: feedType) {
                 do {

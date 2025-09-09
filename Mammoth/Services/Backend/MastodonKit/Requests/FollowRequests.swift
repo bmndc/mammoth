@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct FollowRequests {
+public enum FollowRequests {
     /// Fetches a list of follow requests.
     ///
     /// - Parameter range: The bounds used when requesting data from Mastodon.

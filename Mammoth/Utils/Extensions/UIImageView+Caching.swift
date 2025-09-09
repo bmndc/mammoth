@@ -6,16 +6,16 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import UIKit
 import SDWebImage
+import UIKit
 
 extension UIImageView {
     func ma_setImage(with imageURL: URL, cachedImage: UIImage?, placeholder: UIImage? = nil, imageTransformer: SDImageTransformer, completed: @escaping (UIImage?) -> Void) {
-        self.sd_imageTransition = .fade
+        sd_imageTransition = .fade
         if let cachedImage {
-            self.image = cachedImage
+            image = cachedImage
         } else {
-            self.sd_setImage(
+            sd_setImage(
                 with: imageURL,
                 placeholderImage: placeholder,
                 context: [.imageTransformer: imageTransformer],

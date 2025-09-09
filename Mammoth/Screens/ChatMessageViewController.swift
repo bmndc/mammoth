@@ -1,31 +1,30 @@
 //
-//  ChatViewController.swift
+//  ChatMessageViewController.swift
 //  Mammoth
 //
 //  Created by Shihab Mehboob on 18/02/2022.
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
-import UIKit
-import AVKit
 import AVFoundation
-import SafariServices
+import AVKit
+import Foundation
+import InputBarAccessoryView
+import MessageKit
+import MobileCoreServices
 import Photos
 import PhotosUI
-import MobileCoreServices
+import SafariServices
 import SDWebImage
-import MessageKit
-import InputBarAccessoryView
+import UIKit
 
 // swiftlint:disable:next type_body_length
 class ChatMessagesViewController: MessagesViewController, MessagesDataSource, MessagesLayoutDelegate, MessagesDisplayDelegate, MessageCellDelegate, MessageLabelDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate, AVPlayerViewControllerDelegate, SKPhotoBrowserDelegate, UIDocumentPickerDelegate, UITextFieldDelegate, PHPickerViewControllerDelegate {
-    
     var currentSender: MessageKit.SenderType = MockUser(senderId: "1", displayName: "\(AccountsManager.shared.currentUser()?.id ?? "")")
-    
-    static var currentVC: ChatMessagesViewController? = nil
-    var currentUserID: String? = nil
-    var client: Client? = nil
+
+    static var currentVC: ChatMessagesViewController?
+    var currentUserID: String?
+    var client: Client?
     var scrollDownButton = UIButton()
     var keyHeight: CGFloat = 0
     var imageDict2: [String: String] = [:]
@@ -46,7 +45,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
     let imag = UIImagePickerController()
     var theUser = ""
     var hasSent: Bool = false
-    var videoURL: URL = URL(string: "https://www.google.com")!
+    var videoURL: URL = .init(string: "https://www.google.com")!
     var cc: [Int] = []
     let sendB = UIButton()
     var photoPickerView: PHPickerViewController!
@@ -59,11 +58,10 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
     var mButton = InputBarButtonItem()
     var fromNew: Bool = false
     var currentAccounts: [Account] = []
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -74,7 +72,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             self.scrollDownButton.backgroundColor = .custom.quoteTint
             self.setupCol()
             self.messagesCollectionView.reloadData()
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -94,26 +92,26 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             }
         }
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
     }
-    
+
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
     }
-    
-    open override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+
+    override open func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-       if #available(iOS 13.0, *) {
-           if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-               messagesCollectionView.reloadData()
-               scrollDownButton.backgroundColor = .custom.quoteTint
-               scrollDownButton.layer.borderColor = UIColor.systemGray3.cgColor
-           }
-       }
+        if #available(iOS 13.0, *) {
+            if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                messagesCollectionView.reloadData()
+                scrollDownButton.backgroundColor = .custom.quoteTint
+                scrollDownButton.layer.borderColor = UIColor.systemGray3.cgColor
+            }
+        }
     }
-    
+
     @objc func cameraTapped() {
         triggerHapticSelectionChanged()
         AVCaptureDevice.requestAccess(for: AVMediaType.video) { response in
@@ -130,7 +128,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             }
         }
     }
-    
+
     @objc func galleryTapped() {
         triggerHapticSelectionChanged()
         if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
@@ -154,30 +152,30 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             }
         }
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
-        self.tabBarController?.tabBar.isHidden = true
+
+        tabBarController?.tabBar.isHidden = true
     }
-    
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if self.fromDMLink != "" {
-            messageInputBar.inputTextView.text = self.fromDMLink
+        if fromDMLink != "" {
+            messageInputBar.inputTextView.text = fromDMLink
             messageInputBar.sendButton.isEnabled = true
-            self.canPost = true
+            canPost = true
             UIView.animate(withDuration: 0.3, animations: {
                 let symbolConfig = UIImage.SymbolConfiguration(pointSize: 28, weight: .regular)
                 self.messageInputBar.sendButton.image = UIImage(systemName: "arrow.up.circle.fill", withConfiguration: symbolConfig)?.withTintColor(.custom.baseTint, renderingMode: .alwaysOriginal)
             })
         }
         messageInputBar.inputTextView.becomeFirstResponder()
-        self.messagesCollectionView.scrollToLastItem(animated: true)
+        messagesCollectionView.scrollToLastItem(animated: true)
 
         setupImages()
     }
-    
+
     func setupImages() {
         image1.frame = CGRect(x: 20, y: view.bounds.height - keyHeight - messageInputBar.bounds.height - 41, width: 50, height: 50)
         image1.backgroundColor = .clear
@@ -187,8 +185,8 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         image1.layer.masksToBounds = true
         image1.alpha = 0
         view.addSubview(image1)
-        
-        let remove1 = UIAction(title: "Remove", image: UIImage(systemName: "xmark"), identifier: nil) { action in
+
+        let remove1 = UIAction(title: "Remove", image: UIImage(systemName: "xmark"), identifier: nil) { _ in
             self.image1.setImage(UIImage(), for: .normal)
             self.mediaIdString = ""
         }
@@ -198,17 +196,17 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         image1.menu = itemMenu1
         image1.showsMenuAsPrimaryAction = true
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
-        self.scrollDownButton.alpha = 0
-        self.tabBarController?.tabBar.isHidden = false
+
+        scrollDownButton.alpha = 0
+        tabBarController?.tabBar.isHidden = false
     }
-    
-    func configureAvatarView(_ avatarView: AvatarView, for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) {
-        if indexPath.section < self.messages.count {
-            if self.messages[indexPath.section].sender.displayName == AccountsManager.shared.currentUser()?.avatar ?? "" {
+
+    func configureAvatarView(_ avatarView: AvatarView, for _: MessageType, at indexPath: IndexPath, in _: MessagesCollectionView) {
+        if indexPath.section < messages.count {
+            if messages[indexPath.section].sender.displayName == AccountsManager.shared.currentUser()?.avatar ?? "" {
                 let profileIcon = AccountsManager.shared.currentUser()?.avatar ?? ""
                 if let ur = URL(string: profileIcon) {
                     DispatchQueue.global(qos: .utility).async {
@@ -222,7 +220,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                     }
                 }
             } else {
-                let profileIcon = self.messages[indexPath.section].sender.displayName
+                let profileIcon = messages[indexPath.section].sender.displayName
                 if let ur = URL(string: profileIcon) {
                     DispatchQueue.global(qos: .utility).async {
                         if let data = try? Data(contentsOf: ur) {
@@ -240,61 +238,57 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
 
     func didTapAvatar(in cell: MessageCollectionViewCell) {
         triggerHapticImpact(style: .light)
-        let ind = self.messagesCollectionView.indexPath(for: cell)
-        
-        if let account = self.allCurrentMessages[ind?.section ?? 0].account {
+        let ind = messagesCollectionView.indexPath(for: cell)
+
+        if let account = allCurrentMessages[ind?.section ?? 0].account {
             let vc = ProfileViewController(user: UserCardModel(account: account), screenType: .others)
             if vc.isBeingPresented {} else {
-                self.navigationController?.pushViewController(vc, animated: true)
+                navigationController?.pushViewController(vc, animated: true)
             }
         }
     }
-    
+
     @objc func keyboardWillChange(notification: Notification) {
         if let keyboardFrame: NSValue = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue {
             let keyboardRectangle = keyboardFrame.cgRectValue
             let keyboardHeight = keyboardRectangle.height - (UIApplication.shared.windows.first?.safeAreaInsets.bottom ?? 0) - 4
-            self.keyHeight = CGFloat(keyboardHeight)
-            self.setupScrollDownButton()
+            keyHeight = CGFloat(keyboardHeight)
+            setupScrollDownButton()
         }
     }
-    
+
     override func scrollViewDidScroll(_ scrollView: UIScrollView) {
         let offset = scrollView.contentOffset
         let bounds = scrollView.bounds
         let size = scrollView.contentSize
         let insets = scrollView.contentInset
-        
+
         let y = offset.y + bounds.size.height - insets.bottom
         let h = size.height
-        
+
         if y < h {
             UIView.animate(withDuration: 0.1, delay: 0, options: [.curveLinear]) {
                 self.scrollDownButton.alpha = 1
-            } completion: { x in
-                
+            } completion: { _ in
             }
         } else {
             UIView.animate(withDuration: 0.1, delay: 0, options: [.curveLinear]) {
                 self.scrollDownButton.alpha = 0
-            } completion: { x in
-                
+            } completion: { _ in
             }
         }
     }
-    
+
     func setupScrollDownButton() {
-        if self.keyHeight <= 200 {
+        if keyHeight <= 200 {
             UIView.animate(withDuration: 0.2, delay: 0, options: [.curveLinear]) {
                 self.scrollDownButton.frame = CGRect(x: self.view.bounds.width - 46, y: self.view.bounds.height - 56 - self.messageInputBar.bounds.height - 20, width: 36, height: 36)
-            } completion: { x in
-                
+            } completion: { _ in
             }
         } else {
             UIView.animate(withDuration: 0.2, delay: 0, options: [.curveLinear]) {
                 self.scrollDownButton.frame = CGRect(x: self.view.bounds.width - 46, y: self.view.bounds.height - 26 - self.messageInputBar.bounds.height - 20 - self.keyHeight, width: 36, height: 36)
-            } completion: { x in
-                
+            } completion: { _ in
             }
         }
         let symbolConfig = UIImage.SymbolConfiguration(pointSize: 24, weight: .regular)
@@ -309,53 +303,53 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         scrollDownButton.layer.shadowRadius = 6
         scrollDownButton.layer.shadowOpacity = 0.1
         scrollDownButton.alpha = 0
-        scrollDownButton.addTarget(self, action: #selector(self.scrollDown), for: .touchUpInside)
+        scrollDownButton.addTarget(self, action: #selector(scrollDown), for: .touchUpInside)
         getTopMostViewController()?.view.addSubview(scrollDownButton)
     }
-    
+
     @objc func scrollDown() {
         triggerHapticImpact(style: .light)
-        self.messagesCollectionView.scrollToLastItem(animated: true)
+        messagesCollectionView.scrollToLastItem(animated: true)
     }
-    
+
     @objc func updateMessageList2() {
-        self.loadMessages()
+        loadMessages()
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         if type(of: self).currentVC != nil {
             NotificationCenter.default.removeObserver(type(of: self).currentVC!)
         }
         type(of: self).currentVC = self
-        self.currentUserID = AccountsManager.shared.currentUser()?.id
-        self.client = AccountsManager.shared.currentAccountClient
-        self.view.backgroundColor = .custom.backgroundTint
-        if self.currentAccounts.count > 1 {
-            self.title = "Group Message"
+        currentUserID = AccountsManager.shared.currentUser()?.id
+        client = AccountsManager.shared.currentAccountClient
+        view.backgroundColor = .custom.backgroundTint
+        if currentAccounts.count > 1 {
+            title = "Group Message"
         } else {
-            self.title = "Private Message"
+            title = "Private Message"
         }
-        
-        NotificationCenter.default.addObserver(self,selector: #selector(keyboardWillChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updateMessageList2), name: NSNotification.Name(rawValue: "updateMessageList2"), object: nil)
-        
+
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillChange), name: UIResponder.keyboardWillChangeFrameNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(updateMessageList2), name: NSNotification.Name(rawValue: "updateMessageList2"), object: nil)
+
         let symbolConfig = UIImage.SymbolConfiguration(pointSize: 28, weight: .regular)
         let symbolConfig2 = UIImage.SymbolConfiguration(pointSize: 20, weight: .regular)
-        
+
         // set up nav bar
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
-        
+
         messagesCollectionView.messageCellDelegate = self
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
@@ -363,14 +357,14 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         if #available(iOS 15.0, *) {
             self.messagesCollectionView.allowsFocus = true
         }
-        
+
         let layout = messagesCollectionView.collectionViewLayout as? MessagesCollectionViewFlowLayout
         layout?.setMessageOutgoingAvatarSize(.zero)
         layout?.setMessageIncomingAvatarSize(.zero)
-        
-        self.messageInputBar.inputTextView.placeholderLabel.text = "  Message..."
-        
-        self.setupCol()
+
+        messageInputBar.inputTextView.placeholderLabel.text = "  Message..."
+
+        setupCol()
         messageInputBar.separatorLine.isHidden = false
         messageInputBar.separatorLine.height = 0.7
         messageInputBar.inputTextView.layer.cornerRadius = 12
@@ -383,10 +377,10 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         messageInputBar.sendButton.image = UIImage(systemName: "arrow.up.circle.fill", withConfiguration: symbolConfig)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal)
         messageInputBar.sendButton.title = nil
         messageInputBar.sendButton.imageView?.layer.cornerRadius = 0
-        messageInputBar.sendButton.addTarget(self, action: #selector(self.didTouchSend), for: .touchUpInside)
+        messageInputBar.sendButton.addTarget(self, action: #selector(didTouchSend), for: .touchUpInside)
         messageInputBar.sendButton
-            .onEnabled { item in
-                if self.image1.alpha == 1 && self.mediaIdString.isEmpty {
+            .onEnabled { _ in
+                if self.image1.alpha == 1, self.mediaIdString.isEmpty {
                     self.canPost = false
                     UIView.animate(withDuration: 0.3, animations: {
                         self.messageInputBar.sendButton.image = UIImage(systemName: "arrow.up.circle.fill", withConfiguration: symbolConfig)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal)
@@ -399,13 +393,13 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                         })
                     }
                 }
-            }.onDisabled { item in
+            }.onDisabled { _ in
                 self.canPost = false
                 UIView.animate(withDuration: 0.3, animations: {
                     self.messageInputBar.sendButton.image = UIImage(systemName: "arrow.up.circle.fill", withConfiguration: symbolConfig)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal)
                 })
-        }
-        
+            }
+
         mButton = InputBarButtonItem()
             .configure {
                 $0.spacing = .fixed(0)
@@ -417,64 +411,64 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             }.onDeselected {
                 $0.tintColor = UIColor.label
             }
-        
-        let comp = UIAction(title: "Expanded Composer", image: UIImage(systemName: "square.and.pencil"), identifier: nil) { action in
+
+        let comp = UIAction(title: "Expanded Composer", image: UIImage(systemName: "square.and.pencil"), identifier: nil) { _ in
             self.expandedComposer()
         }
-        let gal = UIAction(title: "Gallery", image: UIImage(systemName: "photo"), identifier: nil) { action in
+        let gal = UIAction(title: "Gallery", image: UIImage(systemName: "photo"), identifier: nil) { _ in
             self.galleryTapped()
         }
-        let cam = UIAction(title: "Camera", image: UIImage(systemName: "camera"), identifier: nil) { action in
+        let cam = UIAction(title: "Camera", image: UIImage(systemName: "camera"), identifier: nil) { _ in
             self.cameraTapped()
         }
         let newMenu = UIMenu(title: "", options: [], children: [comp, gal, cam])
         mButton.menu = newMenu
         mButton.showsMenuAsPrimaryAction = true
-        
+
         let leftItems = [mButton]
         messageInputBar.setStackViewItems(leftItems, forStack: .left, animated: false)
-        
-        let name = self.currentAccounts.first?.displayName ?? ""
-        
-        if self.currentAccounts.count == 1 {
+
+        let name = currentAccounts.first?.displayName ?? ""
+
+        if currentAccounts.count == 1 {
             let containView = UIView(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
             let imageview = UIButton(frame: CGRect(x: 0, y: 0, width: 30, height: 30))
-            let profileIcon = self.currentAccounts.first?.avatar ?? "www.google.com"
+            let profileIcon = currentAccounts.first?.avatar ?? "www.google.com"
             if let x = URL(string: profileIcon) {
                 imageview.sd_setImage(with: x, for: .normal, completed: nil)
             }
-            imageview.addTarget(self, action: #selector(self.proButtonTap), for: .touchUpInside)
+            imageview.addTarget(self, action: #selector(proButtonTap), for: .touchUpInside)
             imageview.contentMode = .scaleAspectFit
             imageview.layer.cornerRadius = 15
             imageview.layer.masksToBounds = true
             containView.addSubview(imageview)
             let rightBarButton = UIBarButtonItem(customView: containView)
-            self.navigationItem.setRightBarButtonItems([rightBarButton], animated: true)
-            
-            self.messageInputBar.inputTextView.placeholderLabel.text = "  Message \(name)..."
-            
+            navigationItem.setRightBarButtonItems([rightBarButton], animated: true)
+
+            messageInputBar.inputTextView.placeholderLabel.text = "  Message \(name)..."
+
             layout?.setMessageOutgoingAvatarSize(.zero)
             layout?.setMessageIncomingAvatarSize(.zero)
         } else {
-            self.messageInputBar.inputTextView.placeholderLabel.text = "  Group message..."
-            
+            messageInputBar.inputTextView.placeholderLabel.text = "  Group message..."
+
             layout?.setMessageOutgoingAvatarSize(.zero)
             layout?.setMessageIncomingAvatarSize(CGSize(width: 30, height: 30))
         }
-        
+
         loadMessages()
     }
-    
+
     func expandedComposer() {
         let vc = NewPostViewController()
         vc.isModalInPresentation = true
         vc.fromNewDM = true
-        vc.fromExpanded = self.currentStatus.last?.account?.acct ?? ""
-        vc.inReplyId = self.currentStatus.last?.id ?? ""
+        vc.fromExpanded = currentStatus.last?.account?.acct ?? ""
+        vc.inReplyId = currentStatus.last?.id ?? ""
         vc.whoCanReply = .direct
-        self.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
+        present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
     }
-    
+
     func setupCol() {
         messagesCollectionView.backgroundColor = .custom.backgroundTint
         messageInputBar.backgroundColor = .custom.backgroundTint
@@ -489,7 +483,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         messageInputBar.inputTextView.layer.borderColor = UIColor.custom.quoteTint.cgColor
         messageInputBar.sendButton.imageView?.backgroundColor = UIColor.clear
     }
-    
+
     func textFieldDidChangeSelection(_ textField: UITextField) {
         let symbolConfig3 = UIImage.SymbolConfiguration(pointSize: 28, weight: .regular)
         if textField.text?.count == 0 {
@@ -498,56 +492,53 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             sendB.setImage(UIImage(systemName: "arrow.up.circle.fill", withConfiguration: symbolConfig3)?.withTintColor(.custom.baseTint, renderingMode: .alwaysOriginal), for: .normal)
         }
     }
-    
+
     @objc func moreTap() {
         let alert = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        let op0 = UIAlertAction(title: "Gallery", style: .default , handler:{ (UIAlertAction) in
+        let op0 = UIAlertAction(title: "Gallery", style: .default, handler: { _ in
             self.galleryTapped()
         })
         op0.setValue(UIImage(systemName: "photo")!, forKey: "image")
         op0.setValue(CATextLayerAlignmentMode.left, forKey: "titleTextAlignment")
         alert.addAction(op0)
-        let op1 = UIAlertAction(title: "Camera", style: .default , handler:{ (UIAlertAction) in
+        let op1 = UIAlertAction(title: "Camera", style: .default, handler: { _ in
             self.cameraTapped()
         })
         op1.setValue(UIImage(systemName: "camera")!, forKey: "image")
         op1.setValue(CATextLayerAlignmentMode.left, forKey: "titleTextAlignment")
         alert.addAction(op1)
-        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-            
+        alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
         }))
         if let presenter = alert.popoverPresentationController {
-            presenter.sourceView = self.view
-            presenter.sourceRect = self.view.bounds
+            presenter.sourceView = view
+            presenter.sourceRect = view.bounds
         }
-        self.present(alert, animated: true, completion: nil)
+        present(alert, animated: true, completion: nil)
     }
-    
+
     @objc func proButtonTap() {
         triggerHapticImpact(style: .light)
-        let x = self.allCurrentMessages.last { x in
+        let x = allCurrentMessages.last { x in
             (x.account?.id ?? "") != (self.currentUserID ?? "")
         }
-        if let account = x?.account ?? self.currentStatus.last?.account {
+        if let account = x?.account ?? currentStatus.last?.account {
             let vc = ProfileViewController(user: UserCardModel(account: account), screenType: .others)
             if vc.isBeingPresented {} else {
-                self.navigationController?.pushViewController(vc, animated: true)
+                navigationController?.pushViewController(vc, animated: true)
             }
         }
     }
-    
-    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
-        self.photoPickerView2.dismiss(animated: true, completion: {
-            
-        })
+
+    func imagePickerControllerDidCancel(_: UIImagePickerController) {
+        photoPickerView2.dismiss(animated: true, completion: {})
     }
-    
-    func picker(_ picker: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
+
+    func picker(_: PHPickerViewController, didFinishPicking results: [PHPickerResult]) {
         dismiss(animated: true, completion: nil)
         guard !results.isEmpty else { return }
-        _ = results.map({ x in
+        _ = results.map { x in
             if x.itemProvider.hasItemConformingToTypeIdentifier(kUTTypeGIF as String) {
-                x.itemProvider.loadDataRepresentation(forTypeIdentifier: kUTTypeGIF as String) { data, error in
+                x.itemProvider.loadDataRepresentation(forTypeIdentifier: kUTTypeGIF as String) { data, _ in
                     DispatchQueue.main.async {
                         // attach gif
                         self.image1.alpha = 1
@@ -559,7 +550,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                 }
             } else {
                 if x.itemProvider.canLoadObject(ofClass: UIImage.self) {
-                    x.itemProvider.loadObject(ofClass: UIImage.self) { (image, error) in
+                    x.itemProvider.loadObject(ofClass: UIImage.self) { image, _ in
                         DispatchQueue.main.async {
                             if let photoToAttach = image as? UIImage {
                                 // attach photo
@@ -599,9 +590,9 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                     }
                 }
             }
-        })
+        }
     }
-    
+
     func createThumbnailOfVideoFromFileURL2(_ strVideoURL: URL) -> UIImage? {
         let asset = AVAsset(url: strVideoURL)
         let assetImgGenerate = AVAssetImageGenerator(asset: asset)
@@ -616,34 +607,32 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             return nil
         }
     }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+
+    func imagePickerController(_: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
         let moreButton0 = UIBarButtonItem(customView: btn0)
-        self.navigationItem.setLeftBarButton(moreButton0, animated: true)
+        navigationItem.setLeftBarButton(moreButton0, animated: true)
         if let mediaType = info[UIImagePickerController.InfoKey.mediaType] as? String {
             if mediaType == "public.movie" {
-                
             } else if mediaType == kUTTypeGIF as String {
-                
             } else {
                 if let photoToAttach = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
                     // send image
-                    self.image1.alpha = 1
-                    self.image1.setImage(photoToAttach, for: .normal)
-                    self.currentImage = photoToAttach
+                    image1.alpha = 1
+                    image1.setImage(photoToAttach, for: .normal)
+                    currentImage = photoToAttach
                     let mediaData = photoToAttach.jpegData(compressionQuality: 1) ?? Data()
-                    self.attachPhoto(mediaData)
+                    attachPhoto(mediaData)
                 }
             }
         }
-        self.photoPickerView2.dismiss(animated: true, completion: nil)
+        photoPickerView2.dismiss(animated: true, completion: nil)
     }
-    
+
     func attachPhoto(_ mediaData: Data) {
-        self.canPost = false
-        if self.image1.alpha == 1 {
+        canPost = false
+        if image1.alpha == 1 {
             let request = Media.upload(media: .jpeg(mediaData))
-            self.client!.run(request) { (statuses) in
+            client!.run(request) { statuses in
                 if let err = (statuses.error) {
                     log.error("error attaching photo - \(err)")
                     // remove image
@@ -664,11 +653,11 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             }
         }
     }
-    
+
     func attachVideo(_ mediaData: Data) {
-        self.canPost = false
+        canPost = false
         let request = Media.upload(media: .video(mediaData))
-        self.client!.run(request) { (statuses) in
+        client!.run(request) { statuses in
             if let err = (statuses.error) {
                 print("error attaching video - \(err)")
                 self.canPost = true
@@ -687,11 +676,11 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             }
         }
     }
-    
+
     func attachGIF(_ mediaData: Data) {
-        self.canPost = false
+        canPost = false
         let request = Media.upload(media: .video(mediaData))
-        self.client!.run(request) { (statuses) in
+        client!.run(request) { statuses in
             if let err = (statuses.error) {
                 log.error("error attaching video - \(err)")
                 self.canPost = true
@@ -710,7 +699,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
             }
         }
     }
-    
+
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         let fileURL = urls.first!
         let ext = fileURL.pathExtension
@@ -722,11 +711,11 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         }
         controller.dismiss(animated: true, completion: nil)
     }
-    
+
     func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
         controller.dismiss(animated: true, completion: nil)
     }
-    
+
     func createThumbnailOfVideoFromFileURL(_ strVideoURL: String) -> UIImage? {
         if strVideoURL.isEmpty {} else {
             let asset = AVAsset(url: URL(string: strVideoURL)!)
@@ -743,17 +732,17 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         }
         return nil
     }
-    
+
     func loadMessages() {
-        let request = Statuses.context(id: self.currentStatus.first?.id ?? "")
-        self.client!.run(request) { (statuses) in
+        let request = Statuses.context(id: currentStatus.first?.id ?? "")
+        client!.run(request) { statuses in
             if let value = statuses.value {
                 DispatchQueue.main.async {
                     self.allCurrentMessages = value.ancestors + self.currentStatus + value.descendants
-                    
-                    var canDo: Bool = true
-                    
-                    let _ = self.allCurrentMessages.enumerated().map ({ (c,x) in
+
+                    var canDo = true
+
+                    _ = self.allCurrentMessages.enumerated().map { c, x in
                         var theType = "0"
                         if x.account?.id == (self.currentUserID ?? "") {
                             theType = "1"
@@ -761,8 +750,8 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                         let sender = MockUser(senderId: theType, displayName: x.account?.avatar ?? "")
                         let theDate = x.createdAt
                         var tex = x.content.stripHTML()
-                        
-                        let _ = x.mentions.map({ x in
+
+                        _ = x.mentions.map { x in
                             tex = tex.replacingOccurrences(of: "@\(x.username) ", with: "")
                             if tex.hasPrefix("\n\n") {
                                 tex = String(tex.dropFirst(2))
@@ -779,15 +768,15 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                             if tex == "@\(x.username)" {
                                 canDo = false
                             }
-                        })
-                        
+                        }
+
                         if x.mediaAttachments.isEmpty {
                             if canDo {
                                 if tex == "" || tex == " " {} else {
                                     let dateFormatter = DateFormatter()
                                     dateFormatter.dateFormat = GlobalStruct.dateFormat
                                     let time = dateFormatter.date(from: theDate) ?? Date()
-                                    let y = MockMessage.init(text: tex, sender: sender, messageId: x.account?.acct ?? "", date: time, account: x.account)
+                                    let y = MockMessage(text: tex, sender: sender, messageId: x.account?.acct ?? "", date: time, account: x.account)
                                     if c <= self.messages.count {
                                         self.messages.insert(y, at: c)
                                         self.messagesMedia.insert(UIImage(), at: c)
@@ -797,7 +786,7 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                                 canDo = true
                             }
                         } else {
-                            _ = x.mediaAttachments.reversed().map({ y in
+                            _ = x.mediaAttachments.reversed().map { y in
                                 if let z = y.previewURL {
                                     if let url = URL(string: z) {
                                         URLSession.shared.dataTask(with: url) { data, response, error in
@@ -806,12 +795,12 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                                                 let data = data, error == nil,
                                                 let _ = UIImage(data: data)
                                             else { return }
-                                            DispatchQueue.main.async() { [weak self] in
+                                            DispatchQueue.main.async { [weak self] in
                                                 let image = UIImage(data: data)!
                                                 let dateFormatter = DateFormatter()
                                                 dateFormatter.dateFormat = GlobalStruct.dateFormat
                                                 let time = dateFormatter.date(from: theDate) ?? Date()
-                                                let y2 = MockMessage.init(image: image, sender: sender, messageId: x.account?.acct ?? "", date: time, account: x.account)
+                                                let y2 = MockMessage(image: image, sender: sender, messageId: x.account?.acct ?? "", date: time, account: x.account)
                                                 if c <= (self?.messages.count ?? 0) {
                                                     self?.messages.insert(y2, at: c)
                                                     self?.messagesMedia.insert(image, at: c)
@@ -820,12 +809,12 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                                         }.resume()
                                     }
                                 }
-                            })
+                            }
                             if canDo {
                                 let dateFormatter = DateFormatter()
                                 dateFormatter.dateFormat = GlobalStruct.dateFormat
                                 let time = dateFormatter.date(from: theDate) ?? Date()
-                                let y = MockMessage.init(text: tex, sender: sender, messageId: x.account?.acct ?? "", date: time, account: x.account)
+                                let y = MockMessage(text: tex, sender: sender, messageId: x.account?.acct ?? "", date: time, account: x.account)
                                 if c <= self.messages.count {
                                     self.messages.insert(y, at: c)
                                     self.messagesMedia.insert(UIImage(), at: c)
@@ -834,112 +823,106 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
                                 canDo = true
                             }
                         }
-                    })
-                    
+                    }
+
                     self.messages = self.messages.sorted(by: { x, y in
                         x.sentDate < y.sentDate
                     })
-                    
+
                     self.messagesCollectionView.reloadData()
                     self.messagesCollectionView.scrollToLastItem(animated: true)
                 }
             }
         }
     }
-    
+
     func didSelectURL(_ url: URL) {
         triggerHapticSelectionChanged()
         PostActions.openLink(url)
     }
 
-    func didSelectHashtag(_ hashtag: String) {
-        
-    }
+    func didSelectHashtag(_: String) {}
 
-    func didSelectMention(_ mention2: String) {
-        
-    }
-    
-    func detectorAttributes(for detector: DetectorType, and message: MessageType, at indexPath: IndexPath) -> [NSAttributedString.Key: Any] {
+    func didSelectMention(_: String) {}
+
+    func detectorAttributes(for detector: DetectorType, and message: MessageType, at _: IndexPath) -> [NSAttributedString.Key: Any] {
         switch detector {
         case .hashtag, .mention, .url: return isFromCurrentSender(message: message) ? [.foregroundColor: UIColor.white.withAlphaComponent(0.75), .font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .regular)] : [.foregroundColor: UIColor.label.withAlphaComponent(0.75), .font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .regular)]
         default: return MessageLabel.defaultAttributes
         }
     }
-    
-    func enabledDetectors(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> [DetectorType] {
+
+    func enabledDetectors(for _: MessageType, at _: IndexPath, in _: MessagesCollectionView) -> [DetectorType] {
         return [.url, .mention, .hashtag]
     }
-    
-    func didTapImage(in cell: MessageCollectionViewCell) {
-        
-    }
-    
-    @objc func didTouchSend(sender: UIButton) {
+
+    func didTapImage(in _: MessageCollectionViewCell) {}
+
+    @objc func didTouchSend(sender _: UIButton) {
         let theText = messageInputBar.inputTextView.text ?? ""
-        if self.canPost {
+        if canPost {
             triggerHapticImpact(style: .light)
             let theText2 = NSMutableAttributedString(string: theText)
             theText2.addAttributes([NSAttributedString.Key.foregroundColor: UIColor.white.withAlphaComponent(0.9), NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .regular)], range: theText2.mutableString.range(of: theText2.string))
             let sender = MockUser(senderId: "1", displayName: "\(AccountsManager.shared.currentUser()?.displayName ?? "")")
-            if self.currentImage == UIImage() {
-                let x = MockMessage.init(attributedText: theText2, sender: sender, messageId: "18982", date: Date())
+            if currentImage == UIImage() {
+                let x = MockMessage(attributedText: theText2, sender: sender, messageId: "18982", date: Date())
                 messages.append(x)
             } else {
-                let x = MockMessage.init(image: self.currentImage, sender: sender, messageId: "18982", date: Date())
+                let x = MockMessage(image: currentImage, sender: sender, messageId: "18982", date: Date())
                 messages.append(x)
-                self.currentImage = UIImage()
+                currentImage = UIImage()
                 if theText != "" {
-                    let x2 = MockMessage.init(attributedText: theText2, sender: sender, messageId: "18982", date: Date())
+                    let x2 = MockMessage(attributedText: theText2, sender: sender, messageId: "18982", date: Date())
                     messages.append(x2)
                 }
             }
-            self.image1.alpha = 0
+            image1.alpha = 0
             messagesCollectionView.reloadData()
-            self.messagesCollectionView.scrollToLastItem(animated: true)
+            messagesCollectionView.scrollToLastItem(animated: true)
             messageInputBar.inputTextView.text = ""
-            postDirectMessage(to: self.currentStatus.last?.id ?? "", message: theText)
+            postDirectMessage(to: currentStatus.last?.id ?? "", message: theText)
         }
     }
-    
+
     func isNextMessageSameSender(at indexPath: IndexPath) -> Bool {
         guard indexPath.section + 1 < messages.count else { return false }
         return messages[indexPath.section].sender.displayName == messages[indexPath.section + 1].sender.displayName
     }
-    
-    func messageStyle(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageStyle {
+
+    func messageStyle(for message: MessageType, at _: IndexPath, in _: MessagesCollectionView) -> MessageStyle {
         let tail: MessageStyle.TailCorner = isFromCurrentSender(message: message) ? .bottomRight : .bottomLeft
         return .bubbleTail(tail, .curved)
     }
-    
-    func textColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
+
+    func textColor(for message: MessageType, at _: IndexPath, in _: MessagesCollectionView) -> UIColor {
         return isFromCurrentSender(message: message) ? UIColor.white : UIColor.label
     }
-    
-    func backgroundColor(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> UIColor {
+
+    func backgroundColor(for message: MessageType, at _: IndexPath, in _: MessagesCollectionView) -> UIColor {
         return isFromCurrentSender(message: message) ? .custom.baseTint : .custom.quoteTint
     }
-    
-    func numberOfSections(in messagesCollectionView: MessagesCollectionView) -> Int {
+
+    func numberOfSections(in _: MessagesCollectionView) -> Int {
         return messages.count
     }
-    
-    func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {
+
+    func messageForItem(at indexPath: IndexPath, in _: MessagesCollectionView) -> MessageType {
         return messages[indexPath.section]
     }
-    
-    func messageTopLabelHeight(for message: MessageType, at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> CGFloat {
+
+    func messageTopLabelHeight(for _: MessageType, at indexPath: IndexPath, in _: MessagesCollectionView) -> CGFloat {
         if !isPreviousMessageSameSender(at: indexPath) {
             return 34
         }
         return 0
     }
-    
+
     func isPreviousMessageSameSender(at indexPath: IndexPath) -> Bool {
         guard indexPath.section - 1 >= 0 else { return false }
         return messages[indexPath.section].sender.displayName == messages[indexPath.section - 1].sender.displayName
     }
-    
+
     func messageTopLabelAttributedText(for message: MessageType, at indexPath: IndexPath) -> NSAttributedString? {
         let dateString = MessageKitDateFormatter.shared.string(from: message.sentDate)
         if !isPreviousMessageSameSender(at: indexPath) {
@@ -947,40 +930,39 @@ class ChatMessagesViewController: MessagesViewController, MessagesDataSource, Me
         }
         return nil
     }
-    
-   func postDirectMessage(to recipientUserId: String, message: String) {
-       var z = self.currentStatus.last { x in
-           (x.account?.id ?? "") != (self.currentUserID ?? "")
-       }
-       if z == nil {
-           z = self.currentStatus.first
-       }
-       let x = self.allCurrentMessages.last { x in
-           (x.account?.id ?? "") != (self.currentUserID ?? "")
-       }
-       var mess = "@\(x?.account?.acct ?? self.currentAccounts.first?.acct ?? "") \(message)"
-       if self.currentAccounts.count > 1 {
-           var allAccounts = ""
-           for (c,x) in self.currentAccounts.enumerated() {
-               if c == 0 {
-                   allAccounts = "@\(x.acct)"
-               } else {
-                   allAccounts = "\(allAccounts) @\(x.acct)"
-               }
-           }
-           mess = "\(allAccounts) \(message)"
-       }
-       let request = Statuses.create(status: mess, replyToID: z?.id ?? "", mediaIDs: [self.mediaIdString], spoilerText: nil, scheduledAt: nil, poll: GlobalStruct.newPollPost, visibility: .direct)
-       self.client!.run(request) { (statuses) in
-           print("new message sent - \(statuses)")
-           if let stat = statuses.value {
-               DispatchQueue.main.async {
-                   self.currentStatus = [stat]
-               }
-           }
-       }
-   }
-    
+
+    func postDirectMessage(to _: String, message: String) {
+        var z = currentStatus.last { x in
+            (x.account?.id ?? "") != (self.currentUserID ?? "")
+        }
+        if z == nil {
+            z = currentStatus.first
+        }
+        let x = allCurrentMessages.last { x in
+            (x.account?.id ?? "") != (self.currentUserID ?? "")
+        }
+        var mess = "@\(x?.account?.acct ?? currentAccounts.first?.acct ?? "") \(message)"
+        if currentAccounts.count > 1 {
+            var allAccounts = ""
+            for (c, x) in currentAccounts.enumerated() {
+                if c == 0 {
+                    allAccounts = "@\(x.acct)"
+                } else {
+                    allAccounts = "\(allAccounts) @\(x.acct)"
+                }
+            }
+            mess = "\(allAccounts) \(message)"
+        }
+        let request = Statuses.create(status: mess, replyToID: z?.id ?? "", mediaIDs: [mediaIdString], spoilerText: nil, scheduledAt: nil, poll: GlobalStruct.newPollPost, visibility: .direct)
+        client!.run(request) { statuses in
+            print("new message sent - \(statuses)")
+            if let stat = statuses.value {
+                DispatchQueue.main.async {
+                    self.currentStatus = [stat]
+                }
+            }
+        }
+    }
 }
 
 struct MockMessage: MessageType {
@@ -988,28 +970,28 @@ struct MockMessage: MessageType {
     var sender: SenderType
     var sentDate: Date
     var kind: MessageKind
-    var account: Account? = nil
-    
+    var account: Account?
+
     private init(kind: MessageKind, sender: SenderType, messageId: String, date: Date, account: Account? = nil) {
         self.kind = kind
         self.sender = sender
         self.messageId = messageId
-        self.sentDate = date
+        sentDate = date
         self.account = account
     }
-    
+
     init(custom: Any?, sender: SenderType, messageId: String, date: Date) {
         self.init(kind: .custom(custom), sender: sender, messageId: messageId, date: date)
     }
-    
+
     init(text: String, sender: SenderType, messageId: String, date: Date, account: Account? = nil) {
         self.init(kind: .text(text), sender: sender, messageId: messageId, date: date, account: account)
     }
-    
+
     init(attributedText: NSAttributedString, sender: SenderType, messageId: String, date: Date) {
         self.init(kind: .attributedText(attributedText), sender: sender, messageId: messageId, date: date)
     }
-    
+
     init(image: UIImage, sender: SenderType, messageId: String, date: Date, account: Account? = nil) {
         let mediaItem = ImageMediaItem(image: image)
         self.init(kind: .photo(mediaItem), sender: sender, messageId: messageId, date: date, account: account)
@@ -1019,7 +1001,7 @@ struct MockMessage: MessageType {
 struct MockUser: SenderType {
     var senderId: String
     var displayName: String
-    
+
     init(senderId: String, displayName: String) {
         self.senderId = senderId
         self.displayName = displayName
@@ -1031,26 +1013,28 @@ struct ImageMediaItem: MediaItem {
     var image: UIImage?
     var placeholderImage: UIImage
     var size: CGSize
-    
+
     init(image: UIImage) {
         self.image = image
-        self.size = CGSize(width: 240, height: 160)
-        self.placeholderImage = UIImage()
+        size = CGSize(width: 240, height: 160)
+        placeholderImage = UIImage()
     }
 }
 
 extension ChatMessagesViewController: AVCaptureFileOutputRecordingDelegate {
-    func fileOutput(_ output: AVCaptureFileOutput,
+    func fileOutput(_: AVCaptureFileOutput,
                     didFinishRecordingTo outputFileURL: URL,
-                    from connections: [AVCaptureConnection],
-                    error: Error?) {
+                    from _: [AVCaptureConnection],
+                    error _: Error?)
+    {
         guard let data = try? Data(contentsOf: outputFileURL) else {
             return
         }
-        print("File size before compression: \(Double(data.count / 1048576)) mb")
+        print("File size before compression: \(Double(data.count / 1_048_576)) mb")
         let compressedURL = NSURL.fileURL(withPath: NSTemporaryDirectory() + UUID().uuidString + ".mp4")
         compressVideo(inputURL: outputFileURL as URL,
-                      outputURL: compressedURL) { exportSession in
+                      outputURL: compressedURL)
+        { exportSession in
             guard let session = exportSession else {
                 return
             }
@@ -1065,21 +1049,21 @@ extension ChatMessagesViewController: AVCaptureFileOutputRecordingDelegate {
                 guard let compressedData = try? Data(contentsOf: compressedURL) else {
                     return
                 }
-                print("File size after compression: \(Double(compressedData.count / 1048576)) mb")
+                print("File size after compression: \(Double(compressedData.count / 1_048_576)) mb")
             case .failed:
                 break
             case .cancelled:
                 break
             @unknown default:
                 log.error("Failed to handle files")
-                break
             }
         }
     }
 
     func compressVideo(inputURL: URL,
                        outputURL: URL,
-                       handler:@escaping (_ exportSession: AVAssetExportSession?) -> Void) {
+                       handler: @escaping (_ exportSession: AVAssetExportSession?) -> Void)
+    {
         let urlAsset = AVURLAsset(url: inputURL, options: nil)
         guard let exportSession = AVAssetExportSession(asset: urlAsset, presetName: AVAssetExportPreset3840x2160) else {
             handler(nil)
@@ -1092,7 +1076,3 @@ extension ChatMessagesViewController: AVCaptureFileOutputRecordingDelegate {
         }
     }
 }
-
-
-
-

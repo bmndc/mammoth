@@ -9,8 +9,8 @@
 import UIKit
 
 enum NewPostType {
-    case newPost       // generic new post
-    case newMessage    // new private message
+    case newPost // generic new post
+    case newMessage // new private message
 }
 
 protocol NewPostButtonDelegate: AnyObject {
@@ -26,57 +26,57 @@ extension NewPostButtonDelegate {
 }
 
 class NewPostButton: UIButton, UIGestureRecognizerDelegate {
-    
-    weak var delegate: NewPostButtonDelegate? = nil {
+    weak var delegate: NewPostButtonDelegate? {
         didSet {
             updateNewPostButtonImage()
         }
     }
-        
-    public var allowsExtremeLeft = false
+
+    var allowsExtremeLeft = false
     private var leadingConstraint: NSLayoutConstraint?
     private var trailingConstraint: NSLayoutConstraint?
-    
+
     private let buttonSize = 40.0
     private let normalHorizontalOffset = 20.0
     private let extremeLeadingOffset = -73.0
-    
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.backgroundColor = .custom.FABBackground
-        self.clipsToBounds = true
+        backgroundColor = .custom.FABBackground
+        clipsToBounds = true
 
-        self.bringSubviewToFront(self.imageView!)
+        bringSubviewToFront(imageView!)
 
-        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(self.longPressedNB))
+        let longPressRecognizer = UILongPressGestureRecognizer(target: self, action: #selector(longPressedNB))
         longPressRecognizer.minimumPressDuration = 0.5
-        self.addGestureRecognizer(longPressRecognizer)
-        
+        addGestureRecognizer(longPressRecognizer)
+
         if allowDragging() {
-            let panGesture = UIPanGestureRecognizer(target: self, action:(#selector(self.handleGesture)))
+            let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handleGesture))
             panGesture.delegate = self
-            self.addGestureRecognizer(panGesture)
+            addGestureRecognizer(panGesture)
         }
-        
-        self.adjustsImageWhenHighlighted = false
-        self.layer.cornerRadius = buttonSize / 2
-        self.addTarget(self, action: #selector(newPostTap), for: .touchUpInside)
-        self.accessibilityLabel = "New Post"
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.updatePostPos), name: NSNotification.Name(rawValue: "updatePostPos"), object: nil)
+
+        adjustsImageWhenHighlighted = false
+        layer.cornerRadius = buttonSize / 2
+        addTarget(self, action: #selector(newPostTap), for: .touchUpInside)
+        accessibilityLabel = "New Post"
+
+        NotificationCenter.default.addObserver(self, selector: #selector(updatePostPos), name: NSNotification.Name(rawValue: "updatePostPos"), object: nil)
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func allowDragging() -> Bool {
-         return !(UIDevice.current.userInterfaceIdiom == .phone)
+        return !(UIDevice.current.userInterfaceIdiom == .phone)
     }
-    
-    public func installInView(_ installView: UIView, additionalBottomOffset: CGFloat = 0) {
+
+    func installInView(_ installView: UIView, additionalBottomOffset: CGFloat = 0) {
         var buttonPosition = GlobalStruct.PostButtonLocationType.lowerRight
-        
+
         if allowDragging() {
             if let positionAsInt = UserDefaults.standard.value(forKey: (delegate?.userDefaultKey())!) as? Int {
                 if let buttonPosFromDefault = GlobalStruct.PostButtonLocationType(rawValue: positionAsInt) {
@@ -84,19 +84,19 @@ class NewPostButton: UIButton, UIGestureRecognizerDelegate {
                 }
             }
         }
-        
+
         installView.addSubview(self)
-        self.translatesAutoresizingMaskIntoConstraints = false
-        
+        translatesAutoresizingMaskIntoConstraints = false
+
         // Setup constraints
-        self.widthAnchor.constraint(equalToConstant: buttonSize).isActive = true
-        self.heightAnchor.constraint(equalToConstant: buttonSize).isActive = true
-        self.bottomAnchor.constraint(equalTo: installView.bottomAnchor, constant: -additionalBottomOffset - 20).isActive = true
-        
+        widthAnchor.constraint(equalToConstant: buttonSize).isActive = true
+        heightAnchor.constraint(equalToConstant: buttonSize).isActive = true
+        bottomAnchor.constraint(equalTo: installView.bottomAnchor, constant: -additionalBottomOffset - 20).isActive = true
+
         // Only one of the leading/trailing constraints should be hooked up
-        leadingConstraint =  self.leadingAnchor.constraint(equalTo: installView.leadingAnchor, constant: normalHorizontalOffset)
-        trailingConstraint =  self.trailingAnchor.constraint(equalTo: installView.trailingAnchor, constant: -normalHorizontalOffset)
-        
+        leadingConstraint = leadingAnchor.constraint(equalTo: installView.leadingAnchor, constant: normalHorizontalOffset)
+        trailingConstraint = trailingAnchor.constraint(equalTo: installView.trailingAnchor, constant: -normalHorizontalOffset)
+
         GlobalStruct.postButtonLocation = buttonPosition
         if GlobalStruct.postButtonLocation == .lowerLeft {
             trailingConstraint?.isActive = false
@@ -105,15 +105,15 @@ class NewPostButton: UIButton, UIGestureRecognizerDelegate {
             leadingConstraint?.isActive = false
             trailingConstraint?.isActive = true
         }
-        self.updateNewPostButtonImage()
+        updateNewPostButtonImage()
     }
-    
+
     override func layoutSubviews() {
         super.layoutSubviews()
         updatePostPos()
     }
-    
-    public func updateNewPostButtonImage() {
+
+    func updateNewPostButtonImage() {
         let hideButton = !(delegate?.shouldShowNewPostButton() ?? true)
         if hideButton {
             UIView.animate(withDuration: 0.2, animations: {
@@ -126,17 +126,17 @@ class NewPostButton: UIButton, UIGestureRecognizerDelegate {
         } else {
             let isPrivateMessage = delegate?.newPostTypeForCurrentViewController() == .newMessage
             let imageChar = isPrivateMessage ? "@" : "\u{2b}"
-            self.setImage(FontAwesome.image(fromChar: imageChar, size: 19, weight: .bold).withTintColor(.custom.FABForeground, renderingMode: .alwaysOriginal), for: .normal)
+            setImage(FontAwesome.image(fromChar: imageChar, size: 19, weight: .bold).withTintColor(.custom.FABForeground, renderingMode: .alwaysOriginal), for: .normal)
             if UIDevice.current.userInterfaceIdiom == .phone {
-                self.imageEdgeInsets = .init(top: 1.5, left: 0, bottom: 0, right: 0)
+                imageEdgeInsets = .init(top: 1.5, left: 0, bottom: 0, right: 0)
             } else {
                 if ProcessInfo.processInfo.isiOSAppOnMac {
-                    self.imageEdgeInsets = .init(top: -0.5, left: 0.5, bottom: 0, right: 0)
+                    imageEdgeInsets = .init(top: -0.5, left: 0.5, bottom: 0, right: 0)
                 } else {
-                    self.imageEdgeInsets = .init(top: 1.5, left: 0.5, bottom: 0, right: 0)
+                    imageEdgeInsets = .init(top: 1.5, left: 0.5, bottom: 0, right: 0)
                 }
             }
-            self.isHidden = false
+            isHidden = false
             UIView.animate(withDuration: 0.2, animations: {
                 self.alpha = 1.0
             }, completion: { done in
@@ -146,27 +146,27 @@ class NewPostButton: UIButton, UIGestureRecognizerDelegate {
             })
         }
     }
-    
+
     @objc func handleGesture(_ sender: UIPanGestureRecognizer) {
-        let translation = sender.location(in: self.superview)
+        let translation = sender.location(in: superview)
         switch sender.state {
         case .began:
-            self.superview?.bringSubviewToFront(self)
-            self.trailingConstraint?.isActive = false
-            self.leadingConstraint?.isActive = false
+            superview?.bringSubviewToFront(self)
+            trailingConstraint?.isActive = false
+            leadingConstraint?.isActive = false
         case .changed:
             // move the view with a finger
-            self.center = translation
+            center = translation
         case .ended:
             triggerHaptic3Impact()
             // Determine where to land the button
-            if translation.x > self.superview!.bounds.width/2 {
+            if translation.x > superview!.bounds.width / 2 {
                 GlobalStruct.postButtonLocation = .lowerRight
             } else {
                 if allowsExtremeLeft {
                     // Is the x closer to the extremeLeftOffset, or the lower left?
-                    let extremeLeftCenterX = self.extremeLeadingOffset + (buttonSize / 2)
-                    let leftCenterX = self.normalHorizontalOffset + (buttonSize / 2)
+                    let extremeLeftCenterX = extremeLeadingOffset + (buttonSize / 2)
+                    let leftCenterX = normalHorizontalOffset + (buttonSize / 2)
                     let midPoint = extremeLeftCenterX + ((leftCenterX - extremeLeftCenterX) / 2)
                     if translation.x < midPoint {
                         GlobalStruct.postButtonLocation = .extremeLeft
@@ -178,40 +178,40 @@ class NewPostButton: UIButton, UIGestureRecognizerDelegate {
                 }
             }
             UserDefaults.standard.set(GlobalStruct.postButtonLocation.rawValue, forKey: (delegate?.userDefaultKey())!)
-            self.updatePostPos()
+            updatePostPos()
             UIView.animate(withDuration: 0.75, delay: 0.0, usingSpringWithDamping: 0.52, initialSpringVelocity: 0.52, options: .curveEaseInOut) {
                 self.superview?.layoutIfNeeded()
             }
             NotificationCenter.default.post(name: Notification.Name(rawValue: "setupNav"), object: nil)
         case .cancelled:
-            self.updatePostPos()
+            updatePostPos()
         case .failed:
-            self.updatePostPos()
+            updatePostPos()
         default:
             break
         }
     }
-    
+
     @objc func updatePostPos() {
         switch GlobalStruct.postButtonLocation {
         case .extremeLeft:
             // move to first half
-            self.trailingConstraint?.isActive = false
-            self.leadingConstraint?.constant = self.extremeLeadingOffset
-            self.leadingConstraint?.isActive = true
+            trailingConstraint?.isActive = false
+            leadingConstraint?.constant = extremeLeadingOffset
+            leadingConstraint?.isActive = true
         case .lowerLeft:
             // move to first half
-            self.trailingConstraint?.isActive = false
-            self.leadingConstraint?.constant = self.normalHorizontalOffset
-            self.leadingConstraint?.isActive = true
+            trailingConstraint?.isActive = false
+            leadingConstraint?.constant = normalHorizontalOffset
+            leadingConstraint?.isActive = true
         case .lowerRight:
             // move to second half
-            self.leadingConstraint?.isActive = false
-            self.trailingConstraint?.isActive = true
+            leadingConstraint?.isActive = false
+            trailingConstraint?.isActive = true
         }
-        self.superview?.setNeedsLayout()
+        superview?.setNeedsLayout()
     }
-    
+
     @objc func longPressedNB(sender: UILongPressGestureRecognizer) {
         guard sender.state == .began else {
             return
@@ -225,7 +225,7 @@ class NewPostButton: UIButton, UIGestureRecognizerDelegate {
             getTopMostViewController()?.present(nvc, animated: true, completion: nil)
         }
     }
-    
+
     @objc func newPostTap() {
         triggerHaptic3Impact()
         let newPostViewController = NewPostViewController()
@@ -238,19 +238,19 @@ class NewPostButton: UIButton, UIGestureRecognizerDelegate {
         vc.isModalInPresentation = true
         getTopMostViewController()?.present(vc, animated: true, completion: nil)
     }
-
 }
 
 // MARK: Appearance changes
-internal extension NewPostButton {
-     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
+
+extension NewPostButton {
+    override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         super.traitCollectionDidChange(previousTraitCollection)
-        
-         if #available(iOS 13.0, *) {
-             if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
-                 self.backgroundColor = .custom.FABBackground
-                 updateNewPostButtonImage()
-             }
-         }
+
+        if #available(iOS 13.0, *) {
+            if traitCollection.hasDifferentColorAppearance(comparedTo: previousTraitCollection) {
+                self.backgroundColor = .custom.FABBackground
+                updateNewPostButtonImage()
+            }
+        }
     }
 }

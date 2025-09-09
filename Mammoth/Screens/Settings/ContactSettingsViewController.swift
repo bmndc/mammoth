@@ -10,7 +10,6 @@ import Foundation
 import UIKit
 
 class ContactSettingsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
-    
     var tableView = UITableView()
     let firstSection = ["@mammoth@moth.social"]
     var section0Images: [String] = ["link"]
@@ -18,31 +17,30 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
     var section1Images: [String] = ["heart"]
     let thirdSection = ["Email"]
     var section2Images: [String] = ["envelope"]
-    
+
     override func viewDidLayoutSubviews() {
-        self.tableView.frame = CGRect(x: self.view.safeAreaInsets.left, y: 0, width: self.view.bounds.width - self.view.safeAreaInsets.left - self.view.safeAreaInsets.right, height: self.view.bounds.height)
-        
+        tableView.frame = CGRect(x: view.safeAreaInsets.left, y: 0, width: view.bounds.width - view.safeAreaInsets.left - view.safeAreaInsets.right, height: view.bounds.height)
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -51,7 +49,7 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
                 UIColor.custom.mainTextColor = .secondaryLabel
             }
             self.tableView.reloadData()
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -71,11 +69,11 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             }
         }
     }
-    
+
     @objc func dismissTap() {
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
-    
+
     @objc func reloadBars() {
         DispatchQueue.main.async {
             if GlobalStruct.hideNavBars2 {
@@ -85,74 +83,74 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             }
         }
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .custom.backgroundTint
-        self.navigationItem.title = NSLocalizedString("settings.getInTouch.title", comment: "")
-        
+        view.backgroundColor = .custom.backgroundTint
+        navigationItem.title = NSLocalizedString("settings.getInTouch.title", comment: "")
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
-        
+
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
+
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
         if #available(iOS 15.0, *) {
             self.tableView.allowsFocus = true
         }
-        self.tableView = UITableView(frame: .zero, style: .insetGrouped)
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell1")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell2")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell3")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell4")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell5")
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell6")
-        self.tableView.delegate = self
-        self.tableView.dataSource = self
-        self.tableView.backgroundColor = UIColor.clear
-        self.tableView.layer.masksToBounds = true
-        self.tableView.estimatedRowHeight = UITableView.automaticDimension
-        self.tableView.rowHeight = UITableView.automaticDimension
-        self.tableView.showsVerticalScrollIndicator = false
-        self.view.addSubview(self.tableView)
-        self.tableView.reloadData()
+        tableView = UITableView(frame: .zero, style: .insetGrouped)
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell1")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell2")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell3")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell4")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell5")
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "settingsCell6")
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.backgroundColor = UIColor.clear
+        tableView.layer.masksToBounds = true
+        tableView.estimatedRowHeight = UITableView.automaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
+        tableView.showsVerticalScrollIndicator = false
+        view.addSubview(tableView)
+        tableView.reloadData()
     }
-    
-    //MARK: TableView
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    // MARK: TableView
+
+    func numberOfSections(in _: UITableView) -> Int {
         return 5
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0 {
-            return self.firstSection.count
+            return firstSection.count
         } else if section == 4 {
             return 2
         } else {
             return 1
         }
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
             var cell = tableView.dequeueReusableCell(withIdentifier: "settingsCell1", for: indexPath)
             cell = UITableViewCell(style: .subtitle, reuseIdentifier: "settingsCell1")
             cell.textLabel?.numberOfLines = 0
-            cell.imageView?.image = settingsSystemImage(self.section0Images[indexPath.row])
-            cell.textLabel?.text = self.firstSection[indexPath.row]
+            cell.imageView?.image = settingsSystemImage(section0Images[indexPath.row])
+            cell.textLabel?.text = firstSection[indexPath.row]
             cell.backgroundColor = .custom.OVRLYSoftContrast
             cell.accessoryType = .disclosureIndicator
             if #available(iOS 15.0, *) {
@@ -200,7 +198,7 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             switchView.onTintColor = .custom.gold
             switchView.tintColor = .custom.baseTint
             switchView.tag = indexPath.row
-            switchView.addTarget(self, action: #selector(self.switchReviewPrompt(_:)), for: .valueChanged)
+            switchView.addTarget(self, action: #selector(switchReviewPrompt(_:)), for: .valueChanged)
             cell.accessoryView = switchView
             cell.selectionStyle = .none
             cell.backgroundColor = .custom.OVRLYSoftContrast
@@ -216,12 +214,12 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
                 cell.imageView?.image = settingsSystemImage("doc.text.magnifyingglass")
                 cell.textLabel?.text = NSLocalizedString("settings.getInTouch.logging", comment: "")
                 let switchView = UISwitch(frame: .zero)
-                
+
                 switchView.setOn(GlobalStruct.enableLogging, animated: false)
                 switchView.onTintColor = .custom.gold
                 switchView.tintColor = .custom.baseTint
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchEnableLogging(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchEnableLogging(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.backgroundColor = .custom.OVRLYSoftContrast
@@ -248,7 +246,7 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             }
         }
     }
-    
+
     @objc func switchReviewPrompt(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.reviewPrompt = true
@@ -258,7 +256,7 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             UserDefaults.standard.set(false, forKey: "reviewPrompt")
         }
     }
-    
+
     @objc func switchEnableLogging(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.enableLogging = true
@@ -268,9 +266,9 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             UserDefaults.standard.set(false, forKey: "enableLogging")
         }
         log.writeToFile(GlobalStruct.enableLogging)
-        self.tableView.reloadRows(at: [IndexPath(row: 1, section: 4)], with: .none)
+        tableView.reloadRows(at: [IndexPath(row: 1, section: 4)], with: .none)
     }
-    
+
     func emailLoggingData() {
         let attachmentData = [log.appFileData(), log.pushFileData()]
         let attachmentDataTitles = ["Mammoth Log.txt", "Mammoth Push Log.txt"]
@@ -280,21 +278,21 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
                                       attachmentData: attachmentData,
                                       attachmentDataTitles: attachmentDataTitles)
     }
-    
-    func tableView(_ tableView: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
+
+    func tableView(_: UITableView, shouldHighlightRowAt indexPath: IndexPath) -> Bool {
         if indexPath == IndexPath(row: 1, section: 4) {
             return GlobalStruct.enableLogging
         } else {
             return true
         }
     }
-    
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        self.tableView.deselectRow(at: indexPath, animated: true)
+
+    func tableView(_: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 0 {
             let vc = ProfileViewController(fullAcct: "mammoth@moth.social", serverName: "moth.social")
             if vc.isBeingPresented {} else {
-                self.navigationController?.pushViewController(vc, animated: true)
+                navigationController?.pushViewController(vc, animated: true)
             }
         } else if indexPath.section == 1 {
             let z = URL(string: "https://www.getmammoth.app")!
@@ -308,9 +306,9 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
                 log.error("expected a server for privacy policy link")
             }
         } else if indexPath.section == 4 {
-            if indexPath.row == 1 && GlobalStruct.enableLogging {
+            if indexPath.row == 1, GlobalStruct.enableLogging {
                 let alert = UIAlertController(title: NSLocalizedString("settings.getInTouch.emailLogs", comment: ""), message: NSLocalizedString("settings.getInTouch.logInfo", comment: ""), preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: NSLocalizedString("generic.ok", comment: ""), style: .default , handler:{ (UIAlertAction) in
+                alert.addAction(UIAlertAction(title: NSLocalizedString("generic.ok", comment: ""), style: .default, handler: { _ in
                     self.emailLoggingData()
                 }))
                 if let presenter = alert.popoverPresentationController {
@@ -321,8 +319,8 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             }
         }
     }
-    
-    func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+
+    func tableView(_: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 0 {
             return NSLocalizedString("settings.getInTouch.footer1", comment: "")
         } else if section == 1 {
@@ -333,26 +331,18 @@ class ContactSettingsViewController: UIViewController, UITableViewDataSource, UI
             return NSLocalizedString("settings.getInTouch.footer3", comment: "")
         } else {
             return NSLocalizedString("settings.getInTouch.logInfo", comment: "") + "\n" +
-            "     " + NSLocalizedString("settings.getInTouch.logInfo.1", comment: "") + "\n" +
-            "     " + NSLocalizedString("settings.getInTouch.logInfo.2", comment: "") + "\n" +
-            "     " + NSLocalizedString("settings.getInTouch.logInfo.3", comment: "") + "\n" +
-            "     " + NSLocalizedString("settings.getInTouch.logInfo.4", comment: "") + "\n"
+                "     " + NSLocalizedString("settings.getInTouch.logInfo.1", comment: "") + "\n" +
+                "     " + NSLocalizedString("settings.getInTouch.logInfo.2", comment: "") + "\n" +
+                "     " + NSLocalizedString("settings.getInTouch.logInfo.3", comment: "") + "\n" +
+                "     " + NSLocalizedString("settings.getInTouch.logInfo.4", comment: "") + "\n"
         }
     }
-    
-    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForFooterInSection section: Int) -> CGFloat {
         if section == 2 {
             return 0
         } else {
             return UITableView.automaticDimension
         }
     }
-    
 }
-
-
-
-
-
-
-

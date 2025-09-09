@@ -7,12 +7,11 @@
 //
 
 import Foundation
-import UIKit
 import SDWebImage
+import UIKit
 
 // swiftlint:disable:next type_body_length
 class AppearanceSettingsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UIColorPickerViewControllerDelegate {
-    
     private enum AppearanceOptions: Int, CaseIterable {
         static var allCases: [AppearanceSettingsViewController.AppearanceOptions] {
             // Only include the High Contrast option for iOS 17+
@@ -35,9 +34,9 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 AppearanceOptions.translation,
                 AppearanceOptions.language,
             ]
-            return allItems.compactMap({$0})
+            return allItems.compactMap { $0 }
         }
-        
+
         case theme
         @available(iOS 17.0, *)
         case highContrast
@@ -55,19 +54,19 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
         case all
 
         var index: Int {
-            self.rawValue
+            rawValue
         }
     }
 
     var tableView = UITableView()
     let btn0 = UIButton(type: .custom)
-    
+
     let firstSection = [NSLocalizedString("settings.appearance.textSize", comment: "")]
     let sampleStatus = {
         let currentUserAccount = AccountsManager.shared.currentUser()!
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSSZ"
-        let fiveMinsAgo = formatter.string(from: Date().addingTimeInterval(-(5*60)))
+        let fiveMinsAgo = formatter.string(from: Date().addingTimeInterval(-(5 * 60)))
         let status = Status(id: "",
                             uri: "",
                             account: currentUserAccount,
@@ -90,28 +89,28 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
     }
 
     override func viewDidLayoutSubviews() {
-        self.tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
-        
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
 
     @objc func dismissTap() {
         triggerHapticImpact(style: .light)
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
 
     @objc func reloadAll() {
@@ -128,21 +127,21 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
         }
 
         // update various elements
-        self.view.backgroundColor = .custom.backgroundTint
+        view.backgroundColor = .custom.backgroundTint
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
 
@@ -156,56 +155,55 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
         }
     }
 
-
     override func traitCollectionDidChange(_ previousTraitCollection: UITraitCollection?) {
         log.error("traitCollectionDidChange!")
         super.traitCollectionDidChange(previousTraitCollection)
-        self.reloadAll()
+        reloadAll()
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.view.backgroundColor = .custom.backgroundTint
-        self.title = NSLocalizedString("settings.appearance", comment: "")
+        view.backgroundColor = .custom.backgroundTint
+        title = NSLocalizedString("settings.appearance", comment: "")
 
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
 
         // nav bar
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
 
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
         if #available(iOS 15.0, *) {
             self.tableView.allowsFocus = true
         }
-        
-        self.tableView = UITableView(frame: .zero, style: .insetGrouped)
-        
-        self.tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell")
-        self.tableView.register(TextSizeCell.self, forCellReuseIdentifier: "TextSizeCell")
-        self.tableView.register(PostCardCell.self, forCellReuseIdentifier: PostCardCell.reuseIdentifier(for: .textOnly))
-        self.tableView.register(PostCardCell.self, forCellReuseIdentifier: PostCardCell.reuseIdentifier(for: .textAndMedia(.fullWidth)))
-        self.tableView.register(SelectionCell.self, forCellReuseIdentifier: "SelectionCell")
-        self.tableView.delegate = self
-        self.tableView.dataSource = self
-        self.tableView.backgroundColor = UIColor.clear
-        self.tableView.layer.masksToBounds = true
-        self.tableView.showsVerticalScrollIndicator = false
-        self.view.addSubview(self.tableView)
-        self.tableView.reloadData()
+
+        tableView = UITableView(frame: .zero, style: .insetGrouped)
+
+        tableView.register(UITableViewCell.self, forCellReuseIdentifier: "UITableViewCell")
+        tableView.register(TextSizeCell.self, forCellReuseIdentifier: "TextSizeCell")
+        tableView.register(PostCardCell.self, forCellReuseIdentifier: PostCardCell.reuseIdentifier(for: .textOnly))
+        tableView.register(PostCardCell.self, forCellReuseIdentifier: PostCardCell.reuseIdentifier(for: .textAndMedia(.fullWidth)))
+        tableView.register(SelectionCell.self, forCellReuseIdentifier: "SelectionCell")
+        tableView.delegate = self
+        tableView.dataSource = self
+        tableView.backgroundColor = UIColor.clear
+        tableView.layer.masksToBounds = true
+        tableView.showsVerticalScrollIndicator = false
+        view.addSubview(tableView)
+        tableView.reloadData()
 
         let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
         btn0.setImage(UIImage(systemName: "xmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
@@ -213,21 +211,21 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
         btn0.layer.cornerRadius = 14
         btn0.imageEdgeInsets = UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7)
         btn0.frame = CGRect(x: 0, y: 0, width: 28, height: 28)
-        btn0.addTarget(self, action: #selector(self.dismissTap), for: .touchUpInside)
+        btn0.addTarget(self, action: #selector(dismissTap), for: .touchUpInside)
         btn0.accessibilityLabel = NSLocalizedString("generic.dismiss", comment: "")
     }
 
     // MARK: TableView
 
-    func numberOfSections(in tableView: UITableView) -> Int {
+    func numberOfSections(in _: UITableView) -> Int {
         3
     }
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
-        case 0: return 1    // sample cell
-        case 1: return 2    // text size + slider
-        case 2: return AppearanceOptions.allCases.count    // remaining options
+        case 0: return 1 // sample cell
+        case 1: return 2 // text size + slider
+        case 2: return AppearanceOptions.allCases.count // remaining options
         default: return 0
         }
     }
@@ -238,10 +236,10 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
             let identifier = GlobalStruct.mediaSize == .fullWidth ? PostCardCell.reuseIdentifier(for: .textAndMedia(.fullWidth)) : PostCardCell.reuseIdentifier(for: .textOnly)
             let cell = tableView.dequeueReusableCell(withIdentifier: identifier, for: indexPath) as! PostCardCell
             let postCard = PostCardModel(status: sampleStatus)
-            cell.configure(postCard: postCard) {type,isActive,data in
+            cell.configure(postCard: postCard) { _, _, _ in
                 // Do nothing
             }
-            
+
             cell.willDisplay()
             cell.layer.borderColor = UIColor.custom.outlines.cgColor
             cell.layer.borderWidth = 0.5
@@ -254,7 +252,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 let cell = UITableViewCell(style: .value1, reuseIdentifier: "UITableViewCell.value1")
                 cell.textLabel?.numberOfLines = 0
                 cell.imageView?.image = settingsFontAwesomeImage("\u{f894}")
-                cell.textLabel?.text = self.firstSection[indexPath.row]
+                cell.textLabel?.text = firstSection[indexPath.row]
                 let system = NSLocalizedString("settings.appearance.system", comment: "")
                 if GlobalStruct.customTextSize == 0 {
                     cell.detailTextLabel?.text = "\(system)"
@@ -263,7 +261,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 } else {
                     cell.detailTextLabel?.text = "\(system) \(Int(GlobalStruct.customTextSize))"
                 }
-                
+
                 cell.backgroundColor = .custom.OVRLYSoftContrast
                 cell.selectionStyle = .none
                 cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
@@ -271,12 +269,13 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                     cell.focusEffect = UIFocusHaloEffect()
                 }
                 return cell
+
             case 1:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "TextSizeCell", for: indexPath) as! TextSizeCell
                 cell.textLabel?.numberOfLines = 0
-                cell.configureSize(self.view.bounds.width)
+                cell.configureSize(view.bounds.width)
                 cell.slider.setValue(Float(GlobalStruct.customTextSize), animated: false)
-                cell.slider.addTarget(self, action: #selector(self.valueChanged(_:)), for: .valueChanged)
+                cell.slider.addTarget(self, action: #selector(valueChanged(_:)), for: .valueChanged)
                 cell.backgroundColor = .custom.OVRLYSoftContrast
                 cell.selectionStyle = .none
                 cell.separatorInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
@@ -284,17 +283,17 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                     cell.focusEffect = UIFocusHaloEffect()
                 }
                 return cell
-                
+
             default: return UITableViewCell()
             }
-            
+
         case 2: // remaining cells
             guard indexPath.row < AppearanceOptions.allCases.count else {
                 log.error("Unsupported Appearance option")
                 return UITableViewCell()
             }
             let option = AppearanceOptions.allCases[indexPath.row]
-            
+
             switch option {
             case AppearanceOptions.theme:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionCell", for: indexPath) as! SelectionCell
@@ -310,7 +309,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 }
 
                 var gestureActions: [UIAction] = []
-                let op1 = UIAction(title: NSLocalizedString("settings.appearance.system", comment: ""), image: settingsFontAwesomeImage("\u{f042}"), identifier: nil) { action in
+                let op1 = UIAction(title: NSLocalizedString("settings.appearance.system", comment: ""), image: settingsFontAwesomeImage("\u{f042}"), identifier: nil) { _ in
                     GlobalStruct.overrideTheme = 0
                     UserDefaults.standard.set(GlobalStruct.overrideTheme, forKey: "overrideTheme")
                     FontAwesome.setColorTheme(theme: ColorTheme.systemDefault)
@@ -321,7 +320,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                     op1.state = .on
                 }
                 gestureActions.append(op1)
-                let op2 = UIAction(title: NSLocalizedString("settings.appearance.light", comment: ""), image: settingsFontAwesomeImage("\u{e0c9}"), identifier: nil) { action in
+                let op2 = UIAction(title: NSLocalizedString("settings.appearance.light", comment: ""), image: settingsFontAwesomeImage("\u{e0c9}"), identifier: nil) { _ in
                     GlobalStruct.overrideTheme = 1
                     UserDefaults.standard.set(GlobalStruct.overrideTheme, forKey: "overrideTheme")
                     FontAwesome.setColorTheme(theme: ColorTheme.light)
@@ -332,7 +331,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                     op2.state = .on
                 }
                 gestureActions.append(op2)
-                let op3 = UIAction(title: NSLocalizedString("settings.appearance.dark", comment: ""), image: settingsFontAwesomeImage("\u{f186}"), identifier: nil) { action in
+                let op3 = UIAction(title: NSLocalizedString("settings.appearance.dark", comment: ""), image: settingsFontAwesomeImage("\u{f186}"), identifier: nil) { _ in
                     GlobalStruct.overrideTheme = 2
                     UserDefaults.standard.set(GlobalStruct.overrideTheme, forKey: "overrideTheme")
                     FontAwesome.setColorTheme(theme: ColorTheme.dark)
@@ -356,7 +355,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 switchView.setOn(GlobalStruct.overrideThemeHighContrast, animated: false)
                 switchView.onTintColor = .custom.gold
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchHighContrast(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchHighContrast(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.backgroundColor = .custom.OVRLYSoftContrast
@@ -369,67 +368,63 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionCell", for: indexPath) as! SelectionCell
                 cell.textLabel?.text = NSLocalizedString("settings.appearance.names", comment: "")
                 cell.accessibilityLabel = NSLocalizedString("settings.appearance.names", comment: "")
-                
+
                 cell.imageView?.image = settingsFontAwesomeImage("\u{f5b7}")
                 cell.detailTextLabel?.text = switch GlobalStruct.displayName {
-                case .full:         NSLocalizedString("settings.appearance.names.full", comment: "")
+                case .full: NSLocalizedString("settings.appearance.names.full", comment: "")
                 case .usernameOnly: NSLocalizedString("settings.appearance.names.username", comment: "")
-                case .usertagOnly:  NSLocalizedString("settings.appearance.names.usertag", comment: "")
-                case .none:         NSLocalizedString("generic.none", comment: "")
+                case .usertagOnly: NSLocalizedString("settings.appearance.names.usertag", comment: "")
+                case .none: NSLocalizedString("generic.none", comment: "")
                 }
-                
+
                 var gestureActions: [UIAction] = []
                 let image1 = settingsFontAwesomeImage("\u{f47f}")
-                let op1 = UIAction(title: NSLocalizedString("settings.appearance.names.full", comment: ""), image: image1, identifier: nil) { action in
-                    
+                let op1 = UIAction(title: NSLocalizedString("settings.appearance.names.full", comment: ""), image: image1, identifier: nil) { _ in
                     GlobalStruct.displayName = .full
                     UserDefaults.standard.set(GlobalStruct.displayName.rawValue, forKey: "displayName")
-                    
+
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
                 }
                 if GlobalStruct.displayName == .full {
                     op1.state = .on
                 }
-                
+
                 gestureActions.append(op1)
                 let image2 = settingsFontAwesomeImage("\u{f007}")
-                let op2 = UIAction(title: NSLocalizedString("settings.appearance.names.username", comment: ""), image: image2, identifier: nil) { action in
-                    
+                let op2 = UIAction(title: NSLocalizedString("settings.appearance.names.username", comment: ""), image: image2, identifier: nil) { _ in
                     GlobalStruct.displayName = .usernameOnly
                     UserDefaults.standard.set(GlobalStruct.displayName.rawValue, forKey: "displayName")
-                
+
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
                 }
                 if GlobalStruct.displayName == .usernameOnly {
                     op2.state = .on
                 }
-                
+
                 gestureActions.append(op2)
                 let image3 = settingsFontAwesomeImage("\u{40}")
-                let op3 = UIAction(title: NSLocalizedString("settings.appearance.names.usertag", comment: ""), image: image3, identifier: nil) { action in
-                    
+                let op3 = UIAction(title: NSLocalizedString("settings.appearance.names.usertag", comment: ""), image: image3, identifier: nil) { _ in
                     GlobalStruct.displayName = .usertagOnly
                     UserDefaults.standard.set(GlobalStruct.displayName.rawValue, forKey: "displayName")
-                    
+
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
                 }
                 if GlobalStruct.displayName == .usertagOnly {
                     op3.state = .on
                 }
-                
+
                 gestureActions.append(op3)
                 let image4 = settingsFontAwesomeImage("\u{f656}")
-                let op4 = UIAction(title: NSLocalizedString("generic.none", comment: ""), image: image4, identifier: nil) { action in
-                    
+                let op4 = UIAction(title: NSLocalizedString("generic.none", comment: ""), image: image4, identifier: nil) { _ in
                     GlobalStruct.displayName = .none
                     UserDefaults.standard.set(GlobalStruct.displayName.rawValue, forKey: "displayName")
-                    
+
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
                 }
                 if GlobalStruct.displayName == .none {
                     op4.state = .on
                 }
-                
+
                 gestureActions.append(op4)
                 cell.backgroundButton.menu = UIMenu(title: "", image: UIImage(systemName: "person.crop.square.fill.and.at.rectangle"), options: [.displayInline], children: gestureActions)
                 return cell
@@ -438,19 +433,19 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionCell", for: indexPath) as! SelectionCell
                 cell.textLabel?.text = NSLocalizedString("settings.appearance.maximumLines", comment: "")
                 cell.accessibilityLabel = NSLocalizedString("settings.appearance.maximumLines", comment: "")
-                
+
                 cell.imageView?.image = settingsFontAwesomeImage("\u{f7a4}")
                 if GlobalStruct.maxLines == 0 {
                     cell.detailTextLabel?.text = NSLocalizedString("generic.none", comment: "")
                 } else {
                     cell.detailTextLabel?.text = "\(GlobalStruct.maxLines)"
                 }
-                
+
                 var gestureActions: [UIAction] = []
                 let actionValues = [0, 2, 4, 6, 8, 10]
                 for actionValue in actionValues {
-                    let title = (actionValue==0) ? NSLocalizedString("generic.none", comment: "") : "\(actionValue)"
-                    let op1 = UIAction(title: title, image: nil, identifier: nil) { action in
+                    let title = (actionValue == 0) ? NSLocalizedString("generic.none", comment: "") : "\(actionValue)"
+                    let op1 = UIAction(title: title, image: nil, identifier: nil) { _ in
                         GlobalStruct.maxLines = actionValue
                         UserDefaults.standard.set(GlobalStruct.maxLines, forKey: "maxLines")
                         NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
@@ -462,7 +457,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 }
                 cell.backgroundButton.menu = UIMenu(title: "", image: UIImage(systemName: "person.crop.square.fill.and.at.rectangle"), options: [.displayInline], children: gestureActions)
                 return cell
-                
+
             case AppearanceOptions.mediaSize:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionCell", for: indexPath) as! SelectionCell
                 cell.textLabel?.numberOfLines = 0
@@ -470,7 +465,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 cell.accessibilityLabel = NSLocalizedString("settings.appearance.mediaSize", comment: "")
                 cell.imageView?.image = settingsFontAwesomeImage("\u{f03e}")
                 cell.detailTextLabel?.text = GlobalStruct.mediaSize.displayName
-                
+
                 let gestureActions = PostCardCell.PostCardMediaVariant.allCases.map { mediaVariant in
                     UIAction(
                         title: mediaVariant.displayName,
@@ -484,10 +479,10 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                         }
                     }
                 }
-                
+
                 cell.backgroundButton.menu = UIMenu(title: "", image: nil, options: [.displayInline], children: gestureActions)
                 return cell
-                
+
             case AppearanceOptions.profileIcon:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell", for: indexPath)
                 cell.textLabel?.numberOfLines = 0
@@ -504,10 +499,10 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 } else {
                     switchView.setOn(true, animated: false)
                 }
-                
+
                 switchView.onTintColor = .custom.gold
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchCircleProfiles(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchCircleProfiles(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.backgroundColor = .custom.OVRLYSoftContrast
@@ -533,7 +528,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 }
                 switchView.onTintColor = .custom.gold
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchShowCW(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchShowCW(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.backgroundColor = .custom.OVRLYSoftContrast
@@ -559,7 +554,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 }
                 switchView.onTintColor = .custom.gold
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchBlurSensitiveContent(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchBlurSensitiveContent(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.backgroundColor = .custom.OVRLYSoftContrast
@@ -585,7 +580,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 }
                 switchView.onTintColor = .custom.gold
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchAutoPlayingVideos(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchAutoPlayingVideos(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.backgroundColor = .custom.OVRLYSoftContrast
@@ -593,7 +588,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                     cell.focusEffect = UIFocusHaloEffect()
                 }
                 return cell
-                
+
             case AppearanceOptions.translation:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell", for: indexPath)
                 cell.textLabel?.text = NSLocalizedString("settings.appearance.translationLang", comment: "")
@@ -605,7 +600,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                     cell.focusEffect = UIFocusHaloEffect()
                 }
                 return cell
-                
+
             case AppearanceOptions.language:
                 let cell = tableView.dequeueReusableCell(withIdentifier: "UITableViewCell", for: indexPath)
                 cell.textLabel?.text = NSLocalizedString("settings.appearance.language", comment: "")
@@ -618,21 +613,21 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
                 }
                 return cell
             }
-            
+
         default: return UITableViewCell()
         }
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        
+
         switch indexPath.section {
         case 2:
             if AppearanceOptions.allCases[indexPath.row] == AppearanceOptions.translation {
                 let vc = TranslationSettingsViewController()
                 navigationController?.pushViewController(vc, animated: true)
             }
-            
+
             if AppearanceOptions.allCases[indexPath.row] == AppearanceOptions.language {
                 let alert = UIAlertController(title: NSLocalizedString("settings.appearance.language.alert.title", comment: "Alert title when tapping on the language setting item"), message: NSLocalizedString("settings.appearance.language.alert.description", comment: "Alert description when tapping on the language setting item"), preferredStyle: .alert)
                 alert.addAction(UIAlertAction(title: NSLocalizedString("generic.continue", comment: ""), style: .default, handler: { _ in
@@ -657,7 +652,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
         let roundedValue = round(sender.value / step) * step
         sender.value = roundedValue
 
-        if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 1)) {
+        if let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 1)) {
             if sender.value == 0 {
                 cell.detailTextLabel?.text = "\("System Size")"
             } else if sender.value < 0 {
@@ -670,10 +665,10 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
         GlobalStruct.customTextSize = CGFloat(sender.value)
         UserDefaults.standard.set(GlobalStruct.customTextSize, forKey: "customTextSize")
         NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
-        
-        self.tableView.reloadData()
+
+        tableView.reloadData()
     }
-    
+
     @objc func switchShowCW(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.showCW = true
@@ -685,7 +680,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
             NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
         }
     }
-    
+
     @objc func switchBlurSensitiveContent(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.blurSensitiveContent = true
@@ -697,7 +692,7 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
             NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
         }
     }
-    
+
     @objc func switchCircleProfiles(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.circleProfiles = true
@@ -706,14 +701,14 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
             GlobalStruct.circleProfiles = false
             UserDefaults.standard.set(false, forKey: "circleProfiles")
         }
-        
+
         SDImageCache.shared.clearMemory()
         SDImageCache.shared.clearDisk()
-        
+
         NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
         NotificationCenter.default.post(name: Notification.Name(rawValue: "tabBarProfileIcon"), object: nil)
     }
-    
+
     @objc func switchAutoPlayingVideos(_ sender: UISwitch!) {
         if sender.isOn {
             GlobalStruct.autoPlayVideos = true
@@ -725,11 +720,10 @@ class AppearanceSettingsViewController: UIViewController, UITableViewDataSource,
             NotificationCenter.default.post(name: Notification.Name(rawValue: "reloadAll"), object: nil)
         }
     }
-    
+
     @objc func switchHighContrast(_ sender: UISwitch!) {
         GlobalStruct.overrideThemeHighContrast = sender.isOn
         UserDefaults.standard.set(GlobalStruct.overrideThemeHighContrast, forKey: "overrideThemeHighContrast")
         NotificationCenter.default.post(name: Notification.Name(rawValue: "overrideTheme"), object: nil)
     }
-        
 }

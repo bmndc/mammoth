@@ -8,13 +8,13 @@ import Foundation
 @propertyWrapper
 enum Indirect<T> {
     indirect case wrapped(T)
-    
+
     init(wrappedValue initialValue: T) {
         self = .wrapped(initialValue)
     }
-    
+
     var wrappedValue: T {
-        get { switch self { case .wrapped(let x): return x } }
+        get { switch self { case let .wrapped(x): return x } }
         set { self = .wrapped(newValue) }
     }
 }
@@ -39,11 +39,11 @@ extension KeyedDecodingContainer {
         let value = try decode(T.self, forKey: key)
         return Indirect(wrappedValue: value)
     }
-    
+
     func decode<T: Decodable>(
-        _: Indirect<Optional<T>>.Type,
+        _: Indirect<T?>.Type,
         forKey key: Key
-    ) throws -> Indirect<Optional<T>> {
+    ) throws -> Indirect<T?> {
         let value = try decodeIfPresent(T.self, forKey: key)
         return Indirect(wrappedValue: value)
     }

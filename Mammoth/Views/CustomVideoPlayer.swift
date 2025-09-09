@@ -6,55 +6,55 @@
 //  Copyright © 2023 The BLVD. All rights reserved.
 //
 
-import Foundation
 import AVKit
+import Foundation
 import Photos
 
 class CustomVideoPlayer: AVPlayerViewController, UIContextMenuInteractionDelegate, AVPlayerViewControllerDelegate {
     var scrubbingBeginTime: CMTime?
     var showShare: Bool = true
     private var keepPlayingOnClose: Bool = false
-    public var altText: String = ""
-    
-    //autorotate
+    var altText: String = ""
+
+    // autorotate
     override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .allButUpsideDown
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         let interaction0 = UIContextMenuInteraction(delegate: self)
-        self.view.addInteraction(interaction0)
-        self.videoGravity = .resizeAspect
-        self.requiresLinearPlayback = false
-        self.showsPlaybackControls = false
-        
-        self.delegate = self
+        view.addInteraction(interaction0)
+        videoGravity = .resizeAspect
+        requiresLinearPlayback = false
+        showsPlaybackControls = false
+
+        delegate = self
     }
-    
+
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.player?.play()
+        player?.play()
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        self.keepPlayingOnClose = self.player?.isPlaying() ?? false
+        keepPlayingOnClose = player?.isPlaying() ?? false
     }
-    
+
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         GlobalStruct.inVideoPlayer = false
     }
-    
+
     deinit {
         if self.keepPlayingOnClose {
             self.player?.play()
         }
     }
-    
-    public func contextMenuInteraction(_ interaction: UIContextMenuInteraction, previewForHighlightingMenuWithConfiguration configuration: UIContextMenuConfiguration) -> UITargetedPreview? {
-        let pg = self.view
+
+    func contextMenuInteraction(_: UIContextMenuInteraction, previewForHighlightingMenuWithConfiguration _: UIContextMenuConfiguration) -> UITargetedPreview? {
+        let pg = view
         if UIDevice.current.userInterfaceIdiom == .phone {
             pg?.backgroundColor = .clear
         }
@@ -62,44 +62,43 @@ class CustomVideoPlayer: AVPlayerViewController, UIContextMenuInteractionDelegat
         parameters.backgroundColor = .clear
         return UITargetedPreview(view: pg ?? UIView(), parameters: parameters)
     }
-    
-    func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
-        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { suggestedActions in
-            return self.makeContextMenu()
+
+    func contextMenuInteraction(_: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration? {
+        return UIContextMenuConfiguration(identifier: nil, previewProvider: nil, actionProvider: { _ in
+            self.makeContextMenu()
         })
     }
-    
+
     func makeContextMenu() -> UIMenu {
-        let op1 = UIAction(title: "0.25x", image: UIImage(systemName: "speedometer"), identifier: nil) { action in
+        let op1 = UIAction(title: "0.25x", image: UIImage(systemName: "speedometer"), identifier: nil) { _ in
             self.player?.rate = 0.25
         }
-        let op2 = UIAction(title: "0.5x", image: UIImage(systemName: "speedometer"), identifier: nil) { action in
+        let op2 = UIAction(title: "0.5x", image: UIImage(systemName: "speedometer"), identifier: nil) { _ in
             self.player?.rate = 0.5
         }
-        let op3 = UIAction(title: "Normal", image: UIImage(systemName: "speedometer"), identifier: nil) { action in
+        let op3 = UIAction(title: "Normal", image: UIImage(systemName: "speedometer"), identifier: nil) { _ in
             self.player?.rate = 1
         }
-        let op4 = UIAction(title: "1.5x", image: UIImage(systemName: "speedometer"), identifier: nil) { action in
+        let op4 = UIAction(title: "1.5x", image: UIImage(systemName: "speedometer"), identifier: nil) { _ in
             self.player?.rate = 1.5
         }
-        let op5 = UIAction(title: "2x", image: UIImage(systemName: "speedometer"), identifier: nil) { action in
+        let op5 = UIAction(title: "2x", image: UIImage(systemName: "speedometer"), identifier: nil) { _ in
             self.player?.rate = 2
         }
-        let op6 = UIAction(title: "Skip to Beginning", image: UIImage(systemName: "backward.end"), identifier: nil) { action in
+        let op6 = UIAction(title: "Skip to Beginning", image: UIImage(systemName: "backward.end"), identifier: nil) { _ in
             self.player?.seek(to: .zero)
         }
 
         let newMenu0 = UIMenu(title: "", options: [.displayInline], children: [op6])
-        
-        let alt = UIAction(title: "Show ALT text", image: FontAwesome.image(fromChar: "\u{f05a}"), identifier: nil) { action in
+
+        let alt = UIAction(title: "Show ALT text", image: FontAwesome.image(fromChar: "\u{f05a}"), identifier: nil) { _ in
             triggerHapticImpact(style: .light)
             let alert = UIAlertController(title: nil, message: self.altText, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.copy", comment: ""), style: .default , handler:{ (UIAlertAction) in
+            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.copy", comment: ""), style: .default, handler: { _ in
                 let pasteboard = UIPasteboard.general
                 pasteboard.string = self.altText
             }))
-            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler:{ (UIAlertAction) in
-
+            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: { _ in
             }))
             if let presenter = alert.popoverPresentationController {
                 presenter.sourceView = self.view
@@ -107,8 +106,8 @@ class CustomVideoPlayer: AVPlayerViewController, UIContextMenuInteractionDelegat
             }
             getTopMostViewController()?.present(alert, animated: true, completion: nil)
         }
-        
-        let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: FontAwesome.image(fromChar: "\u{e09a}"), identifier: nil) { action in
+
+        let share = UIAction(title: NSLocalizedString("generic.share", comment: ""), image: FontAwesome.image(fromChar: "\u{e09a}"), identifier: nil) { _ in
             if let x = ((self.player?.currentItem?.asset) as? AVURLAsset)?.url {
                 let imageToShare = [x]
                 let activityViewController = UIActivityViewController(activityItems: imageToShare, applicationActivities: nil)
@@ -116,17 +115,17 @@ class CustomVideoPlayer: AVPlayerViewController, UIContextMenuInteractionDelegat
                 self.present(activityViewController, animated: true, completion: nil)
             }
         }
-        let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { action in
+        let save = UIAction(title: NSLocalizedString("generic.save", comment: ""), image: UIImage(systemName: "square.and.arrow.down"), identifier: nil) { _ in
             DispatchQueue.global(qos: .background).async {
                 if let x = ((self.player?.currentItem?.asset) as? AVURLAsset)?.url {
                     if let urlData = NSData(contentsOf: x) {
                         let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
-                        let filePath="\(documentsPath)/tempFile.mp4"
+                        let filePath = "\(documentsPath)/tempFile.mp4"
                         DispatchQueue.main.async {
                             urlData.write(toFile: filePath, atomically: true)
                             PHPhotoLibrary.shared().performChanges({
                                 PHAssetChangeRequest.creationRequestForAssetFromVideo(atFileURL: URL(fileURLWithPath: filePath))
-                            }) { completed, error in
+                            }) { completed, _ in
                                 if completed {
                                     print("Video is saved!")
                                 }
@@ -136,8 +135,8 @@ class CustomVideoPlayer: AVPlayerViewController, UIContextMenuInteractionDelegat
                 }
             }
         }
-        let newMenu00 = UIMenu(title: "", options: [.displayInline], children: [self.altText.isEmpty ? nil : alt, share, save].compactMap({$0}))
-        if self.showShare {
+        let newMenu00 = UIMenu(title: "", options: [.displayInline], children: [altText.isEmpty ? nil : alt, share, save].compactMap { $0 })
+        if showShare {
             let newMenu = UIMenu(title: "", options: [], children: [op1, op2, op3, op4, op5, newMenu0, newMenu00])
             return newMenu
         } else {
@@ -145,9 +144,9 @@ class CustomVideoPlayer: AVPlayerViewController, UIContextMenuInteractionDelegat
             return newMenu
         }
     }
-    
+
     override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        self.showsPlaybackControls = true
+        showsPlaybackControls = true
         super.touchesBegan(touches, with: event)
     }
 }

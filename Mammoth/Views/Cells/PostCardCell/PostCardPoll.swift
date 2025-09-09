@@ -10,8 +10,8 @@ import Foundation
 import UIKit
 
 class PostCardPoll: UIView {
-    
     // MARK: - Properties
+
     private var mainStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -25,13 +25,13 @@ class PostCardPoll: UIView {
         stackView.layer.masksToBounds = true
         stackView.layer.cornerRadius = 6
         stackView.layer.maskedCorners = [.layerMinXMaxYCorner, .layerMaxXMaxYCorner, .layerMinXMinYCorner, .layerMaxXMinYCorner]
-        
+
         stackView.isLayoutMarginsRelativeArrangement = true
         stackView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 11, leading: 10, bottom: 9, trailing: 10)
-        
+
         return stackView
     }()
-    
+
     private var optionsStackView: UIStackView = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -41,7 +41,7 @@ class PostCardPoll: UIView {
         stackView.translatesAutoresizingMaskIntoConstraints = false
         return stackView
     }()
-    
+
     private var footerLabel: UILabel = {
         let label = UILabel()
         label.textColor = .custom.softContrast
@@ -49,127 +49,128 @@ class PostCardPoll: UIView {
         label.font = UIFont.systemFont(ofSize: 14, weight: .regular)
         return label
     }()
-    
+
     private var optionsTrailingConstraints: [NSLayoutConstraint] = []
-    
-    private var postCard: PostCardModel? = nil
-    
+
+    private var postCard: PostCardModel?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupUI()
+        setupUI()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func prepareForReuse() {
-        self.optionsStackView.arrangedSubviews.forEach {
-            self.optionsStackView.removeArrangedSubview($0)
-            $0.removeFromSuperview()
+        for arrangedSubview in optionsStackView.arrangedSubviews {
+            optionsStackView.removeArrangedSubview(arrangedSubview)
+            arrangedSubview.removeFromSuperview()
         }
-        
-        NSLayoutConstraint.deactivate(self.optionsTrailingConstraints)
-        self.optionsTrailingConstraints = []
+
+        NSLayoutConstraint.deactivate(optionsTrailingConstraints)
+        optionsTrailingConstraints = []
     }
 }
 
 // MARK: - Setup UI
+
 private extension PostCardPoll {
     func setupUI() {
-        self.isHidden = true
-        self.isOpaque = true
-        self.addSubview(mainStackView)
-        
+        isHidden = true
+        isOpaque = true
+        addSubview(mainStackView)
+
         mainStackView.addArrangedSubview(optionsStackView)
 
         NSLayoutConstraint.activate([
-            mainStackView.topAnchor.constraint(equalTo: self.topAnchor, constant: 9),
-            mainStackView.bottomAnchor.constraint(equalTo: self.bottomAnchor),
-            mainStackView.leadingAnchor.constraint(equalTo: self.leadingAnchor),
-            mainStackView.trailingAnchor.constraint(equalTo: self.trailingAnchor),
-            
-            optionsStackView.widthAnchor.constraint(equalTo: self.mainStackView.widthAnchor, constant: -(mainStackView.directionalLayoutMargins.leading + mainStackView.directionalLayoutMargins.trailing))
+            mainStackView.topAnchor.constraint(equalTo: topAnchor, constant: 9),
+            mainStackView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            mainStackView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            mainStackView.trailingAnchor.constraint(equalTo: trailingAnchor),
+
+            optionsStackView.widthAnchor.constraint(equalTo: mainStackView.widthAnchor, constant: -(mainStackView.directionalLayoutMargins.leading + mainStackView.directionalLayoutMargins.trailing)),
         ])
-        
+
         mainStackView.addArrangedSubview(footerLabel)
     }
 }
 
 // MARK: - Configuration
+
 extension PostCardPoll {
     func configure(postCard: PostCardModel) {
         self.postCard = postCard
-        
+
         if let poll = postCard.poll {
             // sanity check if an option was removed
-            while poll.options.count < self.optionsStackView.arrangedSubviews.count {
-                self.optionsStackView.removeArrangedSubview(optionsStackView.arrangedSubviews.last!)
-                self.optionsTrailingConstraints.removeLast()
+            while poll.options.count < optionsStackView.arrangedSubviews.count {
+                optionsStackView.removeArrangedSubview(optionsStackView.arrangedSubviews.last!)
+                optionsTrailingConstraints.removeLast()
             }
-            
+
             // update every poll option.
-            poll.options.enumerated().forEach { (index, pollOption) in
+            for (index, pollOption) in poll.options.enumerated() {
                 let data = PostCardPollOption.PollOption(index: index,
                                                          title: pollOption.title.trimmingCharacters(in: .whitespacesAndNewlines),
                                                          percentage: Float(pollOption.votesCount ?? 0) / Float(max(poll.votesCount, 1)),
-                                                         isActive: !poll.expired
-                )
-                
+                                                         isActive: !poll.expired)
+
                 let optionView = PostCardPollOption(option: data, onTap: { [weak self] option in
                     // On vote tap
                     PostActions.onVote(postCard: postCard, choices: [option.index])
-                    
+
                     guard let self else { return }
                     self.updateOnVote(voteOptionIndex: data.index)
                 })
-                
+
                 // sanity check if an option was added
                 if index < optionsStackView.arrangedSubviews.count {
                     // update poll
                     for (otherIndex, view) in optionsStackView.arrangedSubviews.enumerated() {
-                        if let currentOptionView = view as? PostCardPollOption, index == otherIndex  {
+                        if let currentOptionView = view as? PostCardPollOption, index == otherIndex {
                             currentOptionView.update(option: data)
                         }
                     }
                 } else {
                     optionsStackView.addArrangedSubview(optionView)
-                    self.optionsTrailingConstraints.append(optionView.trailingAnchor.constraint(equalTo: optionsStackView.trailingAnchor))
+                    optionsTrailingConstraints.append(optionView.trailingAnchor.constraint(equalTo: optionsStackView.trailingAnchor))
                 }
             }
-            
-            NSLayoutConstraint.activate(self.optionsTrailingConstraints)
-            
+
+            NSLayoutConstraint.activate(optionsTrailingConstraints)
+
             let numOfVotesString = "\(poll.votesCount.withCommas()) vote\(poll.votesCount == 1 ? "" : "s")"
-            footerLabel.text = "\(numOfVotesString) • Poll \(self.readableDate(withDateString: poll.expiresAt ?? ""))"
-            
-            self.isHidden = false
+            footerLabel.text = "\(numOfVotesString) • Poll \(readableDate(withDateString: poll.expiresAt ?? ""))"
+
+            isHidden = false
         }
     }
-    
+
     private func updateOnVote(voteOptionIndex: Int) {
-        self.optionsStackView.arrangedSubviews.enumerated().forEach { (index, view) in
+        for (index, view) in optionsStackView.arrangedSubviews.enumerated() {
             if let optionView = view as? PostCardPollOption,
-                let poll = self.postCard?.poll,
-                poll.options.count >= index {
-                
+               let poll = postCard?.poll,
+               poll.options.count >= index
+            {
                 let option = poll.options[index]
                 // Optimistically add 1 vote to the right poll option for animation
                 let data = PostCardPollOption.PollOption(index: index,
                                                          title: option.title.trimmingCharacters(in: .whitespacesAndNewlines),
-                                                         percentage: Float(((option.votesCount ?? 0) + (voteOptionIndex == index ? 1 : 0))) / Float((poll.votesCount + 1)),
-                                                           isActive: !poll.expired
-                )
-                
+                                                         percentage: Float((option.votesCount ?? 0) + (voteOptionIndex == index ? 1 : 0)) / Float(poll.votesCount + 1),
+                                                         isActive: !poll.expired)
+
                 optionView.update(option: data)
             }
         }
     }
-    
+
     func onThemeChange() {
-        self.mainStackView.layer.borderColor = UIColor.custom.outlines.cgColor
-        
-        self.optionsStackView.subviews.forEach { option in
+        mainStackView.layer.borderColor = UIColor.custom.outlines.cgColor
+
+        for option in optionsStackView.subviews {
             if let option = option as? PostCardPollOption {
                 option.onThemeChange()
             }
@@ -178,17 +179,18 @@ extension PostCardPoll {
 }
 
 // MARK: - Formatters
+
 private extension PostCardPoll {
     func readableDate(withDateString dateString: String) -> String {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = GlobalStruct.dateFormat
         let date = dateFormatter.date(from: dateString)
-        
+
         var diff = getMinutesDifferenceFromTwoDates(start: Date(), end: date ?? Date())
         var mVote = "\(diff) minutes"
         var tText = "ends in"
         var tText2 = ""
-        
+
         if diff == 1 {
             mVote = "\(diff) minute"
         }
@@ -228,17 +230,16 @@ private extension PostCardPoll {
                 }
             }
         }
-        
+
         return "\(tText) \(mVote) \(tText2)"
     }
 }
 
-fileprivate class PostCardPollOption: UIStackView {
-    
+private class PostCardPollOption: UIStackView {
     private var optionButton: UIButton = {
         let button = UIButton(type: .custom)
         button.backgroundColor = .clear
-        button.setTitleColor( .custom.pollBarText, for: .normal)
+        button.setTitleColor(.custom.pollBarText, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 16, weight: .regular)
         button.titleLabel?.textAlignment = .left
         button.contentHorizontalAlignment = .left
@@ -247,7 +248,7 @@ fileprivate class PostCardPollOption: UIStackView {
         button.translatesAutoresizingMaskIntoConstraints = false
         return button
     }()
-    
+
     private var optionResult: UILabel = {
         let label = UILabel()
         label.textColor = .custom.softContrast
@@ -257,10 +258,10 @@ fileprivate class PostCardPollOption: UIStackView {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.isOpaque = true
         label.backgroundColor = .custom.background
-        
+
         return label
     }()
-    
+
     private var optionBar: UIView = {
         let bar = UIView()
         bar.backgroundColor = .custom.pollBars
@@ -270,108 +271,108 @@ fileprivate class PostCardPollOption: UIStackView {
         bar.layer.masksToBounds = true
         return bar
     }()
-    
-    private var barWidthConstraint: NSLayoutConstraint? = nil
-    
+
+    private var barWidthConstraint: NSLayoutConstraint?
+
     struct PollOption {
         var index: Int
         var title: String
         var percentage: Float
         var isActive: Bool
     }
-    
+
     typealias PollOptionTapCallback = (_ option: PollOption) -> Void
     private let option: PollOption?
     private let tapCallback: PollOptionTapCallback?
-    
+
     init(option: PollOption, onTap: @escaping PollOptionTapCallback) {
         self.option = option
-        self.tapCallback = onTap
+        tapCallback = onTap
         super.init(frame: .zero)
-        self.setupUI()
+        setupUI()
     }
-    
+
     override init(frame: CGRect) {
-        self.option = nil
-        self.tapCallback = nil
+        option = nil
+        tapCallback = nil
         super.init(frame: frame)
-        self.setupUI()
+        setupUI()
     }
-    
-    required init(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     func setupUI() {
-        self.axis = .horizontal
-        self.alignment = .center
-        self.distribution = .fill
-        self.spacing = 10.0
-        self.isLayoutMarginsRelativeArrangement = true
-        self.translatesAutoresizingMaskIntoConstraints = false
-        
-        if let option = self.option, option.isActive {
-            self.optionButton.addTarget(self, action: #selector(self.onTapped), for: .touchUpInside)
+        axis = .horizontal
+        alignment = .center
+        distribution = .fill
+        spacing = 10.0
+        isLayoutMarginsRelativeArrangement = true
+        translatesAutoresizingMaskIntoConstraints = false
+
+        if let option = option, option.isActive {
+            optionButton.addTarget(self, action: #selector(onTapped), for: .touchUpInside)
         } else {
-            self.optionButton.isUserInteractionEnabled = false
+            optionButton.isUserInteractionEnabled = false
         }
-        
+
         // Don't compress but let siblings fill the space
         optionResult.setContentHuggingPriority(UILayoutPriority(rawValue: 251), for: .horizontal)
         optionResult.setContentCompressionResistancePriority(UILayoutPriority(rawValue: 751), for: .horizontal)
-        
+
         // Set a minimum width to the option result
         optionResult.widthAnchor.constraint(greaterThanOrEqualToConstant: 60).isActive = true
-        
-        self.optionButton.setTitle(self.option?.title ?? "", for: .normal)
-        self.optionResult.text = "\(Int((self.option?.percentage ?? 0) * 100))%"
-        
-        self.optionButton.insertSubview(self.optionBar, at: 0)
-        self.optionBar.heightAnchor.constraint(equalTo: self.optionButton.heightAnchor).isActive = true
-        
-        self.barWidthConstraint = self.optionBar.widthAnchor.constraint(equalTo: self.optionButton.widthAnchor, multiplier: CGFloat(self.option?.percentage ?? 0), constant: 0)
-        self.barWidthConstraint?.isActive = true
-        
+
+        optionButton.setTitle(option?.title ?? "", for: .normal)
+        optionResult.text = "\(Int((option?.percentage ?? 0) * 100))%"
+
+        optionButton.insertSubview(optionBar, at: 0)
+        optionBar.heightAnchor.constraint(equalTo: optionButton.heightAnchor).isActive = true
+
+        barWidthConstraint = optionBar.widthAnchor.constraint(equalTo: optionButton.widthAnchor, multiplier: CGFloat(option?.percentage ?? 0), constant: 0)
+        barWidthConstraint?.isActive = true
+
         NSLayoutConstraint.activate([
-            self.optionBar.centerYAnchor.constraint(equalTo: self.optionButton.centerYAnchor),
-            self.optionBar.leadingAnchor.constraint(equalTo: self.optionButton.leadingAnchor)
+            optionBar.centerYAnchor.constraint(equalTo: optionButton.centerYAnchor),
+            optionBar.leadingAnchor.constraint(equalTo: optionButton.leadingAnchor),
         ])
-        
-        self.addArrangedSubview(optionButton)
-        self.addArrangedSubview(optionResult)
+
+        addArrangedSubview(optionButton)
+        addArrangedSubview(optionResult)
     }
-    
+
     func update(option: PollOption) {
-        
-        if self.barWidthConstraint != nil {
-            self.barWidthConstraint?.isActive = false
-            self.barWidthConstraint = nil
+        if barWidthConstraint != nil {
+            barWidthConstraint?.isActive = false
+            barWidthConstraint = nil
         }
-        
-        self.barWidthConstraint = self.optionBar.widthAnchor.constraint(equalTo: self.optionButton.widthAnchor, multiplier: CGFloat(option.percentage), constant: 0)
-        self.barWidthConstraint?.isActive = true
-        self.optionResult.text = "\(Int(option.percentage * 100))%"
-        
+
+        barWidthConstraint = optionBar.widthAnchor.constraint(equalTo: optionButton.widthAnchor, multiplier: CGFloat(option.percentage), constant: 0)
+        barWidthConstraint?.isActive = true
+        optionResult.text = "\(Int(option.percentage * 100))%"
+
         UIView.animate(withDuration: 0.5) {
             self.layoutIfNeeded()
         }
     }
-    
+
     func onThemeChange() {}
-    
+
     @objc func onTapped() {
-        if let option = self.option, let callback = self.tapCallback {
+        if let option = option, let callback = tapCallback {
             triggerHapticImpact(style: .light)
-            
+
             let alert = UIAlertController(title: "Vote for '\(option.title)'?",
                                           message: "You cannot change your vote once you have voted.",
                                           preferredStyle: .alert)
-            
-            alert.addAction(UIAlertAction(title: "Vote", style: .default , handler:{ (UIAlertAction) in
+
+            alert.addAction(UIAlertAction(title: "Vote", style: .default, handler: { _ in
                 callback(option)
             }))
-            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel , handler: nil))
-            
+            alert.addAction(UIAlertAction(title: NSLocalizedString("generic.dismiss", comment: ""), style: .cancel, handler: nil))
+
             if let presenter = alert.popoverPresentationController {
                 presenter.sourceView = getTopMostViewController()?.view
                 presenter.sourceRect = getTopMostViewController()?.view.bounds ?? .zero

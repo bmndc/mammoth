@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Instances {
+public enum Instances {
     /// Gets instance information.
     ///
     /// - Returns: Request for `Instance`.
@@ -22,7 +22,7 @@ public struct Instances {
     public static func customEmojis() -> Request<[Emoji]> {
         return Request<[Emoji]>(path: "/api/v1/custom_emojis")
     }
-    
+
     public static func serverConstants() -> Request<serverConstants> {
         return Request<serverConstants>(path: "/api/v1/preferences")
     }

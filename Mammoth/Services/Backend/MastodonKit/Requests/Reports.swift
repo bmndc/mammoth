@@ -8,7 +8,7 @@
 
 import Foundation
 
-public struct Reports {
+public enum Reports {
     /// Fetches a user's reports.
     ///
     /// - Returns: Request for `[Report]`.
@@ -26,8 +26,8 @@ public struct Reports {
     public static func report(accountID: String, statusIDs: [String], reason: String) -> Request<Report> {
         let parameters = [
             Parameter(name: "account_id", value: accountID),
-            Parameter(name: "comment", value: reason)
-            ] + statusIDs.map(toArrayOfParameters(withName: "status_ids"))
+            Parameter(name: "comment", value: reason),
+        ] + statusIDs.map(toArrayOfParameters(withName: "status_ids"))
 
         let method = HTTPMethod.post(.parameters(parameters))
         return Request<Report>(path: "/api/v1/reports", method: method)

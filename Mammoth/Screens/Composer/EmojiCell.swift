@@ -10,7 +10,7 @@ import UIKit
 
 class EmojiCell: UICollectionViewCell {
     static let reuseIdentifier = "EmojiCell"
-    
+
     private let mainStack = {
         let stackView = UIStackView()
         stackView.axis = .vertical
@@ -24,53 +24,54 @@ class EmojiCell: UICollectionViewCell {
         stackView.layoutMargins = .zero
         return stackView
     }()
-    
+
     var image = UIImageView()
-    public var parentWidth: CGFloat?
-    
+    var parentWidth: CGFloat?
+
     override init(frame: CGRect) {
         super.init(frame: frame)
-        self.setupUI()
+        setupUI()
     }
-    
-    required init?(coder: NSCoder) {
+
+    @available(*, unavailable)
+    required init?(coder _: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-    
+
     override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes) -> UICollectionViewLayoutAttributes {
         let attributes = super.preferredLayoutAttributesFitting(layoutAttributes)
-        
+
         var x = 4
         if UIDevice.current.userInterfaceIdiom == .pad && UIApplication.shared.preferredApplicationWindow?.traitCollection.horizontalSizeClass != .compact {
             x = 8
         }
-        let y = self.parentWidth ?? self.bounds.width
-        let z = CGFloat(y)/CGFloat(x)
+        let y = parentWidth ?? bounds.width
+        let z = CGFloat(y) / CGFloat(x)
 
-        attributes.size = CGSize(width: z - CGFloat(((x+1)*20)/x), height: z - CGFloat(((x+1)*20)/x) + 12 + 6)
+        attributes.size = CGSize(width: z - CGFloat(((x + 1) * 20) / x), height: z - CGFloat(((x + 1) * 20) / x) + 12 + 6)
 
         return attributes
     }
-    
+
     override func prepareForReuse() {
         super.prepareForReuse()
-        self.image.image = nil
+        image.image = nil
     }
-    
-    public func setupUI() {
-        self.backgroundColor = UIColor.clear
+
+    func setupUI() {
+        backgroundColor = UIColor.clear
         contentView.backgroundColor = UIColor.clear
 
         contentView.addSubview(mainStack)
         mainStack.pinEdges()
-        
-        self.image.contentMode = .scaleAspectFit
-        self.image.translatesAutoresizingMaskIntoConstraints = false
+
+        image.contentMode = .scaleAspectFit
+        image.translatesAutoresizingMaskIntoConstraints = false
         mainStack.addArrangedSubview(image)
-        
+
         NSLayoutConstraint.activate([
-            self.image.trailingAnchor.constraint(equalTo: mainStack.layoutMarginsGuide.trailingAnchor),
-            self.image.heightAnchor.constraint(equalTo: mainStack.widthAnchor)
+            image.trailingAnchor.constraint(equalTo: mainStack.layoutMarginsGuide.trailingAnchor),
+            image.heightAnchor.constraint(equalTo: mainStack.widthAnchor),
         ])
     }
 }

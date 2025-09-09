@@ -11,7 +11,6 @@ import UIKit
 
 // swiftlint:disable:next type_body_length
 class EditProfileViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, UITextFieldDelegate, UITextViewDelegate {
-    
     let btn1 = UIButton(type: .custom)
     let btn2 = UIButton(type: .custom)
     var tableView = UITableView()
@@ -20,72 +19,69 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
     var context3: Bool = false
     var context4: Bool = false
     var privacyType: String = ""
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        tableView.frame = CGRect(x: 0, y: 0, width: self.view.bounds.width, height: self.view.bounds.height)
+        tableView.frame = CGRect(x: 0, y: 0, width: view.bounds.width, height: view.bounds.height)
         tableView.tableHeaderView?.frame.size.height = 60
-        
+
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
     }
-    
+
     @objc func addTap() {
         triggerHapticNotification()
         var theTitle: String? = nil
-        if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell {
+        if let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell {
             theTitle = cell.altText.text ?? ""
         }
         var theNote: String? = nil
-        if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 1)) as? AltTextMultiCell {
+        if let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 1)) as? AltTextMultiCell {
             theNote = cell.altText.text ?? ""
         }
-        
-        let request = Accounts.updateCurrentUser(displayName: theTitle, note: theNote, locked: self.context1, bot: self.context2, discoverable: self.context3, sensitive: self.context4, privacy: self.privacyType.lowercased(), language: GlobalStruct.currentPostLang2 ?? "EN")
-        AccountsManager.shared.currentAccountClient.run(request) { (statuses) in
+
+        let request = Accounts.updateCurrentUser(displayName: theTitle, note: theNote, locked: context1, bot: context2, discoverable: context3, sensitive: context4, privacy: privacyType.lowercased(), language: GlobalStruct.currentPostLang2 ?? "EN")
+        AccountsManager.shared.currentAccountClient.run(request) { statuses in
             if let stat = (statuses.value) {
                 DispatchQueue.main.async {
                     print("updated user\n\(stat)")
                     NotificationCenter.default.post(name: Notification.Name(rawValue: "updateCurrentUser"), object: nil)
-                    
+
                     // Consolidate profile screen with updated user card data
                     NotificationCenter.default.post(name: UserActions.didUpdateUserCardNotification, object: nil, userInfo: ["userCard": UserCardModel(account: stat)])
                     // Update current user globally
                     AccountsManager.shared.updateCurrentAccountFromNetwork()
-                    
+
                     self.dismiss(animated: true)
                 }
             }
         }
     }
-    
-    @objc func textFieldDidChange(_ textField: UITextField) {
-        
-    }
 
-    func textViewDidChange(_ textView: UITextView) {
+    @objc func textFieldDidChange(_: UITextField) {}
+
+    func textViewDidChange(_: UITextView) {
         // Ensures the text field grows as necessary
         tableView.beginUpdates()
         tableView.endUpdates()
     }
-    
+
     @objc func reloadAll() {
         DispatchQueue.main.async {
             // tints
-            
 
             let hcText = UserDefaults.standard.value(forKey: "hcText") as? Bool ?? true
             if hcText == true {
@@ -94,7 +90,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 UIColor.custom.mainTextColor = .secondaryLabel
             }
             self.tableView.reloadData()
-            
+
             // update various elements
             self.view.backgroundColor = .custom.backgroundTint
             let navApp = UINavigationBarAppearance()
@@ -112,47 +108,47 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
             } else {
                 self.extendedLayoutIncludesOpaqueBars = false
             }
-            
+
             for cell in self.tableView.visibleCells {
                 if let cell = cell as? TrendsFeedCell {
                     cell.titleLabel.textColor = .custom.mainTextColor
                     cell.backgroundColor = .custom.quoteTint
-                    
+
                     cell.titleLabel.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
                     cell.bio.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .footnote).pointSize + GlobalStruct.customTextSize, weight: .regular)
                 }
                 if let cell = cell as? TrendsCell {
                     cell.titleLabel.textColor = .custom.mainTextColor
                     cell.backgroundColor = .custom.quoteTint
-                    
+
                     cell.titleLabel.font = UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize + GlobalStruct.customTextSize, weight: .regular)
                 }
             }
         }
     }
-    
+
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         return true
     }
-    
-    func textView(_ textView: UITextView, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool {
+
+    func textView(_ textView: UITextView, shouldChangeTextIn _: NSRange, replacementText text: String) -> Bool {
         if text == "\n" {
             textView.resignFirstResponder()
             return false
         }
         return true
     }
-    
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell {
+
+    func scrollViewDidScroll(_: UIScrollView) {
+        if let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 0)) as? AltTextCell {
             cell.altText.resignFirstResponder()
         }
-        if let cell = self.tableView.cellForRow(at: IndexPath(row: 0, section: 1)) as? AltTextMultiCell {
+        if let cell = tableView.cellForRow(at: IndexPath(row: 0, section: 1)) as? AltTextMultiCell {
             cell.altText.resignFirstResponder()
         }
     }
-    
+
     @objc func reloadBars() {
         DispatchQueue.main.async {
             if GlobalStruct.hideNavBars2 {
@@ -162,60 +158,60 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
             }
         }
     }
-    
+
     @objc func reloadThis() {
         DispatchQueue.main.async {
             self.tableView.reloadData()
         }
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .custom.backgroundTint
-        self.navigationItem.title = NSLocalizedString("profile.edit", comment: "")
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadThis), name: NSNotification.Name(rawValue: "reloadThis"), object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(self.reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
-        
+        navigationItem.title = NSLocalizedString("profile.edit", comment: "")
+
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadAll), name: NSNotification.Name(rawValue: "reloadAll"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadThis), name: NSNotification.Name(rawValue: "reloadThis"), object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadBars), name: NSNotification.Name(rawValue: "reloadBars"), object: nil)
+
         // set up nav bar
         let navApp = UINavigationBarAppearance()
         navApp.configureWithOpaqueBackground()
         navApp.backgroundColor = .custom.backgroundTint
         navApp.titleTextAttributes = [NSAttributedString.Key.font: UIFont.systemFont(ofSize: UIFont.preferredFont(forTextStyle: .body).pointSize, weight: .semibold)]
-        self.navigationController?.navigationBar.standardAppearance = navApp
-        self.navigationController?.navigationBar.scrollEdgeAppearance = navApp
-        self.navigationController?.navigationBar.compactAppearance = navApp
+        navigationController?.navigationBar.standardAppearance = navApp
+        navigationController?.navigationBar.scrollEdgeAppearance = navApp
+        navigationController?.navigationBar.compactAppearance = navApp
         if #available(iOS 15.0, *) {
             self.navigationController?.navigationBar.compactScrollEdgeAppearance = navApp
         }
-        
-        self.context1 = AccountsManager.shared.currentUser()?.locked ?? false
-        self.context2 = AccountsManager.shared.currentUser()?.bot ?? false
-        self.context3 = AccountsManager.shared.currentUser()?.discoverable ?? false
-        
-        self.context4 = AccountsManager.shared.currentUser()?.source?.sensitive ?? false
-        self.privacyType = AccountsManager.shared.currentUser()?.source?.privacy?.capitalized ?? "Public"
+
+        context1 = AccountsManager.shared.currentUser()?.locked ?? false
+        context2 = AccountsManager.shared.currentUser()?.bot ?? false
+        context3 = AccountsManager.shared.currentUser()?.discoverable ?? false
+
+        context4 = AccountsManager.shared.currentUser()?.source?.sensitive ?? false
+        privacyType = AccountsManager.shared.currentUser()?.source?.privacy?.capitalized ?? "Public"
         GlobalStruct.currentPostLang2 = AccountsManager.shared.currentUser()?.source?.language ?? "EN"
-        
+
         // set up nav
         setupNav()
-        
+
         // set up table
         if GlobalStruct.hideNavBars2 {
-            self.extendedLayoutIncludesOpaqueBars = true
+            extendedLayoutIncludesOpaqueBars = true
         } else {
-            self.extendedLayoutIncludesOpaqueBars = false
+            extendedLayoutIncludesOpaqueBars = false
         }
-        
+
         setupTable()
     }
-    
+
     @objc func dismissTap() {
         triggerHapticImpact(style: .light)
-        self.dismiss(animated: true, completion: nil)
+        dismiss(animated: true, completion: nil)
     }
-    
+
     func setupNav() {
         let symbolConfig0 = UIImage.SymbolConfiguration(pointSize: 24, weight: .bold)
         btn1.setImage(UIImage(systemName: "xmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.secondaryLabel, renderingMode: .alwaysOriginal), for: .normal)
@@ -223,22 +219,22 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
         btn1.layer.cornerRadius = 14
         btn1.imageEdgeInsets = UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7)
         btn1.frame = CGRect(x: 0, y: 0, width: 28, height: 28)
-        btn1.addTarget(self, action: #selector(self.dismissTap), for: .touchUpInside)
+        btn1.addTarget(self, action: #selector(dismissTap), for: .touchUpInside)
         btn1.accessibilityLabel = NSLocalizedString("generic.dismiss", comment: "")
         let moreButton0 = UIBarButtonItem(customView: btn1)
-        self.navigationItem.setLeftBarButton(moreButton0, animated: true)
-        
+        navigationItem.setLeftBarButton(moreButton0, animated: true)
+
         btn2.setImage(UIImage(systemName: "checkmark", withConfiguration: symbolConfig0)?.withTintColor(UIColor.custom.activeInverted, renderingMode: .alwaysOriginal), for: .normal)
         btn2.backgroundColor = .custom.active
         btn2.layer.cornerRadius = 14
         btn2.imageEdgeInsets = UIEdgeInsets(top: 7, left: 7, bottom: 7, right: 7)
         btn2.frame = CGRect(x: 0, y: 0, width: 28, height: 28)
-        btn2.addTarget(self, action: #selector(self.addTap), for: .touchUpInside)
+        btn2.addTarget(self, action: #selector(addTap), for: .touchUpInside)
         btn2.accessibilityLabel = NSLocalizedString("profile.edit", comment: "")
         let moreButton1 = UIBarButtonItem(customView: btn2)
-        self.navigationItem.setRightBarButton(moreButton1, animated: true)
+        navigationItem.setRightBarButton(moreButton1, animated: true)
     }
-    
+
     func setupTable() {
         tableView = UITableView(frame: .zero, style: .insetGrouped)
         tableView.register(AltTextCell.self, forCellReuseIdentifier: "AltTextCell")
@@ -260,16 +256,14 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
         tableView.tableFooterView = UIView(frame: .zero)
         view.addSubview(tableView)
     }
-    
-    func saveToDisk() {
-        
-    }
-    
-    func numberOfSections(in tableView: UITableView) -> Int {
+
+    func saveToDisk() {}
+
+    func numberOfSections(in _: UITableView) -> Int {
         return 4
     }
-    
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+
+    func tableView(_: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0 {
             return 1
         } else if section == 1 {
@@ -280,67 +274,67 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
             return 3
         }
     }
-    
-    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-         return UITableView.automaticDimension
+
+    func tableView(_: UITableView, heightForRowAt _: IndexPath) -> CGFloat {
+        return UITableView.automaticDimension
     }
-    
-    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+
+    func tableView(_: UITableView, heightForHeaderInSection _: Int) -> CGFloat {
         return 52
     }
-    
-    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+
+    func tableView(_: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if section == 0 {
             let bg = UIView()
-            bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+            bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
             let lab = UILabel()
             lab.frame = bg.frame
-            
+
             lab.attributedText = NSAttributedString(string: NSLocalizedString("profile.edit.details.displayName", comment: ""))
-            
+
             lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
             lab.textColor = UIColor.label
             bg.addSubview(lab)
             return bg
         } else if section == 1 {
             let bg = UIView()
-            bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+            bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
             let lab = UILabel()
             lab.frame = bg.frame
-            
+
             lab.attributedText = NSAttributedString(string: NSLocalizedString("profile.edit.details.note", comment: ""))
-            
+
             lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
             lab.textColor = UIColor.label
             bg.addSubview(lab)
             return bg
         } else if section == 2 {
             let bg = UIView()
-            bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+            bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
             let lab = UILabel()
             lab.frame = bg.frame
-            
+
             lab.attributedText = NSAttributedString(string: NSLocalizedString("profile.edit.details.extras", comment: ""))
-            
+
             lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
             lab.textColor = UIColor.label
             bg.addSubview(lab)
             return bg
         } else {
             let bg = UIView()
-            bg.frame = CGRect(x: 0, y: 6, width: self.view.bounds.width, height: 40)
+            bg.frame = CGRect(x: 0, y: 6, width: view.bounds.width, height: 40)
             let lab = UILabel()
             lab.frame = bg.frame
-            
+
             lab.attributedText = NSAttributedString(string: NSLocalizedString("profile.posts", comment: ""))
-            
+
             lab.font = UIFont.systemFont(ofSize: 24, weight: .bold)
             lab.textColor = UIColor.label
             bg.addSubview(lab)
             return bg
         }
     }
-    
+
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if indexPath.section == 0 {
             let cell = tableView.dequeueReusableCell(withIdentifier: "AltTextCell", for: indexPath) as! AltTextCell
@@ -374,7 +368,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 cell.textLabel?.text = NSLocalizedString("profile.edit.details.locked", comment: "")
                 cell.imageView?.image = UIImage(systemName: "lock")
                 let switchView = UISwitch(frame: .zero)
-                if self.context1 {
+                if context1 {
                     switchView.setOn(true, animated: false)
                 } else {
                     switchView.setOn(false, animated: false)
@@ -382,7 +376,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 switchView.onTintColor = .custom.gold
                 switchView.tintColor = .custom.baseTint
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchContext1(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchContext1(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.textLabel?.isEnabled = true
@@ -407,7 +401,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 cell.textLabel?.text = NSLocalizedString("profile.edit.details.bot", comment: "")
                 cell.imageView?.image = UIImage(systemName: "cpu")
                 let switchView = UISwitch(frame: .zero)
-                if self.context2 {
+                if context2 {
                     switchView.setOn(true, animated: false)
                 } else {
                     switchView.setOn(false, animated: false)
@@ -415,7 +409,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 switchView.onTintColor = .custom.gold
                 switchView.tintColor = .custom.baseTint
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchContext2(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchContext2(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.textLabel?.isEnabled = true
@@ -440,7 +434,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 cell.textLabel?.text = NSLocalizedString("profile.edit.details.discoverable", comment: "")
                 cell.imageView?.image = UIImage(systemName: "binoculars")
                 let switchView = UISwitch(frame: .zero)
-                if self.context3 {
+                if context3 {
                     switchView.setOn(true, animated: false)
                 } else {
                     switchView.setOn(false, animated: false)
@@ -448,7 +442,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 switchView.onTintColor = .custom.gold
                 switchView.tintColor = .custom.baseTint
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchContext3(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchContext3(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.textLabel?.isEnabled = true
@@ -475,7 +469,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 cell.textLabel?.text = " " + NSLocalizedString("composer.sensitive.add", comment: "")
                 cell.imageView?.image = UIImage(systemName: "exclamationmark.triangle")
                 let switchView = UISwitch(frame: .zero)
-                if self.context4 {
+                if context4 {
                     switchView.setOn(true, animated: false)
                 } else {
                     switchView.setOn(false, animated: false)
@@ -483,7 +477,7 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 switchView.onTintColor = .custom.gold
                 switchView.tintColor = .custom.baseTint
                 switchView.tag = indexPath.row
-                switchView.addTarget(self, action: #selector(self.switchContext4(_:)), for: .valueChanged)
+                switchView.addTarget(self, action: #selector(switchContext4(_:)), for: .valueChanged)
                 cell.accessoryView = switchView
                 cell.selectionStyle = .none
                 cell.textLabel?.isEnabled = true
@@ -504,36 +498,36 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
             } else if indexPath.row == 1 {
                 let cell = tableView.dequeueReusableCell(withIdentifier: "SelectionCell", for: indexPath) as! SelectionCell
                 cell.textLabel?.text = NSLocalizedString("profile.privacy.default", comment: "")
-                cell.detailTextLabel?.text = self.privacyType
+                cell.detailTextLabel?.text = privacyType
                 cell.imageView?.image = UIImage(systemName: "eye")
-                
-                let view0 = UIAction(title: NSLocalizedString("profile.privacy.public", comment: ""), image: UIImage(systemName: "person.2"), identifier: nil) { action in
+
+                let view0 = UIAction(title: NSLocalizedString("profile.privacy.public", comment: ""), image: UIImage(systemName: "person.2"), identifier: nil) { _ in
                     self.privacyType = "Public"
                     self.tableView.reloadRows(at: [IndexPath(row: 1, section: 3)], with: .none)
                 }
                 view0.accessibilityLabel = NSLocalizedString("profile.privacy.public", comment: "")
-                if self.privacyType == "Public" {
+                if privacyType == "Public" {
                     view0.state = .on
                 }
-                let view1 = UIAction(title: NSLocalizedString("profile.privacy.unlisted", comment: ""), image: UIImage(systemName: "lock.open"), identifier: nil) { action in
+                let view1 = UIAction(title: NSLocalizedString("profile.privacy.unlisted", comment: ""), image: UIImage(systemName: "lock.open"), identifier: nil) { _ in
                     self.privacyType = "Unlisted"
                     self.tableView.reloadRows(at: [IndexPath(row: 1, section: 3)], with: .none)
                 }
                 view1.accessibilityLabel = NSLocalizedString("profile.privacy.unlisted", comment: "")
-                if self.privacyType == "Unlisted" {
+                if privacyType == "Unlisted" {
                     view1.state = .on
                 }
-                let view2 = UIAction(title: NSLocalizedString("profile.privacy.private", comment: ""), image: UIImage(systemName: "lock"), identifier: nil) { action in
+                let view2 = UIAction(title: NSLocalizedString("profile.privacy.private", comment: ""), image: UIImage(systemName: "lock"), identifier: nil) { _ in
                     self.privacyType = "Private"
                     self.tableView.reloadRows(at: [IndexPath(row: 1, section: 3)], with: .none)
                 }
                 view2.accessibilityLabel = NSLocalizedString("profile.privacy.private", comment: "")
-                if self.privacyType == "Private" {
+                if privacyType == "Private" {
                     view2.state = .on
                 }
                 let itemMenu1 = UIMenu(title: "", options: [], children: [view0, view1, view2])
                 cell.backgroundButton.menu = itemMenu1
-                
+
                 cell.separatorInset = .zero
                 let bgColorView = UIView()
                 bgColorView.backgroundColor = .custom.baseTint.withAlphaComponent(0.2)
@@ -555,39 +549,39 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
             }
         }
     }
-    
+
     @objc func switchContext1(_ sender: UISwitch!) {
         if sender.isOn {
-            self.context1 = true
+            context1 = true
         } else {
-            self.context1 = false
+            context1 = false
         }
     }
-    
+
     @objc func switchContext2(_ sender: UISwitch!) {
         if sender.isOn {
-            self.context2 = true
+            context2 = true
         } else {
-            self.context2 = false
+            context2 = false
         }
     }
-    
+
     @objc func switchContext3(_ sender: UISwitch!) {
         if sender.isOn {
-            self.context3 = true
+            context3 = true
         } else {
-            self.context3 = false
+            context3 = false
         }
     }
-    
+
     @objc func switchContext4(_ sender: UISwitch!) {
         if sender.isOn {
-            self.context4 = true
+            context4 = true
         } else {
-            self.context4 = false
+            context4 = false
         }
     }
-    
+
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if indexPath.section == 0 {
@@ -600,12 +594,10 @@ class EditProfileViewController: UIViewController, UITableViewDataSource, UITabl
                 cell.altText.becomeFirstResponder()
             }
         }
-        if indexPath.section == 3 && indexPath.row == 2 {
+        if indexPath.section == 3, indexPath.row == 2 {
             let vc = TranslationComposeViewController()
             vc.fromEditProfile = true
-            self.present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
+            present(UINavigationController(rootViewController: vc), animated: true, completion: nil)
         }
     }
-    
 }
-

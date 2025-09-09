@@ -9,7 +9,7 @@
 import Foundation
 
 func processID() -> String {
-    struct StaticHolder {
+    enum StaticHolder {
         static var processIdentifier: Int32? = nil
     }
 
